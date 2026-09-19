@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -6,24 +6,64 @@ import { processSteps } from '../lib/content'
 import Reveal from './ui/Reveal'
 import { Check, Clock } from './ui/icons'
 
+const ProcessSpineScene = lazy(() => import('./three/ProcessSpineScene'))
+
+/** Adım ilerledikçe koyulaşan vurgu rengi */
+const stepColors = ['#e6a13c', '#1668b8', '#0e9484']
+
 gsap.registerPlugin(ScrollTrigger)
 
 export default function Process() {
   const root = useRef<HTMLDivElement>(null)
   const cards = useRef<(HTMLDivElement | null)[]>([])
+  const list = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
+  const [showScene, setShowScene] = useState(false)
 
-  /* Her adım, ekranın ortasına geldiğinde sol paneli devralır */
+  /* Sahneyi yalnızca masaüstünde ve bölüm yaklaştığında kur */
+  useEffect(() => {
+    const el = root.current
+    if (!el) return
+    if (window.innerWidth < 1024) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setShowScene(true)
+          io.disconnect()
+        }
+      },
+      { rootMargin: '300px 0px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+
+  /*
+   * Sol panel, merkez çizgisine en yakın adımı gösterir. Konumlar her karede
+   * ölçüldüğü için sahne geç yüklense ya da yazı tipleri sonradan otursa bile
+   * eşleşme kaymaz.
+   */
   useEffect(() => {
     const ctx = gsap.context(() => {
-      cards.current.forEach((card, i) => {
-        if (!card) return
-        ScrollTrigger.create({
-          trigger: card,
-          start: 'top 60%',
-          end: 'bottom 60%',
-          onToggle: (self) => self.isActive && setActive(i),
-        })
+      ScrollTrigger.create({
+        trigger: list.current as HTMLElement,
+        start: 'top bottom',
+        end: 'bottom top',
+        onUpdate: () => {
+          const mid = window.innerHeight * 0.45
+          let best = 0
+          let bestDistance = Number.POSITIVE_INFINITY
+          cards.current.forEach((card, i) => {
+            if (!card) return
+            const rect = card.getBoundingClientRect()
+            const distance = Math.abs(rect.top + rect.height / 2 - mid)
+            if (distance < bestDistance) {
+              bestDistance = distance
+              best = i
+            }
+          })
+          setActive((prev) => (prev === best ? prev : best))
+        },
       })
     }, root)
     return () => ctx.revert()
@@ -54,7 +94,38 @@ export default function Process() {
         <div className="mt-16 grid gap-10 lg:grid-cols-12 lg:gap-12">
           {/* Sabit kalan özet paneli */}
           <div className="lg:col-span-5">
-            <div className="lg:sticky lg:top-32">
+            <div className="lg:sticky lg:top-28">
+              {/* Temsilî izlem görseli */}
+              <div className="relative mb-8 hidden h-72 overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-b from-white/80 via-brand-50/60 to-sand-100/70 shadow-soft lg:block">
+                <div className="pointer-events-none absolute inset-0 grid-lines opacity-40" />
+                {showScene && (
+                  <Suspense fallback={null}>
+                    <ProcessSpineScene angle={step.angle} color={stepColors[active]} />
+                  </Suspense>
+                )}
+                <div className="pointer-events-none absolute inset-x-5 top-4 flex items-start justify-between">
+                  <span className="font-display text-[0.6rem] font-bold tracking-[0.18em] text-ink-500 uppercase">
+                    Temsilî izlem
+                  </span>
+                  <span
+                    className="font-display text-2xl leading-none font-extrabold tabular-nums transition-colors duration-500"
+                    style={{ color: stepColors[active] }}
+                  >
+                    {step.angle}°
+                  </span>
+                </div>
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white/85 to-transparent" />
+                <div className="pointer-events-none absolute inset-x-5 bottom-4 flex items-center gap-2">
+                  {processSteps.map((s2, i) => (
+                    <span
+                      key={s2.step}
+                      className="h-1 flex-1 rounded-full transition-colors duration-500"
+                      style={{ background: i <= active ? stepColors[i] : 'rgb(194 209 224 / 0.6)' }}
+                    />
+                  ))}
+                </div>
+              </div>
+
               <div className="flex items-end gap-5">
                 <AnimatePresence mode="wait">
                   <motion.span
@@ -94,11 +165,11 @@ export default function Process() {
                 </motion.div>
               </AnimatePresence>
 
-              {/* İlerleme */}
-              <div className="mt-9 flex items-center gap-3">
-                {processSteps.map((s, i) => (
+              {/* İlerleme (mobil) */}
+              <div className="mt-9 flex items-center gap-3 lg:hidden">
+                {processSteps.map((s2, i) => (
                   <span
-                    key={s.step}
+                    key={s2.step}
                     className="h-1 flex-1 overflow-hidden rounded-full bg-ink-200/60"
                     aria-hidden
                   >
@@ -109,11 +180,16 @@ export default function Process() {
                   </span>
                 ))}
               </div>
+
+              <p className="mt-6 hidden max-w-md text-[0.8rem] leading-relaxed text-ink-500 lg:block">
+                Görsel temsilîdir; Schroth programıyla izlenen bir olguda eğrilik takibini anlatır.
+                Sonuçlar kişiye, yaşa ve eğriliğin tipine göre değişir.
+              </p>
             </div>
           </div>
 
           {/* Sırayla geçen adımlar */}
-          <div className="flex flex-col lg:col-span-7">
+          <div ref={list} className="flex flex-col lg:col-span-7">
             {processSteps.map((item, i) => (
               <div
                 key={item.step}

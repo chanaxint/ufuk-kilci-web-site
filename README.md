@@ -38,11 +38,16 @@ npm run model      # assets/spine-draco.glb → public/models/spine.glb (Draco a
 4. **Scoliosis (5)** — "Skolyoz Nedir?", üç anatomik düzlem, sırayla beliren belirti listesi.
 5. **ScoliosisAngles (6)** — Cobb açısına göre eğilen 3B omurga + evre skalası.
 6. **Testimonials (7)** — iki yönde kesintisiz kayan yorum şeridi, üzerine gelince durur.
-7. **Process (8)** — sabit sol panel, scroll ile sırayla devralan üç adım.
+7. **Process (8)** — sabit sol panel, scroll ile sırayla devralan üç adım. Panelde temsilî
+   izlem görseli: adım ilerledikçe 3B omurganın eğriliği azalır (35° → 27° → 18°).
+   Sahne yalnızca masaüstünde ve bölüm yaklaştığında kurulur.
 8. **Services** — imleci takip eden ışık lekeli tedavi kartları.
 9. **About (9)** — bento ızgara: fotoğraf, tanıtım, sayılar, yaklaşım kartları, randevu kutusu.
-10. **Certificates (10)** — prosedürel sıva dokulu loş duvar; ahşap/altın çerçeveler, mühürlü
-    kâğıt sertifikalar, fare hareketine bağlı CSS 3B paralaks ve imleci takip eden sıcak ışık.
+10. **Certificates (10)** — prosedürel sıva dokulu loş duvar; ahşap/altın çerçeveler içinde
+    sertifika görselleri, altlarında pirinç künyeler, fare hareketine bağlı CSS 3B paralaks ve
+    imleci takip eden sıcak ışık. Görseller `content.ts` içindeki `credentials[].image`
+    alanından gelir; şu an hepsi `public/images/sertifika-ornek.jpg` (örnek görsel) —
+    gerçek belgeler geldiğinde yalnızca bu alanlar değiştirilecek.
 11. **Faq**, **Contact (11)** (WhatsApp'a hazır mesaj gönderen randevu formu), **Footer**.
 12. Mobilde ekran altına sabitlenen hızlı iletişim çubuğu.
 

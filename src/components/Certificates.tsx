@@ -5,11 +5,11 @@ import Reveal from './ui/Reveal'
 
 /** Her çerçeveye farklı derinlik ve eğim vererek duvarda asılı hissi verilir. */
 const frameStyles = [
-  { depth: 26, rotate: -1.1, width: 'w-[9.5rem] sm:w-[13rem] lg:w-[16.5rem]', offset: 'lg:mt-14' },
-  { depth: 54, rotate: 0.8, width: 'w-[9rem] sm:w-[12.5rem] lg:w-[15.5rem]', offset: 'lg:mt-0' },
-  { depth: 12, rotate: -0.6, width: 'w-[9.5rem] sm:w-[13.5rem] lg:w-[17rem]', offset: 'lg:mt-20' },
-  { depth: 42, rotate: 1.2, width: 'w-[9rem] sm:w-[12.5rem] lg:w-[16rem]', offset: 'lg:mt-6' },
-  { depth: 20, rotate: -0.9, width: 'w-[9rem] sm:w-[12rem] lg:w-[15rem]', offset: 'lg:mt-2' },
+  { depth: 26, rotate: -1.1, width: 'w-[16rem] sm:w-[17rem] lg:w-[19rem]', offset: 'lg:mt-10' },
+  { depth: 54, rotate: 0.8, width: 'w-[15rem] sm:w-[16rem] lg:w-[18rem]', offset: 'lg:mt-0' },
+  { depth: 12, rotate: -0.6, width: 'w-[16rem] sm:w-[17.5rem] lg:w-[19.5rem]', offset: 'lg:mt-16' },
+  { depth: 42, rotate: 1.2, width: 'w-[15rem] sm:w-[16.5rem] lg:w-[18.5rem]', offset: 'lg:mt-4' },
+  { depth: 20, rotate: -0.9, width: 'w-[15rem] sm:w-[16rem] lg:w-[18rem]', offset: 'lg:mt-2' },
 ]
 
 function Certificate({
@@ -55,57 +55,24 @@ function Certificate({
               background: 'linear-gradient(145deg,#d9b877,#8a6c3c 45%,#e7ce9a 70%,#9c7c48)',
             }}
           >
-            {/* Paspartu */}
+            {/* Paspartu ve belge */}
             <div
-              className="relative overflow-hidden px-2.5 py-3 sm:px-4 sm:py-5"
+              className="relative overflow-hidden p-2 sm:p-2.5"
               style={{
                 background: 'linear-gradient(160deg,#fbf7ef 0%,#f2ebdd 60%,#e9e0cf 100%)',
                 boxShadow: '0 2px 10px rgba(60,44,24,0.28) inset',
               }}
             >
-              {/* Kâğıt */}
-              <div className="relative flex aspect-[3/4] flex-col justify-between bg-[#fffdf8] px-3 py-4 shadow-[0_1px_4px_rgba(60,44,24,0.18)] sm:px-4 sm:py-5">
-                <div>
-                  <span className="block text-center font-display text-[0.42rem] leading-tight font-bold tracking-[0.2em] text-[#8a7350] uppercase sm:text-[0.5rem] sm:tracking-[0.24em]">
-                    {item.org}
-                  </span>
-                  <span className="mx-auto mt-1.5 block h-px w-8 bg-[#c9b48a] sm:mt-2 sm:w-10" />
-                  <p className="mt-2 text-center font-display text-[0.62rem] leading-snug font-extrabold text-[#2c2317] sm:mt-3 sm:text-[0.76rem]">
-                    {item.title}
-                  </p>
-                  <p className="mt-2 hidden text-center text-[0.56rem] tracking-[0.06em] text-[#7a684c] sm:block">
-                    Bu belge {doctor.name} adına düzenlenmiştir.
-                  </p>
-                </div>
-
-                <div className="flex items-end justify-between">
-                  {/* İmza */}
-                  <svg viewBox="0 0 70 24" className="h-4 w-12 text-[#4a3d28] sm:h-5 sm:w-16">
-                    <path
-                      d="M2 18c6-2 9-12 13-12s3 12 8 12 7-10 11-10 4 8 9 8 6-6 10-8 5 1 5 1"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.3"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-
-                  {/* Mühür */}
-                  <span
-                    className="grid size-7 shrink-0 place-items-center rounded-full font-display text-[0.42rem] font-extrabold tracking-[0.06em] text-[#7d3f2c] sm:size-9 sm:text-[0.5rem]"
-                    style={{
-                      background: 'radial-gradient(circle at 35% 30%,#e8c6a0,#c98f63 60%,#a86b45)',
-                      boxShadow: '0 1px 3px rgba(60,30,10,0.45), 0 0 0 1px rgba(255,255,255,0.35) inset',
-                    }}
-                  >
-                    {item.year}
-                  </span>
-                </div>
-              </div>
+              <img
+                src={item.image}
+                alt={`${item.title} — ${item.org}`}
+                loading="lazy"
+                className="block w-full object-cover shadow-[0_1px_4px_rgba(60,44,24,0.25)]"
+              />
 
               {/* Cam parlaması */}
               <span
-                className="pointer-events-none absolute inset-0 opacity-45 transition-opacity duration-700 group-hover:opacity-25"
+                className="pointer-events-none absolute inset-0 opacity-45 transition-opacity duration-700 group-hover:opacity-20"
                 style={{
                   background:
                     'linear-gradient(112deg,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0.12) 26%,transparent 44%,rgba(255,255,255,0.18) 72%,transparent 88%)',
@@ -115,11 +82,19 @@ function Certificate({
           </div>
         </div>
 
-        {/* Duvara düşen gölge */}
-        <span
-          className="pointer-events-none absolute inset-x-3 -bottom-2 h-6 rounded-[50%] blur-md"
-          style={{ background: 'rgba(30,18,6,0.35)' }}
-        />
+        {/* Çerçevenin altındaki pirinç künye */}
+        <div className="mt-3 flex justify-center">
+          <span
+            className="max-w-full rounded-[2px] px-3 py-1.5 text-center font-display text-[0.56rem] leading-tight font-bold tracking-[0.1em] text-[#3a2c18] uppercase"
+            style={{
+              background: 'linear-gradient(145deg,#e4cd9b,#b99a63 45%,#f0dcb0 70%,#a98e5d)',
+              boxShadow: '0 2px 5px rgba(30,18,6,0.4), 0 1px 0 rgba(255,255,255,0.4) inset',
+            }}
+          >
+            {item.year} · {item.title}
+          </span>
+        </div>
+
       </div>
     </motion.div>
   )

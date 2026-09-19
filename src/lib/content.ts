@@ -97,6 +97,7 @@ export const processSteps = [
     description:
       'Şikâyetin hikâyesi, görüntüleme raporları ve hareket analizi birlikte okunur. Postür, eklem hareket açıklığı, kas kısalıkları ve yük dağılımı ölçülerek kaydedilir; böylece ilerlemeyi kıyaslayacağımız bir başlangıç noktası oluşur.',
     duration: '45 dk',
+    angle: 35,
     points: ['Statik ve dinamik postür ölçümü', 'Hareket açıklığı testleri', 'Adams testi & skolyometre'],
   },
   {
@@ -105,6 +106,7 @@ export const processSteps = [
     description:
       'Bulgular sizinle birlikte yorumlanır. Hedefler, seans sıklığı ve beklenen süre net bir takvime dönüşür; hangi tekniğin neden seçildiğini bilerek başlarsınız.',
     duration: 'Aynı gün',
+    angle: 27,
     points: ['Ölçülebilir hedefler', 'Seans takvimi', 'Ev programının ilk sürümü'],
   },
   {
@@ -113,6 +115,7 @@ export const processSteps = [
     description:
       'Manuel terapi, osteopatik teknikler ve egzersiz tek bir program içinde yürütülür. Her kontrol seansında ölçüm tekrarlanır ve protokol buna göre güncellenir.',
     duration: '4–12 seans',
+    angle: 18,
     points: ['Eklem mobilizasyonu', 'Miyofasyal teknikler', 'Ölçümle güncellenen egzersiz'],
   },
 ]
@@ -191,16 +194,43 @@ export const faqs = [
   },
 ]
 
+/**
+ * Sertifika görselleri. Gerçek belgeler geldiğinde `image` alanını
+ * public/images altındaki dosyayla değiştirmek yeterli.
+ */
+const SAMPLE_CERTIFICATE = '/images/sertifika-ornek.jpg'
+
 export const credentials = [
   {
     year: '2012',
     title: 'Fizyoterapi ve Rehabilitasyon Lisans',
     org: 'Sağlık Bilimleri Fakültesi',
+    image: SAMPLE_CERTIFICATE,
   },
-  { year: '2015', title: 'Manuel Terapi Sertifikasyonu', org: 'Uluslararası Manuel Terapi Derneği' },
-  { year: '2018', title: 'Osteopati Eğitimi (D.O.)', org: 'Osteopatik Tıp Akademisi' },
-  { year: '2021', title: 'Kuru İğneleme & Ağrı Bilimi', org: 'Klinik Uygulamalı Eğitim Programı' },
-  { year: '2023', title: 'Schroth Metodu — Skolyoz Rehabilitasyonu', org: 'Uluslararası Schroth Eğitim Enstitüsü' },
+  {
+    year: '2015',
+    title: 'Manuel Terapi Sertifikasyonu',
+    org: 'Uluslararası Manuel Terapi Derneği',
+    image: SAMPLE_CERTIFICATE,
+  },
+  {
+    year: '2018',
+    title: 'Osteopati Eğitimi (D.O.)',
+    org: 'Osteopatik Tıp Akademisi',
+    image: SAMPLE_CERTIFICATE,
+  },
+  {
+    year: '2021',
+    title: 'Kuru İğneleme & Ağrı Bilimi',
+    org: 'Klinik Uygulamalı Eğitim Programı',
+    image: SAMPLE_CERTIFICATE,
+  },
+  {
+    year: '2023',
+    title: 'Schroth Metodu — Skolyoz Rehabilitasyonu',
+    org: 'Uluslararası Schroth Eğitim Enstitüsü',
+    image: SAMPLE_CERTIFICATE,
+  },
 ]
 
 export const philosophy = [

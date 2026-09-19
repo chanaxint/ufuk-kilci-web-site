@@ -163,10 +163,10 @@ export default function SpineStage() {
                       <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
                     </a>
                     <a
-                      href="#tedaviler"
+                      href="#skolyoz"
                       className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white/60 px-7 py-3.5 font-display text-[0.95rem] font-bold text-ink-800 backdrop-blur transition-colors hover:border-brand-400 hover:text-brand-700"
                     >
-                      Tedavi Alanları
+                      Skolyoz Tedavisi
                       <ArrowDown className="size-4" />
                     </a>
                   </div>

@@ -13,6 +13,7 @@ export const doctor = {
 }
 
 export const navLinks = [
+  { label: 'Skolyoz', href: '#skolyoz' },
   { label: 'Hakkımda', href: '#hakkimda' },
   { label: 'Tedaviler', href: '#tedaviler' },
   { label: 'Süreç', href: '#surec' },
@@ -263,5 +264,55 @@ export const stageBeats = [
         text: 'Eğriliğin derecesi, takip sıklığı ve tedavi eşiği — hemen aşağıda.',
       },
     ],
+  },
+]
+
+/** Taslaktaki 5. bölüm — Skolyoz Nedir? */
+export const scoliosis = {
+  definition:
+    'Skolyoz, omurganın sağa ya da sola doğru 10 dereceden fazla eğilmesi ve aynı anda kendi ekseni etrafında dönmesidir. Yani yalnızca bir "eğrilik" değil; üç boyutlu bir şekil bozukluğudur.',
+  note: 'Bu yüzden tedavi de tek düzlemde değil, üç boyutta planlanır.',
+  symptoms: [
+    'Omuz ve kürek kemiği yüksekliklerinin birbirinden farklı olması',
+    'Bir kürek kemiğinin diğerine göre daha belirgin çıkıntı yapması',
+    'Öne doğru eğilindiğinde sırtta asimetri ya da kaburgada çıkıntı görülmesi',
+    'Gövdenin bir tarafa doğru kaymış görünmesi',
+    'Bel çukurlarının ve kalça yüksekliğinin eşit olmaması',
+  ],
+}
+
+/** Taslaktaki 6. bölüm — Cobb açısına göre evreler */
+export const angleStages = [
+  {
+    max: 10,
+    label: 'Eğrilik sayılmaz',
+    range: '0° – 10°',
+    color: '#0e9484',
+    text: 'On derecenin altındaki sapmalar skolyoz olarak tanımlanmaz. Duruş alışkanlıkları ve kas dengesizlikleri değerlendirilir.',
+    action: 'Postür eğitimi ve genel egzersiz',
+  },
+  {
+    max: 25,
+    label: 'Hafif skolyoz',
+    range: '10° – 25°',
+    color: '#1668b8',
+    text: 'Skolyoz tanısının başladığı aralık. Büyüme çağında ilerleme riski nedeniyle düzenli takip gerekir.',
+    action: 'Schroth egzersizleri ve 6 aylık takip',
+  },
+  {
+    max: 40,
+    label: 'Orta derece skolyoz',
+    range: '25° – 40°',
+    color: '#e6a13c',
+    text: 'Eğriliğin ilerlemesini durdurmak öncelik hâline gelir. Egzersiz programı çoğu zaman korse ile birlikte yürütülür.',
+    action: 'Yoğun Schroth programı + korse değerlendirmesi',
+  },
+  {
+    max: 100,
+    label: 'İleri derece skolyoz',
+    range: '40° ve üzeri',
+    color: '#c9822a',
+    text: 'Solunum kapasitesi ve gövde dengesi etkilenebilir. Tedavi, ortopedi hekimiyle birlikte planlanır.',
+    action: 'Cerrahi değerlendirme ve destekleyici fizyoterapi',
   },
 ]

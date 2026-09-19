@@ -4,6 +4,8 @@ import Preloader from './components/Preloader'
 import Navbar from './components/Navbar'
 import ScrollProgress from './components/ScrollProgress'
 import SpineStage from './components/SpineStage'
+import Scoliosis from './components/Scoliosis'
+import ScoliosisAngles from './components/ScoliosisAngles'
 import About from './components/About'
 import Services from './components/Services'
 import Process from './components/Process'
@@ -49,6 +51,8 @@ export default function App() {
         transition={{ duration: 0.8, delay: loading ? 0 : 0.15, ease: [0.16, 1, 0.3, 1] }}
       >
         <SpineStage />
+        <Scoliosis />
+        <ScoliosisAngles />
         <About />
         <Services />
         <Process />

@@ -3,8 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import Preloader from './components/Preloader'
 import Navbar from './components/Navbar'
 import ScrollProgress from './components/ScrollProgress'
-import Hero from './components/Hero'
-import SpineSection from './components/SpineSection'
+import SpineStage from './components/SpineStage'
 import About from './components/About'
 import Services from './components/Services'
 import Process from './components/Process'
@@ -37,7 +36,7 @@ export default function App() {
 
       {/*
         NOT: Scroll'a bağlı omurga video girişi (scroll-bound intro) buraya,
-        <Navbar /> ile <Hero /> arasına gelecek. Video dosyası projeye eklendiğinde
+        <Navbar /> ile <SpineStage /> arasına gelecek. Video dosyası projeye eklendiğinde
         <VideoIntro /> bileşeni bu noktaya yerleştirilecek.
       */}
 
@@ -49,8 +48,7 @@ export default function App() {
         animate={{ opacity: loading ? 0 : 1 }}
         transition={{ duration: 0.8, delay: loading ? 0 : 0.15, ease: [0.16, 1, 0.3, 1] }}
       >
-        <Hero />
-        <SpineSection />
+        <SpineStage />
         <About />
         <Services />
         <Process />

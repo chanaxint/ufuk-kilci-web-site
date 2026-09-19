@@ -1,9 +1,16 @@
 import { useEffect } from 'react'
 import Lenis from 'lenis'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
 
 /**
- * Sayfa genelinde akıcı kaydırma. Kullanıcı "azaltılmış hareket" tercihi
- * belirtmişse devre dışı kalır.
+ * Sayfa genelinde akıcı kaydırma (Lenis) ve GSAP ScrollTrigger entegrasyonu.
+ * Lenis kendi rAF döngüsü yerine GSAP ticker'ı üzerinden sürülür; böylece
+ * ScrollTrigger tetikleyicileri kaydırma ile birebir aynı karede güncellenir.
+ * "Azaltılmış hareket" tercihinde Lenis devre dışı kalır, ScrollTrigger
+ * tarayıcının doğal kaydırmasıyla çalışmaya devam eder.
  */
 export function useSmoothScroll(enabled = true) {
   useEffect(() => {
@@ -11,18 +18,16 @@ export function useSmoothScroll(enabled = true) {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
     const lenis = new Lenis({
-      duration: 1.1,
+      duration: 1.15,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       wheelMultiplier: 0.95,
       touchMultiplier: 1.4,
     })
 
-    let raf = 0
-    const loop = (time: number) => {
-      lenis.raf(time)
-      raf = requestAnimationFrame(loop)
-    }
-    raf = requestAnimationFrame(loop)
+    lenis.on('scroll', ScrollTrigger.update)
+    const tick = (time: number) => lenis.raf(time * 1000)
+    gsap.ticker.add(tick)
+    gsap.ticker.lagSmoothing(0)
 
     /* Çapa bağlantıları Lenis üzerinden yumuşakça çalışsın */
     const onClick = (e: MouseEvent) => {
@@ -37,9 +42,11 @@ export function useSmoothScroll(enabled = true) {
     }
     document.addEventListener('click', onClick)
 
+    ScrollTrigger.refresh()
+
     return () => {
       document.removeEventListener('click', onClick)
-      cancelAnimationFrame(raf)
+      gsap.ticker.remove(tick)
       lenis.destroy()
     }
   }, [enabled])

@@ -14,7 +14,6 @@ export const doctor = {
 
 export const navLinks = [
   { label: 'Hakkımda', href: '#hakkimda' },
-  { label: 'Omurga Haritası', href: '#omurga' },
   { label: 'Tedaviler', href: '#tedaviler' },
   { label: 'Süreç', href: '#surec' },
   { label: 'Yorumlar', href: '#yorumlar' },
@@ -210,4 +209,59 @@ export const complaintOptions = [
   'Spor yaralanması',
   'Ameliyat sonrası rehabilitasyon',
   'Diğer',
+]
+
+/** Scroll'a bağlı 3B omurga sahnesindeki metin durakları (taslaktaki 2, 3 ve 4 numaralı bölümler) */
+export const stageBeats = [
+  {
+    id: 'deneyim',
+    items: [
+      {
+        align: 'left' as const,
+        kicker: '12+',
+        title: 'Yıllık Deneyim',
+        text: 'Kliniğe adım atan her hasta, aynı titizlikte değerlendirilen bir hikâye.',
+      },
+      {
+        align: 'right' as const,
+        kicker: '4.500+',
+        title: 'Tamamlanan Seans',
+        text: 'Manuel terapi, osteopati ve egzersiz; ölçülerek ilerleyen binlerce seans.',
+      },
+    ],
+  },
+  {
+    id: 'yontemler',
+    items: [
+      {
+        align: 'left' as const,
+        kicker: 'Schroth',
+        title: 'Schroth Tedavisi',
+        text: 'Skolyozda üç boyutlu postür düzeltme ve rotasyonel solunum egzersizleri.',
+      },
+      {
+        align: 'right' as const,
+        kicker: 'Osteopati',
+        title: 'Osteopatik Tedavi',
+        text: 'Vücudu tek bir bütün olarak okuyan yapısal, kraniyosakral ve viseral teknikler.',
+      },
+    ],
+  },
+  {
+    id: 'egzersiz',
+    items: [
+      {
+        align: 'left' as const,
+        kicker: 'Bireysel',
+        title: 'Kişiye Özel Egzersiz',
+        text: 'Klinikte öğrenilen, evde sürdürülen; her kontrolde sadeleşen bir program.',
+      },
+      {
+        align: 'right' as const,
+        kicker: 'Sıradaki',
+        title: 'Skolyoz Nedir?',
+        text: 'Eğriliğin derecesi, takip sıklığı ve tedavi eşiği — hemen aşağıda.',
+      },
+    ],
+  },
 ]

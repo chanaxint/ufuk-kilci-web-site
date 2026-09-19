@@ -10,7 +10,7 @@ uzay veya cyberpunk temalardan kaçınır.
 | --- | --- |
 | Uygulama | React 19 + TypeScript + Vite 7 |
 | Stil | Tailwind CSS v4 (`src/index.css` içinde `@theme` ile tanımlı tasarım sistemi) |
-| Animasyon | Motion (framer-motion v12) |
+| Animasyon | Motion (framer-motion v12) + GSAP ScrollTrigger |
 | Akıcı kaydırma | Lenis |
 | 3B | three.js + @react-three/fiber + @react-three/drei |
 | Tipografi | Manrope (başlık) + Inter (gövde) — Google Fonts |
@@ -34,9 +34,11 @@ npm run model      # assets/spine-draco.glb → public/models/spine.glb (Draco a
    kayarak sahneyi açar.
 2. _(Ayrılmış alan)_ **Scroll-bound video intro** — omurga videosu projeye eklendiğinde
    `App.tsx` içindeki işaretli yoruma `<VideoIntro />` olarak yerleştirilecek.
-3. **Hero** — başlık, çağrı butonları, animasyonlu omurga vektörü, sayaçlı istatistik şeridi,
-   uzmanlık şeridi (marquee).
-4. **Etkileşimli Omurga Haritası** — 3B model (aşağıda).
+3. **Scroll'a bağlı 3B omurga sahnesi** (taslaktaki 1–4. bölümler) — `SpineStage`.
+   4,6 ekran boyunda bir bölüm; içindeki sahne `sticky`. GSAP ScrollTrigger scroll
+   ilerlemesini (0→1) bir ref'e yazar, R3F her karede bu değeri okuyup modelin konum,
+   ölçek ve dönüşünü keyframe'ler arasında yumuşatır (kare başına React render'ı yok).
+   Dört "durak": giriş → 12+ yıl / 4.500+ seans → Schroth / Osteopati → kişiye özel egzersiz.
 5. **Hakkımda** — doktor fotoğrafı, yaklaşım kartları, eğitim & sertifika listesi.
 6. **Tedavi Alanları** — imleci takip eden ışık lekeli (spotlight) kartlar.
 7. **Süreç** — kaydırmayla dolan dikey zaman çizelgesi.
@@ -51,7 +53,11 @@ npm run model      # assets/spine-draco.glb → public/models/spine.glb (Draco a
 - Sahne `React.lazy` ile yükleniyor ve WebGL bağlamı yalnızca bölüm görünüme yaklaşınca kuruluyor
   (three.js ana pakete girmiyor, ayrı chunk olarak geliyor).
 - **Döndürme / yakınlaştırma:** `OrbitControls` (pan kapalı, seçim yokken yavaş otomatik dönüş).
-- **Tıklama ile parça adı:** Model tek parça (single-mesh) bir GLB olduğundan omurlar ayrı node
+- **Exploded view:** Model tek parça geldiği için üçgenler, ağırlık merkezlerinin
+  yüksekliğine göre dört anatomik bölgeye ayrılıp ayrı BufferGeometry'lere bölünür
+  (`src/lib/spineGeometry.ts`). Üzerine gelinen bölge dışa kayar, komşuları hafifçe
+  uzaklaşır, bölge rengiyle vurgulanır ve `drei/Html` ile camsı bir etiket açılır.
+- **Bölge eşlemesi:** Model tek parça (single-mesh) bir GLB olduğundan omurlar ayrı node
   olarak gelmiyor. Bu yüzden raycast sonucu gelen kesişim noktası modelin yerel yükseklik oranına
   çevriliyor ve `src/lib/spine.ts` içindeki anatomik haritaya eşleniyor:
 

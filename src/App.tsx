@@ -5,6 +5,7 @@ import Navbar from './components/Navbar'
 import ScrollProgress from './components/ScrollProgress'
 import SpineStage from './components/SpineStage'
 import Scoliosis from './components/Scoliosis'
+import Certificates from './components/Certificates'
 import ScoliosisAngles from './components/ScoliosisAngles'
 import About from './components/About'
 import Services from './components/Services'
@@ -53,10 +54,11 @@ export default function App() {
         <SpineStage />
         <Scoliosis />
         <ScoliosisAngles />
-        <About />
-        <Services />
-        <Process />
         <Testimonials />
+        <Process />
+        <Services />
+        <About />
+        <Certificates />
         <Faq />
         <Contact />
       </motion.main>

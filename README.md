@@ -28,22 +28,23 @@ npm run model      # assets/spine-draco.glb → public/models/spine.glb (Draco a
 
 ## Sayfa yapısı
 
-`src/App.tsx` sıralamayı belirler:
+`src/App.tsx` sıralamayı belirler (parantez içindekiler taslaktaki bölüm numaraları):
 
 1. **Preloader** — doktorun adı ve unvanı harf harf açılır, ilerleme çubuğu dolar, ekran yukarı
    kayarak sahneyi açar.
 2. _(Ayrılmış alan)_ **Scroll-bound video intro** — omurga videosu projeye eklendiğinde
    `App.tsx` içindeki işaretli yoruma `<VideoIntro />` olarak yerleştirilecek.
-3. **Scroll'a bağlı 3B omurga sahnesi** (taslaktaki 1–4. bölümler) — `SpineStage`.
-   4,6 ekran boyunda bir bölüm; içindeki sahne `sticky`. GSAP ScrollTrigger scroll
-   ilerlemesini (0→1) bir ref'e yazar, R3F her karede bu değeri okuyup modelin konum,
-   ölçek ve dönüşünü keyframe'ler arasında yumuşatır (kare başına React render'ı yok).
-   Dört "durak": giriş → 12+ yıl / 4.500+ seans → Schroth / Osteopati → kişiye özel egzersiz.
-5. **Hakkımda** — doktor fotoğrafı, yaklaşım kartları, eğitim & sertifika listesi.
-6. **Tedavi Alanları** — imleci takip eden ışık lekeli (spotlight) kartlar.
-7. **Süreç** — kaydırmayla dolan dikey zaman çizelgesi.
-8. **Yorumlar**, **S.S.S.**, **İletişim** (WhatsApp'a hazır mesaj gönderen form), **Footer**.
-9. Mobilde ekran altına sabitlenen hızlı iletişim çubuğu.
+3. **SpineStage (1–4)** — sticky 3B sahne, GSAP ScrollTrigger ile sürülen dört durak.
+4. **Scoliosis (5)** — "Skolyoz Nedir?", üç anatomik düzlem, sırayla beliren belirti listesi.
+5. **ScoliosisAngles (6)** — Cobb açısına göre eğilen 3B omurga + evre skalası.
+6. **Testimonials (7)** — iki yönde kesintisiz kayan yorum şeridi, üzerine gelince durur.
+7. **Process (8)** — sabit sol panel, scroll ile sırayla devralan üç adım.
+8. **Services** — imleci takip eden ışık lekeli tedavi kartları.
+9. **About (9)** — bento ızgara: fotoğraf, tanıtım, sayılar, yaklaşım kartları, randevu kutusu.
+10. **Certificates (10)** — prosedürel sıva dokulu loş duvar; ahşap/altın çerçeveler, mühürlü
+    kâğıt sertifikalar, fare hareketine bağlı CSS 3B paralaks ve imleci takip eden sıcak ışık.
+11. **Faq**, **Contact (11)** (WhatsApp'a hazır mesaj gönderen randevu formu), **Footer**.
+12. Mobilde ekran altına sabitlenen hızlı iletişim çubuğu.
 
 ## Etkileşimli 3B omurga
 

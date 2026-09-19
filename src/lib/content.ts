@@ -14,10 +14,10 @@ export const doctor = {
 
 export const navLinks = [
   { label: 'Skolyoz', href: '#skolyoz' },
-  { label: 'Hakkımda', href: '#hakkimda' },
-  { label: 'Tedaviler', href: '#tedaviler' },
   { label: 'Süreç', href: '#surec' },
-  { label: 'Yorumlar', href: '#yorumlar' },
+  { label: 'Tedaviler', href: '#tedaviler' },
+  { label: 'Hakkımda', href: '#hakkimda' },
+  { label: 'Sertifikalar', href: '#sertifikalar' },
   { label: 'S.S.S.', href: '#sss' },
 ]
 
@@ -93,31 +93,27 @@ export const services = [
 export const processSteps = [
   {
     step: '01',
-    title: 'Detaylı Değerlendirme',
+    title: 'Detaylı Postür Analizi',
     description:
-      'Hikâyeniz, görüntüleme sonuçlarınız ve hareket analiziniz birlikte okunur. 45 dakikalık ilk seans tamamen sizi anlamaya ayrılır.',
+      'Şikâyetin hikâyesi, görüntüleme raporları ve hareket analizi birlikte okunur. Postür, eklem hareket açıklığı, kas kısalıkları ve yük dağılımı ölçülerek kaydedilir; böylece ilerlemeyi kıyaslayacağımız bir başlangıç noktası oluşur.',
     duration: '45 dk',
+    points: ['Statik ve dinamik postür ölçümü', 'Hareket açıklığı testleri', 'Adams testi & skolyometre'],
   },
   {
     step: '02',
-    title: 'Tedavi Planı',
+    title: 'Kişiye Özel Protokol Tasarımı',
     description:
-      'Bulgular sizinle birlikte yorumlanır; hedefler, seans sıklığı ve beklenen süre net bir takvime dönüşür.',
+      'Bulgular sizinle birlikte yorumlanır. Hedefler, seans sıklığı ve beklenen süre net bir takvime dönüşür; hangi tekniğin neden seçildiğini bilerek başlarsınız.',
     duration: 'Aynı gün',
+    points: ['Ölçülebilir hedefler', 'Seans takvimi', 'Ev programının ilk sürümü'],
   },
   {
     step: '03',
-    title: 'Uygulama',
+    title: 'Bütüncül Manuel Terapi',
     description:
-      'Manuel terapi, osteopatik teknikler ve egzersiz; her seansta ölçülen ilerlemeye göre güncellenir.',
+      'Manuel terapi, osteopatik teknikler ve egzersiz tek bir program içinde yürütülür. Her kontrol seansında ölçüm tekrarlanır ve protokol buna göre güncellenir.',
     duration: '4–12 seans',
-  },
-  {
-    step: '04',
-    title: 'Kalıcılık & Takip',
-    description:
-      'Kazanımı korumak için ev programı, ergonomi düzenlemesi ve kontrol seanslarıyla süreç kapanır.',
-    duration: 'Süresiz takip',
+    points: ['Eklem mobilizasyonu', 'Miyofasyal teknikler', 'Ölçümle güncellenen egzersiz'],
   },
 ]
 
@@ -145,6 +141,30 @@ export const testimonials = [
     role: 'Yazılım Geliştirici',
     quote:
       'Masa başı duruşumun ne yaptığını ilk kez birinden net şekilde duydum. Ev egzersizleri kısa ve uygulanabilir, o yüzden gerçekten yapıyorum.',
+  },
+  {
+    name: 'Zeynep T.',
+    role: '16 yaşında hastanın annesi',
+    quote:
+      'Kızımın skolyoz açısı bir yılda ilerlemedi. Schroth egzersizlerini ona sabırla öğretmesi bu işin yarısıydı.',
+  },
+  {
+    name: 'Burak S.',
+    role: 'Şef',
+    quote:
+      'Günde on saat ayaktayım. Bel ağrım için verilen program mutfaktaki düzenime göre kurgulandı; iki ayda ağrısız çalışmaya başladım.',
+  },
+  {
+    name: 'Nihan K.',
+    role: 'Yoga Eğitmeni',
+    quote:
+      'Kalça sıkışmamın kaynağının sırtımda olduğunu burada öğrendim. Bölgeye değil zincire bakması işi çözdü.',
+  },
+  {
+    name: 'Serkan A.',
+    role: 'Emekli',
+    quote:
+      'Yürüyüş mesafem 200 metreye düşmüştü. Üç aylık programın sonunda parkta bir saat yürüyorum.',
   },
 ]
 
@@ -180,6 +200,7 @@ export const credentials = [
   { year: '2015', title: 'Manuel Terapi Sertifikasyonu', org: 'Uluslararası Manuel Terapi Derneği' },
   { year: '2018', title: 'Osteopati Eğitimi (D.O.)', org: 'Osteopatik Tıp Akademisi' },
   { year: '2021', title: 'Kuru İğneleme & Ağrı Bilimi', org: 'Klinik Uygulamalı Eğitim Programı' },
+  { year: '2023', title: 'Schroth Metodu — Skolyoz Rehabilitasyonu', org: 'Uluslararası Schroth Eğitim Enstitüsü' },
 ]
 
 export const philosophy = [

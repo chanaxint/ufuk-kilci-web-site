@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { testimonials } from '../lib/content'
 import Reveal from './ui/Reveal'
 import { Star } from './ui/icons'
@@ -29,13 +30,21 @@ function QuoteCard({ item }: { item: Item }) {
 /** Kesintisiz kayan şerit; üzerine gelindiğinde yavaşlar. */
 function Row({ items, reverse = false, duration }: { items: Item[]; reverse?: boolean; duration: number }) {
   const doubled = [...items, ...items]
+  /* animation kısaltması satır içinde verildiği için duraklatma da satır içi olmalı */
+  const [paused, setPaused] = useState(false)
+
   return (
-    <div className="group flex overflow-hidden py-3 [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]">
+    <div
+      className="flex overflow-hidden py-3 [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
       <div
-        className="flex w-max gap-5 group-hover:[animation-play-state:paused] motion-reduce:animate-none"
+        className="flex w-max gap-5 motion-reduce:animate-none"
         style={{
           animation: `marquee ${duration}s linear infinite`,
           animationDirection: reverse ? 'reverse' : 'normal',
+          animationPlayState: paused ? 'paused' : 'running',
         }}
       >
         {doubled.map((item, i) => (

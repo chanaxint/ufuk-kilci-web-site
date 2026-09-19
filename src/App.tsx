@@ -43,6 +43,13 @@ export default function App() {
         <VideoIntro /> bileşeni bu noktaya yerleştirilecek.
       */}
 
+      <a
+        href="#top"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[90] focus:rounded-full focus:bg-ink-900 focus:px-5 focus:py-3 focus:font-display focus:text-sm focus:font-bold focus:text-sand-50"
+      >
+        İçeriğe geç
+      </a>
+
       <ScrollProgress />
       <Navbar />
 

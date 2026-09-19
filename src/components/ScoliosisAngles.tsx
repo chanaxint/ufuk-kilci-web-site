@@ -117,7 +117,7 @@ export default function ScoliosisAngles() {
                       type="button"
                       onClick={() => setAngle(tick)}
                       className={`font-display text-[0.78rem] font-bold tabular-nums transition-colors duration-300 ${
-                        angle === tick ? 'text-ink-900' : 'text-ink-300 hover:text-ink-600'
+                        angle === tick ? 'text-ink-900' : 'text-ink-500 hover:text-ink-800'
                       }`}
                     >
                       {tick}

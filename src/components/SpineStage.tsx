@@ -56,7 +56,7 @@ export default function SpineStage() {
   const activeBeat = beat > 0 ? stageBeats[beat - 1] : null
 
   return (
-    <section id="top" ref={stageRef} className="relative h-[460vh]">
+    <section id="top" ref={stageRef} className="relative h-[380vh] lg:h-[460vh]">
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         {/* Aurora zemin */}
         <div className="pointer-events-none absolute inset-0 -z-10">
@@ -132,7 +132,7 @@ export default function SpineStage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -30, filter: 'blur(6px)' }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="pointer-events-none absolute inset-0 flex items-center"
+              className="pointer-events-none absolute inset-0 flex items-end pb-28 lg:items-center lg:pb-0"
             >
               <div className="section-shell">
                 <div className="max-w-2xl">
@@ -210,9 +210,9 @@ export default function SpineStage() {
                           <span className="font-display text-[clamp(1.6rem,7vw,3.4rem)] leading-none font-extrabold tracking-[-0.03em] gradient-text">
                             {item.kicker}
                           </span>
-                          <h2 className="mt-1.5 font-display text-xl font-extrabold tracking-[-0.02em] text-ink-900 sm:text-2xl lg:mt-3 lg:text-3xl">
+                          <p className="mt-1.5 font-display text-xl font-extrabold tracking-[-0.02em] text-ink-900 sm:text-2xl lg:mt-3 lg:text-3xl">
                             {item.title}
-                          </h2>
+                          </p>
                           <p className="mt-2 text-[0.9rem] leading-relaxed text-ink-600 lg:mt-3 lg:text-[0.98rem]">
                             {item.text}
                           </p>
@@ -227,7 +227,7 @@ export default function SpineStage() {
         </div>
 
         {/* Alt bilgi çubuğu */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-6 flex justify-center">
+        <div className="pointer-events-none absolute inset-x-0 bottom-24 flex justify-center sm:bottom-6">
           <AnimatePresence mode="wait">
             {beat === 0 ? (
               <motion.span
@@ -235,7 +235,7 @@ export default function SpineStage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex flex-col items-center gap-2 font-display text-[0.68rem] font-bold tracking-[0.24em] text-ink-500 uppercase"
+                className="hidden flex-col items-center gap-2 font-display text-[0.68rem] font-bold tracking-[0.24em] text-ink-500 uppercase sm:flex"
               >
                 Keşfetmek için kaydırın
                 <motion.span
@@ -251,7 +251,7 @@ export default function SpineStage() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="rounded-full border border-white/70 bg-white/70 px-4 py-2 text-[0.76rem] font-medium text-ink-500 backdrop-blur-xl"
+                className="hidden rounded-full border border-white/70 bg-white/70 px-4 py-2 text-[0.76rem] font-medium text-ink-500 backdrop-blur-xl lg:block"
               >
                 Omurganın bir bölgesine gelin — parça ayrılsın, bilgisi açılsın
               </motion.span>

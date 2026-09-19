@@ -19,24 +19,8 @@ export default function Process() {
   const list = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
   const [showScene, setShowScene] = useState(false)
+  const sceneReady = useRef(false)
 
-  /* Sahneyi yalnızca masaüstünde ve bölüm yaklaştığında kur */
-  useEffect(() => {
-    const el = root.current
-    if (!el) return
-    if (window.innerWidth < 1024) return
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          setShowScene(true)
-          io.disconnect()
-        }
-      },
-      { rootMargin: '300px 0px' },
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [])
 
   /*
    * Sol panel, merkez çizgisine en yakın adımı gösterir. Konumlar her karede
@@ -50,6 +34,18 @@ export default function Process() {
         start: 'top bottom',
         end: 'bottom top',
         onUpdate: () => {
+          /*
+           * Sahneyi bölüm yaklaşınca kur. IntersectionObserver hızlı kaydırmada
+           * ara konumları atlayabildiği için kontrol her güncellemede yapılıyor.
+           */
+          if (!sceneReady.current && window.innerWidth >= 1024) {
+            const rect = (list.current as HTMLElement).getBoundingClientRect()
+            if (rect.top < window.innerHeight * 1.5 && rect.bottom > -window.innerHeight * 0.5) {
+              sceneReady.current = true
+              setShowScene(true)
+            }
+          }
+
           const mid = window.innerHeight * 0.45
           let best = 0
           let bestDistance = Number.POSITIVE_INFINITY

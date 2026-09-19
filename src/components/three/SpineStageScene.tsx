@@ -17,7 +17,7 @@ const desktopKeys: Keyframe[] = [
 ]
 
 const mobileKeys: Keyframe[] = [
-  { p: 0.0, x: 0.1, y: 0.95, z: 0, scale: 0.38, rotY: -0.35 },
+  { p: 0.0, x: 0.05, y: 1.45, z: 0, scale: 0.3, rotY: -0.35 },
   { p: 0.34, x: 0.0, y: 1.0, z: 0, scale: 0.46, rotY: 0.3 },
   { p: 0.68, x: 0.0, y: 1.0, z: 0.2, scale: 0.49, rotY: 1.0 },
   { p: 1.0, x: 0.0, y: 1.0, z: 0.35, scale: 0.51, rotY: 1.15 },

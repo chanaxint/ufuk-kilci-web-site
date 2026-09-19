@@ -17,8 +17,8 @@ export default function Faq() {
             </Reveal>
             <Reveal delay={0.06}>
               <h2 className="title-lg mt-6">
-                Aklınızdaki
-                <br />
+                Aklınızdaki{' '}
+                <br className="hidden sm:block" />
                 <span className="gradient-text">soruların</span> cevabı.
               </h2>
             </Reveal>

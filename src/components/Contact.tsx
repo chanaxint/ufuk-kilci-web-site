@@ -4,7 +4,7 @@ import Reveal from './ui/Reveal'
 import { ArrowRight, Clock, Instagram, Mail, MapPin, Phone, WhatsApp } from './ui/icons'
 
 const inputClass =
-  'w-full rounded-2xl border border-ink-200/70 bg-white/80 px-4 py-3.5 font-sans text-[0.95rem] text-ink-800 shadow-[0_1px_0_rgb(255_255_255/0.9)_inset] transition-colors duration-300 placeholder:text-ink-300 focus:border-brand-500 focus:bg-white focus:outline-none'
+  'w-full rounded-2xl border border-ink-200/70 bg-white/80 px-4 py-3.5 font-sans text-[0.95rem] text-ink-800 shadow-[0_1px_0_rgb(255_255_255/0.9)_inset] transition-colors duration-300 placeholder:text-ink-300 focus-visible:border-brand-500 focus-visible:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600'
 
 export default function Contact() {
   const [form, setForm] = useState({

@@ -1,0 +1,189 @@
+@import 'tailwindcss';
+
+/* ============================================================
+   Tasarım Sistemi — Ufuk Kilci | Fizyoterapist - Osteopat
+   Aydınlık, sıcak, güven veren medikal-premium palet.
+   ============================================================ */
+@theme {
+  /* Lacivert / ana metin rengi */
+  --color-ink-950: #061223;
+  --color-ink-900: #0b1f38;
+  --color-ink-800: #143354;
+  --color-ink-700: #1d4571;
+  --color-ink-600: #2c5c8d;
+  --color-ink-500: #4a79a5;
+  --color-ink-300: #93aac4;
+  --color-ink-200: #c2d1e0;
+
+  /* Medikal mavi — birincil marka rengi */
+  --color-brand-700: #0f5596;
+  --color-brand-600: #1668b8;
+  --color-brand-500: #2e86d9;
+  --color-brand-400: #63a8ec;
+  --color-brand-200: #bcdcfa;
+  --color-brand-100: #ddecfd;
+  --color-brand-50: #eff7ff;
+
+  /* Turkuaz — canlılık / hareket vurgusu */
+  --color-vital-700: #0a7568;
+  --color-vital-600: #0e9484;
+  --color-vital-500: #16b8a3;
+  --color-vital-300: #7fdccd;
+  --color-vital-100: #d4f3ec;
+
+  /* Sıcak amber — insani dokunuş */
+  --color-warm-600: #c9822a;
+  --color-warm-500: #e6a13c;
+  --color-warm-300: #f3cd8f;
+  --color-warm-100: #fbeeda;
+
+  /* Kum / kağıt — asla "bembeyaz" olmayan zeminler */
+  --color-sand-50: #fdfaf6;
+  --color-sand-100: #f7f1e8;
+  --color-sand-200: #efe5d8;
+  --color-sand-300: #e3d5c3;
+
+  --font-display: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-soft: 0 2px 8px -2px rgb(11 31 56 / 0.06), 0 12px 32px -12px rgb(11 31 56 / 0.12);
+  --shadow-lift: 0 4px 12px -4px rgb(11 31 56 / 0.08), 0 24px 56px -20px rgb(11 31 56 / 0.22);
+  --shadow-glow: 0 24px 64px -24px rgb(22 104 184 / 0.45);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-pulse-ring: pulse-ring 2.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-marquee: marquee 38s linear infinite;
+  --animate-shimmer: shimmer 2.4s linear infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) }
+  50% { transform: translateY(-14px) }
+}
+@keyframes pulse-ring {
+  0% { transform: scale(0.85); opacity: 0.8 }
+  70% { transform: scale(1.9); opacity: 0 }
+  100% { transform: scale(1.9); opacity: 0 }
+}
+@keyframes marquee {
+  from { transform: translateX(0) }
+  to { transform: translateX(-50%) }
+}
+@keyframes shimmer {
+  from { background-position: 200% 0 }
+  to { background-position: -200% 0 }
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-sand-50 font-sans text-ink-700 antialiased;
+    background-image:
+      radial-gradient(60rem 40rem at 82% -8%, rgb(188 220 250 / 0.45), transparent 60%),
+      radial-gradient(48rem 34rem at -10% 22%, rgb(212 243 236 / 0.55), transparent 62%),
+      radial-gradient(40rem 30rem at 50% 118%, rgb(251 238 218 / 0.6), transparent 60%);
+    background-attachment: fixed;
+  }
+
+  /* Lenis akıcı kaydırma devredeyken */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  h1, h2, h3, h4, h5 {
+    @apply font-display text-ink-900;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    @apply bg-brand-600 text-white;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-3 outline-brand-600;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-sand-100;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-ink-200;
+    border: 2px solid var(--color-sand-100);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-ink-300;
+  }
+}
+
+@layer components {
+  /* Bölüm başlıkları için tutarlı tipografik hiyerarşi */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full border border-ink-200/70 bg-white/70
+           px-4 py-1.5 font-display text-[0.7rem] font-bold tracking-[0.18em] text-ink-600 uppercase
+           shadow-[0_1px_0_rgb(255_255_255/0.8)_inset] backdrop-blur;
+  }
+
+  .title-xl {
+    @apply font-display text-4xl leading-[1.08] font-extrabold tracking-[-0.02em] text-ink-900
+           sm:text-5xl lg:text-[3.6rem];
+  }
+
+  .title-lg {
+    @apply font-display text-3xl leading-[1.12] font-extrabold tracking-[-0.02em] text-ink-900 sm:text-4xl;
+  }
+
+  .lead {
+    @apply text-lg leading-relaxed text-ink-600 sm:text-[1.15rem];
+  }
+
+  .card-surface {
+    @apply rounded-3xl border border-white/70 bg-white/80 shadow-soft backdrop-blur-sm;
+  }
+
+  .section-shell {
+    @apply mx-auto w-full max-w-[82rem] px-5 sm:px-8;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-br from-brand-700 via-brand-500 to-vital-500 bg-clip-text text-transparent;
+  }
+
+  .grid-lines {
+    background-image:
+      linear-gradient(to right, rgb(11 31 56 / 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(11 31 56 / 0.045) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

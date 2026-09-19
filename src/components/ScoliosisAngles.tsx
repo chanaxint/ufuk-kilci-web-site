@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useInView } from 'motion/react'
 import { angleStages } from '../lib/content'
 import Reveal from './ui/Reveal'
-import SpineCurve from './ui/SpineCurve'
+import type { SpineView } from './three/ScoliosisAngleScene'
+import { Rotate3D } from './ui/icons'
+
+const ScoliosisAngleScene = lazy(() => import('./three/ScoliosisAngleScene'))
 
 const MAX = 50
 const TICKS = [0, 15, 30, 45, 50]
@@ -14,6 +17,7 @@ export default function ScoliosisAngles() {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-20% 0px' })
   const [angle, setAngle] = useState(0)
+  const [view, setView] = useState<SpineView>('front')
 
   /* Bölüm görünüme girdiğinde eğriliği bir kez canlandır */
   useEffect(() => {
@@ -37,8 +41,9 @@ export default function ScoliosisAngles() {
           </Reveal>
           <Reveal delay={0.14}>
             <p className="lead mt-6">
-              Eğriliğin derecesi, tedavinin yönünü belirler. Skalayı hareket ettirin; her aralıkta
-              omurganın nasıl değiştiğini ve hangi yaklaşımın öne çıktığını görün.
+              Eğriliğin derecesi, tedavinin yönünü belirler. Skalayı hareket ettirin; omurganın
+              yalnızca yana eğilmediğini, aynı anda kendi ekseni etrafında da döndüğünü modelin
+              üzerinde görün. "Üstten" görünüm bu rotasyonu en net gösteren açıdır.
             </p>
           </Reveal>
         </div>
@@ -46,9 +51,41 @@ export default function ScoliosisAngles() {
         <div ref={ref} className="mt-16 grid items-center gap-12 lg:grid-cols-12 lg:gap-10">
           {/* Omurga çizimi + skala */}
           <div className="lg:col-span-5">
-            <div className="relative mx-auto max-w-sm rounded-[2rem] border border-white/70 bg-white/60 px-6 pt-4 pb-8 shadow-soft backdrop-blur-sm">
-              <div className="pointer-events-none absolute inset-0 grid-lines rounded-[2rem] opacity-50" />
-              <SpineCurve angle={angle} color={stage.color} className="relative mx-auto h-[20rem] w-full sm:h-[26rem]" />
+            <div className="relative mx-auto max-w-md rounded-[2rem] border border-white/70 bg-gradient-to-b from-white/80 via-brand-50/60 to-sand-100/80 px-6 pt-4 pb-8 shadow-lift backdrop-blur-sm">
+              <div className="pointer-events-none absolute inset-0 grid-lines rounded-[2rem] opacity-40" />
+
+              {/* Görünüm değiştirici */}
+              <div className="relative z-10 flex items-center justify-between gap-2 pt-1">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/70 bg-white/70 px-3 py-1.5 font-display text-[0.62rem] font-bold tracking-[0.14em] text-ink-500 uppercase backdrop-blur">
+                  <Rotate3D className="size-3.5 text-brand-600" />
+                  Sürükleyin
+                </span>
+                <div className="flex rounded-full border border-white/70 bg-white/70 p-1 backdrop-blur">
+                  {([
+                    ['front', 'Önden'],
+                    ['top', 'Üstten'],
+                  ] as const).map(([key, label]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setView(key)}
+                      className={`rounded-full px-3.5 py-1.5 font-display text-[0.72rem] font-bold transition-colors duration-300 ${
+                        view === key ? 'bg-ink-900 text-sand-50' : 'text-ink-600 hover:text-ink-900'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="relative h-[20rem] sm:h-[26rem]">
+                {inView && (
+                  <Suspense fallback={null}>
+                    <ScoliosisAngleScene angle={angle} color={stage.color} view={view} />
+                  </Suspense>
+                )}
+              </div>
 
               {/* Skala */}
               <div className="relative mt-2 px-1">

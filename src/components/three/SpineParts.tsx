@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { SPINE_HEIGHT, type SpineRegionId } from '../../lib/spine'
-import { splitSpineGeometry, type SpinePart } from '../../lib/spineGeometry'
+import { prepareSpineGeometry, splitSpineGeometry, type SpinePart } from '../../lib/spineGeometry'
 
 const MODEL_URL = '/models/spine.glb'
 
@@ -22,27 +22,9 @@ export default function SpineParts({ hovered, onHover, onParts }: Props) {
   const { scene } = useGLTF(MODEL_URL)
 
   const parts = useMemo(() => {
-    let source: THREE.Mesh | null = null
-    scene.traverse((o) => {
-      if (!source && (o as THREE.Mesh).isMesh) source = o as THREE.Mesh
-    })
-    const g = (source as unknown as THREE.Mesh).geometry.clone()
-    // Meshy çıktısında omurga +Z ekseninde uzanıyor, leğen kemiği +Z ucunda.
-    g.rotateX(Math.PI / 2)
-    g.computeBoundingBox()
-    const box = g.boundingBox as THREE.Box3
-    const center = box.getCenter(new THREE.Vector3())
-    g.translate(-center.x, -center.y, -center.z)
-    g.computeBoundingBox()
-    const localHeight = (g.boundingBox as THREE.Box3).getSize(new THREE.Vector3()).y
-    const scaled = g.clone().scale(
-      SPINE_HEIGHT / localHeight,
-      SPINE_HEIGHT / localHeight,
-      SPINE_HEIGHT / localHeight,
-    )
-    g.dispose()
-    const result = splitSpineGeometry(scaled, SPINE_HEIGHT)
-    scaled.dispose()
+    const geometry = prepareSpineGeometry(scene, SPINE_HEIGHT)
+    const result = splitSpineGeometry(geometry, SPINE_HEIGHT)
+    geometry.dispose()
     return result
   }, [scene])
 

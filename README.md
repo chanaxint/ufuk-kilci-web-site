@@ -78,6 +78,16 @@ npm run model      # assets/spine-draco.glb → public/models/spine.glb (Draco a
 - **İşaretçiler:** Her bölge için kameraya dönük (billboard) nabız gibi atan noktalar.
 - Boş alana tıklamak seçimi temizler.
 
+## Skolyoz açısı bölümü (aynı model, eğilen hâliyle)
+
+`ScoliosisSpine` aynı GLB'yi kullanır; modelde kemik (armature) ya da morph target
+olmadığı için eğrilik **vertex shader'ında** üretilir: her tepe noktası yüksekliğine
+bağlı bir sinüs eğrisi kadar yana kayar (`uBend`) ve aynı anda kendi ekseni etrafında
+döner (`uTwist`). Böylece skolyozun üç boyutlu tanımı — frontal eğrilik + transvers
+rotasyon — modelin üzerinde doğrudan görülür. Cobb tanjant çizgileri uç omurların
+yüksekliğine oturur ve açının yarısı kadar eğilir. "Üstten" görünüm rotasyonu gösterir.
+Geometri hazırlığı iki sahne arasında `prepareSpineGeometry` ile paylaşılır.
+
 ## İçerik nasıl düzenlenir
 
 Tüm metinler, iletişim bilgileri ve listeler `src/lib/content.ts` içinde toplanmıştır

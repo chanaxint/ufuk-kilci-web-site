@@ -1,6 +1,30 @@
 import * as THREE from 'three'
 import { spineRegions, type SpineRegion, type SpineRegionId } from './spine'
 
+/**
+ * GLB sahnesindeki tek mesh'in geometrisini alır; dik döndürür, merkeze taşır
+ * ve hedef yüksekliğe ölçekler. Hem sahnedeki omurga hem de skolyoz açısı
+ * bölümü aynı hazırlanmış geometriyi kullanır.
+ */
+export function prepareSpineGeometry(scene: THREE.Object3D, targetHeight: number) {
+  let source: THREE.Mesh | null = null
+  scene.traverse((o) => {
+    if (!source && (o as THREE.Mesh).isMesh) source = o as THREE.Mesh
+  })
+  const g = (source as unknown as THREE.Mesh).geometry.clone()
+  // Meshy çıktısında omurga +Z ekseninde uzanıyor, leğen kemiği +Z ucunda.
+  g.rotateX(Math.PI / 2)
+  g.computeBoundingBox()
+  const center = (g.boundingBox as THREE.Box3).getCenter(new THREE.Vector3())
+  g.translate(-center.x, -center.y, -center.z)
+  g.computeBoundingBox()
+  const localHeight = (g.boundingBox as THREE.Box3).getSize(new THREE.Vector3()).y
+  const k = targetHeight / localHeight
+  g.scale(k, k, k)
+  g.computeBoundingBox()
+  return g
+}
+
 export type SpinePart = {
   region: SpineRegion
   geometry: THREE.BufferGeometry

@@ -174,7 +174,7 @@ export default function ScoliosisAngles() {
                     className={`flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl border px-5 py-4 transition-all duration-500 ${
                       active
                         ? 'border-transparent bg-white shadow-lift'
-                        : 'border-white/60 bg-white/45'
+                        : 'border-white/60 bg-white/72'
                     }`}
                   >
                     <span

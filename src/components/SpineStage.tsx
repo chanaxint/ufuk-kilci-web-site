@@ -58,11 +58,8 @@ export default function SpineStage() {
   return (
     <section id="top" ref={stageRef} className="relative h-[380vh] lg:h-[460vh]">
       <div className="sticky top-0 h-[100svh] overflow-hidden">
-        {/* Zemin: genel aurora katmanı üzerine ince bir dokunuş */}
-        <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-b from-brand-50/45 via-transparent to-sand-100/35" />
-          <div className="absolute inset-0 grid-lines opacity-40 [mask-image:radial-gradient(75%_65%_at_50%_40%,black,transparent)]" />
-        </div>
+        {/* Zemin doku çizgileri — renk genel yüzeyden gelir */}
+        <div className="pointer-events-none absolute inset-0 -z-10 grid-lines opacity-35 [mask-image:radial-gradient(75%_65%_at_50%_40%,black,transparent)]" />
 
         {/* Taslaktaki akış çizgisi */}
         <svg
@@ -146,7 +143,7 @@ export default function SpineStage() {
                     </a>
                     <a
                       href="#skolyoz"
-                      className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white/60 px-7 py-3.5 font-display text-[0.95rem] font-bold text-ink-800 backdrop-blur transition-colors hover:border-brand-400 hover:text-brand-700"
+                      className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white/76 px-7 py-3.5 font-display text-[0.95rem] font-bold text-ink-800 backdrop-blur transition-colors hover:border-brand-400 hover:text-brand-700"
                     >
                       Skolyoz Tedavisi
                       <ArrowDown className="size-4" />

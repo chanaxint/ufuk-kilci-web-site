@@ -24,19 +24,25 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden bg-sand-100"
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden"
       exit={{ y: '-100%' }}
       transition={{ duration: 0.95, ease: [0.76, 0, 0.24, 1] }}
     >
-      {/* Zemin dokusu */}
-      <div className="pointer-events-none absolute inset-0 grid-lines opacity-70" />
+      {/* Zemin */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            'radial-gradient(38rem 30rem at 50% 42%, rgb(188 220 250 / 0.55), transparent 65%), radial-gradient(30rem 24rem at 20% 85%, rgb(212 243 236 / 0.6), transparent 60%)',
+            'linear-gradient(180deg, #fdfdfc 0%, #f7f5f2 38%, #f1efec 72%, #eceae6 100%)',
         }}
       />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: 'radial-gradient(48rem 34rem at 50% 38%, rgb(255 255 255 / 0.95), transparent 66%)',
+        }}
+      />
+      <div className="pointer-events-none absolute inset-0 grid-lines opacity-50" />
 
       <div className="relative flex flex-col items-center px-6 text-center">
         <motion.span

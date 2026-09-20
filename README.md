@@ -11,7 +11,7 @@ uzay veya cyberpunk temalardan kaçınır.
 | Uygulama | React 19 + TypeScript + Vite 7 |
 | Stil | Tailwind CSS v4 (`src/index.css` içinde `@theme` ile tanımlı tasarım sistemi) |
 | Animasyon | Motion (framer-motion v12) + GSAP ScrollTrigger |
-| Zemin | `AuroraBackground` — sayfanın arkasında yavaşça hareket eden yeşil/pembe renk bulutları |
+| Zemin | `StudioBackground` — tüm siteyi taşıyan beyaz stüdyo yüzeyi: gradyan + sıva dokusu + vinyet + imleci takip eden ışık |
 | Akıcı kaydırma | Lenis |
 | 3B | three.js + @react-three/fiber + @react-three/drei |
 | Tipografi | Manrope (başlık) + Inter (gövde) — Google Fonts |

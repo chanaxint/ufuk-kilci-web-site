@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import Preloader from './components/Preloader'
 import Navbar from './components/Navbar'
 import ScrollProgress from './components/ScrollProgress'
-import AuroraBackground from './components/ui/AuroraBackground'
+import StudioBackground from './components/ui/StudioBackground'
 import SpineStage from './components/SpineStage'
 import Scoliosis from './components/Scoliosis'
 import Certificates from './components/Certificates'
@@ -50,7 +50,7 @@ export default function App() {
         İçeriğe geç
       </a>
 
-      <AuroraBackground />
+      <StudioBackground />
       <ScrollProgress />
       <Navbar />
 

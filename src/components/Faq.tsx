@@ -40,7 +40,7 @@ export default function Faq() {
                       className={`overflow-hidden rounded-2xl border transition-all duration-500 ${
                         active
                           ? 'border-transparent bg-white shadow-lift'
-                          : 'border-white/70 bg-white/60 hover:bg-white/85'
+                          : 'border-white/70 bg-white/76 hover:bg-white/85'
                       }`}
                     >
                       <button

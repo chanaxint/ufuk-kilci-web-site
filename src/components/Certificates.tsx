@@ -45,7 +45,7 @@ function Certificate({
             background:
               'linear-gradient(145deg,#6b5238 0%,#4a3826 22%,#7c6044 48%,#43321f 72%,#5e4832 100%)',
             boxShadow:
-              '0 1px 0 rgba(255,235,205,0.25) inset, 0 -1px 0 rgba(0,0,0,0.5) inset, 18px 26px 40px -18px rgba(20,12,4,0.75), 4px 8px 14px -6px rgba(20,12,4,0.55)',
+              '0 1px 0 rgba(255,235,205,0.25) inset, 0 -1px 0 rgba(0,0,0,0.45) inset, 14px 22px 36px -18px rgba(38,30,20,0.42), 3px 6px 12px -6px rgba(38,30,20,0.3)',
           }}
         >
           {/* İç altın pervaz */}
@@ -103,7 +103,6 @@ function Certificate({
 export default function Certificates() {
   const wall = useRef<HTMLDivElement>(null)
   const plane = useRef<HTMLDivElement>(null)
-  const glow = useRef<HTMLDivElement>(null)
 
   /* Fare hareketine bağlı paralaks — React state'i olmadan, doğrudan DOM'a yazılır */
   useEffect(() => {
@@ -121,9 +120,6 @@ export default function Certificates() {
         const ny = (e.clientY - r.top) / r.height - 0.5
         if (plane.current) {
           plane.current.style.transform = `rotateY(${nx * 7}deg) rotateX(${-ny * 5}deg) translateZ(0)`
-        }
-        if (glow.current) {
-          glow.current.style.background = `radial-gradient(38rem 26rem at ${(nx + 0.5) * 100}% ${(ny + 0.5) * 100}%, rgba(255,236,205,0.5), transparent 68%)`
         }
       })
     }
@@ -165,39 +161,6 @@ export default function Certificates() {
           className="relative mt-14 overflow-hidden"
           style={{ perspective: '1400px' }}
         >
-          {/* Sıva dokusu */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                'linear-gradient(180deg,#cdbfa9 0%,#c2b39c 35%,#b6a68e 70%,#a8977f 100%)',
-            }}
-          />
-          <svg className="absolute inset-0 size-full opacity-[0.16] mix-blend-multiply" aria-hidden>
-            <filter id="plaster">
-              <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch" />
-              <feColorMatrix type="saturate" values="0" />
-            </filter>
-            <rect width="100%" height="100%" filter="url(#plaster)" />
-          </svg>
-
-          {/* Loş ışık ve vinyet */}
-          <div
-            ref={glow}
-            className="pointer-events-none absolute inset-0 transition-[background] duration-300"
-            style={{
-              background:
-                'radial-gradient(38rem 26rem at 50% 18%, rgba(255,236,205,0.5), transparent 68%)',
-            }}
-          />
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                'radial-gradient(120% 90% at 50% 40%, transparent 35%, rgba(28,18,8,0.45) 100%)',
-            }}
-          />
-
           {/* Çerçeveler */}
           <div
             ref={plane}

@@ -62,7 +62,7 @@ export default function Navbar() {
           <div className="flex items-center gap-2">
             <a
               href={`tel:${doctor.phone.replace(/\s/g, '')}`}
-              className="hidden items-center gap-2 rounded-full border border-ink-200/80 bg-white/60 px-4 py-2.5 font-display text-[0.85rem] font-semibold text-ink-700 transition-colors hover:border-brand-400 hover:text-brand-700 sm:inline-flex"
+              className="hidden items-center gap-2 rounded-full border border-ink-200/80 bg-white/76 px-4 py-2.5 font-display text-[0.85rem] font-semibold text-ink-700 transition-colors hover:border-brand-400 hover:text-brand-700 sm:inline-flex"
             >
               <Phone className="size-4" />
               {doctor.phone}

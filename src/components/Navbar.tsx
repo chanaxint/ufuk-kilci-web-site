@@ -28,7 +28,7 @@ export default function Navbar() {
         <div
           className={`mx-auto mt-3 flex w-[min(82rem,calc(100%-1.5rem))] items-center justify-between rounded-full border px-3 py-2.5 transition-all duration-500 sm:px-4 ${
             scrolled
-              ? 'border-white/80 bg-white/85 shadow-soft backdrop-blur-xl'
+              ? 'border-white/45 bg-white/30 shadow-[0_2px_10px_-4px_rgb(48_38_24/0.18),0_16px_40px_-28px_rgb(48_38_24/0.35)] backdrop-blur-md'
               : 'border-transparent bg-transparent'
           }`}
         >
@@ -40,7 +40,7 @@ export default function Navbar() {
               <span className="font-display text-[0.98rem] font-extrabold tracking-[-0.01em] whitespace-nowrap text-ink-900">
                 {doctor.name}
               </span>
-              <span className="mt-1 hidden font-display text-[0.62rem] font-semibold tracking-[0.2em] whitespace-nowrap text-ink-500 uppercase sm:block">
+              <span className="mt-1 hidden font-display text-[0.62rem] font-semibold tracking-[0.2em] whitespace-nowrap text-ink-600 uppercase sm:block">
                 {doctor.titles}
               </span>
             </span>
@@ -54,7 +54,7 @@ export default function Navbar() {
                 className="relative rounded-full px-4 py-2 font-display text-[0.9rem] font-semibold text-ink-600 transition-colors duration-300 hover:text-ink-900"
               >
                 <span className="relative z-10">{link.label}</span>
-                <span className="absolute inset-0 scale-90 rounded-full bg-brand-50 opacity-0 transition-all duration-300 hover:scale-100 hover:opacity-100" />
+                <span className="absolute inset-0 scale-90 rounded-full bg-white/55 opacity-0 transition-all duration-300 hover:scale-100 hover:opacity-100" />
               </a>
             ))}
           </nav>
@@ -78,7 +78,7 @@ export default function Navbar() {
               type="button"
               aria-label="Menüyü aç"
               onClick={() => setOpen(true)}
-              className="grid size-11 place-items-center rounded-full border border-ink-200/80 bg-white/70 text-ink-800 lg:hidden"
+              className="grid size-11 place-items-center rounded-full border border-white/50 bg-white/35 text-ink-800 backdrop-blur-sm lg:hidden"
             >
               <Menu className="size-5" />
             </button>

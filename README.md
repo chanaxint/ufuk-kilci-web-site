@@ -15,7 +15,7 @@ uzay veya cyberpunk temalardan kaçınır.
 | Hazır bileşenler | React Bits (TS + Tailwind sürümü) — `src/components/reactbits/` |
 | Akıcı kaydırma | Lenis |
 | 3B | three.js + @react-three/fiber + @react-three/drei |
-| Tipografi | Manrope (başlık) + Inter (gövde) — Google Fonts |
+| Tipografi | Manrope (başlık) + Inter (gövde) + Instrument Serif (yalnızca doktorun adı) — Google Fonts |
 
 ## Komutlar
 

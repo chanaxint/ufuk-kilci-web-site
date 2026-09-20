@@ -125,7 +125,7 @@ export default function SpineStage() {
                     {doctor.titles}
                   </motion.span>
 
-                  <h1 className="mt-4 font-display text-[clamp(3rem,9vw,6.5rem)] leading-[0.92] font-extrabold tracking-[-0.035em]">
+                  <h1 className="mt-4 font-wordmark text-[clamp(3.4rem,10vw,7rem)] leading-[0.95] font-normal tracking-[-0.012em]">
                     <ShinyText
                       text={doctor.name}
                       speed={6}

@@ -54,14 +54,14 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
           Fizyoterapist — Osteopat
         </motion.span>
 
-        <h1 className="mt-5 flex overflow-hidden font-display text-[clamp(2.4rem,8vw,5rem)] leading-none font-extrabold tracking-[-0.03em] text-ink-800">
+        <h1 className="mt-5 flex overflow-hidden font-wordmark text-[clamp(2.8rem,9vw,5.5rem)] leading-none font-normal tracking-[-0.01em] text-ink-800">
           {letters(doctor.name).map((ch, i) => (
             <motion.span
               key={`${ch}-${i}`}
               initial={{ y: '110%', opacity: 0 }}
               animate={{ y: '0%', opacity: 1 }}
               transition={{ duration: 0.85, delay: 0.16 + i * 0.045, ease: [0.16, 1, 0.3, 1] }}
-              className={ch === ' ' ? 'inline-block w-[0.28em]' : 'inline-block'}
+              className={ch === ' ' ? 'inline-block w-[0.2em]' : 'inline-block'}
             >
               {ch === ' ' ? ' ' : ch}
             </motion.span>

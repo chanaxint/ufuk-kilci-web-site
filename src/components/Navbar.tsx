@@ -46,7 +46,7 @@ export default function Navbar() {
                 color="#34261a"
                 shineColor="#c49466"
                 spread={90}
-                className="font-display text-[0.98rem] font-extrabold tracking-[-0.01em] whitespace-nowrap"
+                className="font-wordmark text-[1.15rem] leading-none font-normal tracking-[0.005em] whitespace-nowrap"
               />
               <span className="mt-1 hidden font-display text-[0.62rem] font-semibold tracking-[0.2em] whitespace-nowrap text-ink-600 uppercase sm:block">
                 {doctor.titles}

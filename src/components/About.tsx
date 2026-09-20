@@ -43,7 +43,7 @@ export default function About() {
               />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950/75 via-ink-950/10 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-7">
-                <p className="font-display text-2xl font-extrabold tracking-[-0.02em]">
+                <p className="font-wordmark text-3xl font-normal tracking-[-0.01em]">
                   <ShinyText text={doctor.name} speed={6} color="#f3e7d6" shineColor="#ffffff" spread={100} />
                 </p>
                 <p className="mt-1.5 font-display text-[0.68rem] font-bold tracking-[0.24em] text-brand-200 uppercase">

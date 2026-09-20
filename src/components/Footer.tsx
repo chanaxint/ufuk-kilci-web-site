@@ -14,7 +14,7 @@ export default function Footer() {
             <span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-brand-600 to-vital-600 font-display text-base font-extrabold text-sand-50">
               UK
             </span>
-            <p className="mt-6 font-display text-3xl leading-tight font-extrabold tracking-[-0.02em] sm:text-4xl">
+            <p className="mt-6 font-wordmark text-4xl leading-tight font-normal tracking-[-0.01em] sm:text-5xl">
               <ShinyText text={doctor.name} speed={6} color="#e6d3bf" shineColor="#ffffff" spread={100} />
             </p>
             <p className="mt-2 font-display text-[0.72rem] font-bold tracking-[0.28em] text-brand-200 uppercase">

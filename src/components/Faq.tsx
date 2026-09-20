@@ -13,10 +13,7 @@ export default function Faq() {
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
           <div className="lg:col-span-4">
             <Reveal>
-              <span className="eyebrow">Sık Sorulanlar</span>
-            </Reveal>
-            <Reveal delay={0.06}>
-              <h2 className="title-lg mt-6">
+              <h2 className="title-lg">
                 Aklınızdaki{' '}
                 <br className="hidden sm:block" />
                 <span className="gradient-text">soruların</span> cevabı.

@@ -26,7 +26,7 @@ export default function SpotlightCard({ children, className = '', glow = '232 21
         el.style.setProperty('--spot', '1')
       }}
       onPointerLeave={() => ref.current?.style.setProperty('--spot', '0')}
-      className={`group relative overflow-hidden rounded-3xl border border-white/70 bg-white/75 shadow-soft backdrop-blur-sm transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:shadow-lift ${className}`}
+      className={`group relative overflow-hidden rounded-3xl border border-white/70 bg-white/75 shadow-soft transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:shadow-lift ${className}`}
       style={{ ['--spot' as string]: '0' }}
     >
       <div

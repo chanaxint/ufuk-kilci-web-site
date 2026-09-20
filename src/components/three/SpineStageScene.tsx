@@ -99,20 +99,28 @@ function Loader() {
 
 type Props = {
   progress: RefObject<number>
+  /** Sahne ekranda mı — değilse render döngüsü tamamen durur */
+  active: boolean
   labelsVisible: boolean
   hovered: SpineRegionId | null
   onHover: (id: SpineRegionId | null) => void
   isMobile: boolean
 }
 
-export default function SpineStageScene({ progress, labelsVisible, hovered, onHover, isMobile }: Props) {
+export default function SpineStageScene({ progress, active, labelsVisible, hovered, onHover, isMobile }: Props) {
   const [parts, setParts] = useState<SpinePart[]>([])
   const handleParts = useCallback((p: SpinePart[]) => setParts(p), [])
 
   return (
     <Canvas
       shadows
-      dpr={[1, 2]}
+      /*
+       * Sahne görüş alanından çıkınca render döngüsü duruyor. Aksi hâlde iki
+       * WebGL sahnesi de sayfanın tamamı boyunca her karede çiziliyor ve
+       * metin bölümlerinde bile belirgin bir takılma bırakıyordu.
+       */
+      frameloop={active ? 'always' : 'never'}
+      dpr={[1, 1.75]}
       camera={{ position: [0, 0, 8], fov: 35 }}
       gl={{ antialias: true, alpha: true }}
       onCreated={({ gl }) => {
@@ -147,7 +155,7 @@ export default function SpineStageScene({ progress, labelsVisible, hovered, onHo
                   key={part.region.id}
                   position={[right ? 1.22 : -1.22, part.center.y, 0]}
                   zIndexRange={[30, 0]}
-                  style={{ pointerEvents: labelsVisible ? 'auto' : 'none' }}
+                  style={{ pointerEvents: labelsVisible && active ? 'auto' : 'none' }}
                 >
                   <div
                     onMouseEnter={() => onHover(part.region.id)}
@@ -164,9 +172,23 @@ export default function SpineStageScene({ progress, labelsVisible, hovered, onHo
                           background: `linear-gradient(to ${right ? 'right' : 'left'}, ${part.region.color}, transparent)`,
                         }}
                       />
+                      {/*
+                        Bölge adı yalnızca imleç omurganın o parçasına gelince
+                        açılır. Boştayken geriye yalnızca bu küçük nokta kalır;
+                        nereye gelineceğini gösterir ama yazı yazmaz.
+                      */}
+                      <span
+                        className={`size-1.5 shrink-0 rounded-full transition-opacity duration-500 ${
+                          active ? 'opacity-0' : 'opacity-80'
+                        }`}
+                        style={{ background: part.region.color }}
+                      />
                       <div
-                        className={`overflow-hidden rounded-2xl border border-white/60 bg-white/55 shadow-[0_8px_32px_-16px_rgb(58_42_28/0.45)] backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                          active ? 'w-52 bg-white/80' : 'w-auto'
+                        /* backdrop-filter yalnızca kart gerçekten görünürken kurulur */
+                        className={`overflow-hidden rounded-2xl border border-white/60 bg-white/55 shadow-[0_8px_32px_-16px_rgb(58_42_28/0.45)] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                          active
+                            ? 'w-52 bg-white/80 opacity-100 backdrop-blur-xl'
+                            : 'pointer-events-none w-auto opacity-0'
                         }`}
                       >
                         <div className="px-4 py-3">

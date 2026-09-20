@@ -418,8 +418,15 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
   }, [closeOnClickAway, open, closeMenu]);
 
   return (
+    /*
+     * Projeye özel: isFixed hâlinde bu kabuk tüm ekranı kaplıyor. Özgün kodda
+     * kabuğun kendisinde pointer-events yok; menü sayfanın üstüne serildiğinde
+     * görünmez bir cam gibi davranıp altındaki her şeyin tıklama ve imleç
+     * olaylarını yutuyordu (3B omurga vurgusu, kartlar, bağlantılar). Olaylar
+     * yalnızca panelde ve başlıkta yeniden açılıyor.
+     */
     <div
-      className={`sm-scope z-40 ${isFixed ? 'fixed top-0 left-0 w-screen h-screen overflow-hidden' : 'w-full h-full'}`}
+      className={`sm-scope z-40 ${isFixed ? 'pointer-events-none fixed top-0 left-0 w-screen h-screen overflow-hidden' : 'w-full h-full'}`}
     >
       <div
         className={

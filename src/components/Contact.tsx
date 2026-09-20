@@ -37,7 +37,7 @@ export default function Contact() {
   return (
     <section id="iletisim" className="relative scroll-mt-28 py-24 sm:py-28">
       <div className="section-shell">
-        <div className="overflow-hidden rounded-[2.5rem] border border-white/70 bg-white/70 shadow-lift backdrop-blur-sm">
+        <div className="overflow-hidden rounded-[2.5rem] border border-white/70 bg-white/70 shadow-lift">
           <div className="grid lg:grid-cols-12">
             {/* Bilgi paneli */}
             <div className="relative overflow-hidden bg-gradient-to-br from-ink-900 via-ink-800 to-brand-700 p-8 sm:p-10 lg:col-span-5">
@@ -45,7 +45,7 @@ export default function Contact() {
               <div className="pointer-events-none absolute -right-20 -bottom-24 size-72 rounded-full bg-vital-500/20 blur-3xl" />
 
               <div className="relative">
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 font-display text-[0.68rem] font-bold tracking-[0.18em] text-sand-50 uppercase backdrop-blur">
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 font-display text-[0.68rem] font-bold tracking-[0.18em] text-sand-50 uppercase">
                   <span className="size-1.5 animate-pulse rounded-full bg-vital-300" />
                   Randevu & İletişim
                 </span>
@@ -65,7 +65,7 @@ export default function Contact() {
                       href={href}
                       target={label === 'Klinik' ? '_blank' : undefined}
                       rel="noreferrer"
-                      className="group flex items-start gap-4 rounded-2xl border border-white/15 bg-white/8 p-4 backdrop-blur transition-colors duration-300 hover:border-white/35 hover:bg-white/15"
+                      className="group flex items-start gap-4 rounded-2xl border border-white/15 bg-white/8 p-4 transition-colors duration-300 hover:border-white/35 hover:bg-white/15"
                     >
                       <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white/15 text-sand-50">
                         <Icon className="size-4.5" />
@@ -82,7 +82,7 @@ export default function Contact() {
                   ))}
                 </div>
 
-                <div className="mt-8 rounded-2xl border border-white/15 bg-white/8 p-5 backdrop-blur">
+                <div className="mt-8 rounded-2xl border border-white/15 bg-white/8 p-5">
                   <span className="flex items-center gap-2 font-display text-[0.68rem] font-bold tracking-[0.16em] text-brand-200 uppercase">
                     <Clock className="size-4" />
                     Çalışma Saatleri

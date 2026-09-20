@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { doctor, navLinks } from '../lib/content'
 import GooeyNav from './reactbits/GooeyNav'
@@ -7,11 +7,36 @@ import ShinyText from './reactbits/ShinyText'
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
+  const toggleRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''
     return () => {
       document.body.style.overflow = ''
+    }
+  }, [open])
+
+  /*
+   * Menüyü dışarı tıklayarak ve Esc ile kapat. StaggeredMenu'nün kendi
+   * closeOnClickAway'i kendi düğmesini referans aldığı için (biz o başlığı
+   * gizliyoruz) devre dışı kalıyor; kapatma burada ele alınıyor.
+   */
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    const onDown = (e: PointerEvent) => {
+      const target = e.target as Node
+      if (toggleRef.current?.contains(target)) return
+      if ((target as Element).closest?.('.staggered-menu-panel')) return
+      setOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    document.addEventListener('pointerdown', onDown)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.removeEventListener('pointerdown', onDown)
     }
   }, [open])
 
@@ -63,6 +88,7 @@ export default function Navbar() {
 
           {/* İki çizgi; açıkken çarpıya dönüyor */}
           <button
+            ref={toggleRef}
             type="button"
             aria-label={open ? 'Menüyü kapat' : 'Menüyü aç'}
             aria-expanded={open}
@@ -111,7 +137,7 @@ export default function Navbar() {
           { label: 'Instagram', link: doctor.instagram },
           { label: 'Randevu Al', link: '#iletisim' },
         ]}
-        closeOnClickAway
+        closeOnClickAway={false}
         onMenuClose={() => setOpen(false)}
       />
     </>

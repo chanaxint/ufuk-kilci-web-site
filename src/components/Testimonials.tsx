@@ -31,10 +31,7 @@ export default function Testimonials() {
         <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <div className="max-w-2xl">
             <Reveal>
-              <span className="eyebrow">Hasta Deneyimleri</span>
-            </Reveal>
-            <Reveal delay={0.06}>
-              <h2 className="title-lg mt-6">
+              <h2 className="title-lg">
                 Sonucu en iyi <span className="gradient-text">onlar</span> anlatır.
               </h2>
             </Reveal>
@@ -46,7 +43,7 @@ export default function Testimonials() {
             </Reveal>
           </div>
           <Reveal delay={0.1}>
-            <div className="flex items-center gap-4 rounded-2xl border border-white/70 bg-white/76 px-5 py-4 shadow-soft backdrop-blur">
+            <div className="flex items-center gap-4 rounded-2xl border border-white/70 bg-white/76 px-5 py-4 shadow-soft">
               <span className="font-display text-3xl font-extrabold text-ink-900">4.9</span>
               <span>
                 <span className="flex items-center gap-0.5 text-warm-500">

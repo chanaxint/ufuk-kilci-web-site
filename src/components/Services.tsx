@@ -16,10 +16,7 @@ export default function Services() {
         <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <div className="max-w-2xl">
             <Reveal>
-              <span className="eyebrow">Tedavi Alanları</span>
-            </Reveal>
-            <Reveal delay={0.06}>
-              <h2 className="title-lg mt-6">
+              <h2 className="title-lg">
                 Şikâyete değil, <span className="gradient-text">kaynağa</span> yönelen programlar.
               </h2>
             </Reveal>

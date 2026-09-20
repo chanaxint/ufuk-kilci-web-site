@@ -39,16 +39,22 @@ export default function CursorTrail() {
     const onMove = (e: PointerEvent) => {
       points.push({ x: e.clientX, y: e.clientY, t: performance.now() })
       if (points.length > MAX_POINTS) points.shift()
+      if (!raf) raf = requestAnimationFrame(draw)
     }
 
+    /*
+     * Döngü yalnızca çizilecek bir iz varken çalışır. Sürekli açık bırakmak,
+     * imleç dursa bile her karede tam ekran bir temizleme demekti.
+     */
     let raf = 0
     const draw = () => {
-      raf = requestAnimationFrame(draw)
+      raf = 0
       const now = performance.now()
       while (points.length && now - points[0].t > FADE_MS) points.shift()
 
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight)
       if (points.length < 2) return
+      raf = requestAnimationFrame(draw)
 
       ctx.lineCap = 'round'
       ctx.lineJoin = 'round'
@@ -66,14 +72,12 @@ export default function CursorTrail() {
         ctx.stroke()
       }
     }
-    raf = requestAnimationFrame(draw)
-
     window.addEventListener('pointermove', onMove, { passive: true })
     window.addEventListener('resize', resize)
     return () => {
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('resize', resize)
-      cancelAnimationFrame(raf)
+      if (raf) cancelAnimationFrame(raf)
     }
   }, [])
 

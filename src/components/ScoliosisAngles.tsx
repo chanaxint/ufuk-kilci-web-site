@@ -22,6 +22,8 @@ const stageFor = (angle: number) =>
 export default function ScoliosisAngles() {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-20% 0px' })
+  /* Bölüm ekrandan çıkınca WebGL render döngüsü duruyor */
+  const onScreen = useInView(ref, { margin: '250px 0px' })
   const [angle, setAngle] = useState(0)
   const [view, setView] = useState<SpineView>('front')
 
@@ -39,10 +41,7 @@ export default function ScoliosisAngles() {
       <div className="section-shell">
         <div className="mx-auto max-w-2xl text-center">
           <Reveal>
-            <span className="eyebrow">Cobb Açısı</span>
-          </Reveal>
-          <Reveal delay={0.08}>
-            <h2 className="title-lg mt-7">Skolyoz Açıları</h2>
+            <h2 className="title-lg">Skolyoz Açıları</h2>
           </Reveal>
           <Reveal delay={0.14}>
             <p className="lead mt-6">
@@ -56,16 +55,16 @@ export default function ScoliosisAngles() {
         <div ref={ref} className="mt-16 grid items-center gap-12 lg:grid-cols-12 lg:gap-10">
           {/* Omurga çizimi + skala */}
           <div className="lg:col-span-5">
-            <div className="relative mx-auto max-w-md rounded-[2rem] border border-white/70 bg-gradient-to-b from-white/80 via-brand-50/60 to-sand-100/80 px-6 pt-4 pb-8 shadow-lift backdrop-blur-sm">
+            <div className="relative mx-auto max-w-md rounded-[2rem] border border-white/70 bg-gradient-to-b from-white/80 via-brand-50/60 to-sand-100/80 px-6 pt-4 pb-8 shadow-lift">
               <div className="pointer-events-none absolute inset-0 grid-lines rounded-[2rem] opacity-40" />
 
               {/* Görünüm değiştirici */}
               <div className="relative z-10 flex items-center justify-between gap-2 pt-1">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/70 bg-white/70 px-3 py-1.5 font-display text-[0.62rem] font-bold tracking-[0.14em] text-ink-500 uppercase backdrop-blur">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/70 bg-white/70 px-3 py-1.5 font-display text-[0.62rem] font-bold tracking-[0.14em] text-ink-500 uppercase">
                   <Rotate3D className="size-3.5 text-brand-600" />
                   Sürükleyin
                 </span>
-                <div className="flex rounded-full border border-white/70 bg-white/70 p-1 backdrop-blur">
+                <div className="flex rounded-full border border-white/70 bg-white/70 p-1">
                   {([
                     ['front', 'Önden'],
                     ['top', 'Üstten'],
@@ -87,7 +86,12 @@ export default function ScoliosisAngles() {
               <div className="relative h-[20rem] sm:h-[26rem]">
                 {inView && (
                   <Suspense fallback={null}>
-                    <ScoliosisAngleScene angle={angle} color={stage.color} view={view} />
+                    <ScoliosisAngleScene
+                      angle={angle}
+                      color={stage.color}
+                      view={view}
+                      active={onScreen}
+                    />
                   </Suspense>
                 )}
               </div>

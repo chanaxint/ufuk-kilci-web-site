@@ -90,17 +90,21 @@ export default function ScoliosisAngleScene({
   angle,
   color,
   view,
+  active,
 }: {
   angle: number
   color: string
   view: SpineView
+  /** Sahne ekranda mı — değilse render döngüsü tamamen durur */
+  active: boolean
 }) {
   const controls = useRef<OrbitControlsImpl | null>(null)
 
   return (
     <Canvas
       shadows
-      dpr={[1, 2]}
+      frameloop={active ? 'always' : 'never'}
+      dpr={[1, 1.75]}
       camera={{ position: [0, 0.3, 8.8], fov: 34 }}
       gl={{ antialias: true, alpha: true }}
       onCreated={({ gl }) => {

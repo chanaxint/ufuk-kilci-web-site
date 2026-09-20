@@ -2,8 +2,9 @@
  * React Bits — GooeyNav
  * Projeye özel değişiklik: bileşen koyu zemin için tasarlanmıştı (beyaz yazı,
  * lighten karışımı). Açık sıva zemine taşımak için karışım darken'a çevrildi,
- * yazı/parça renkleri espresso paletine bağlandı ve hiçbir madde seçili
- * olmadan başlayabilsin diye activeIndex -1 olabiliyor.
+ * yazı/parça renkleri espresso paletine bağlandı. Damla birleşmesi, koyu
+ * zemin + mix-blend-mode yerine SVG alfa eşiği (feColorMatrix) ile yapılıyor;
+ * böylece açık zeminde de siyah bir kutu ya da bulanık hâle oluşmuyor.
  * Ayrıca dikey bir liste olarak da kurulabiliyor (`orientation="vertical"`);
  * menü panelinin içinde bu hâliyle kullanılıyor.
  */
@@ -39,7 +40,7 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
   particleR = 100,
   timeVariance = 300,
   colors = [1, 2, 3, 1, 2, 3, 1, 4],
-  initialActiveIndex = -1,
+  initialActiveIndex = 0,
   orientation = 'horizontal',
   itemClassName = '',
   labelClassName = '',
@@ -135,18 +136,16 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
       makeParticles(filterRef.current);
     }
   };
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>, index: number) => {
-    if (e.key === 'Enter' || e.key === ' ') {
+  /*
+   * Projeye özel: özgün kod Enter'da preventDefault çağırıp bağlantının
+   * açılmasını engelliyordu. Bağlantı Enter ile zaten kendi click olayını
+   * tetikliyor (yani handleClick çalışıyor); burada yalnızca bağlantıların
+   * kendiliğinden yanıt vermediği boşluk tuşu ele alınıyor.
+   */
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>) => {
+    if (e.key === ' ') {
       e.preventDefault();
-      const liEl = e.currentTarget.parentElement;
-      if (liEl) {
-        handleClick(
-          {
-            currentTarget: liEl
-          } as React.MouseEvent<HTMLAnchorElement>,
-          index
-        );
-      }
+      e.currentTarget.click();
     }
   };
   useEffect(() => {
@@ -195,22 +194,14 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
             display: none;
           }
           /*
-           * Özgün teknik, beyaz bir zemin üzerinde contrast(100) + karışım modu
-           * ile "damla" etkisi üretiyor. Bu navigasyon backdrop-filter'lı cam bir
-           * kapsülün içinde durduğu için tarayıcı karışımı uygulamıyor ve beyaz
-           * zemin olduğu gibi görünüyordu. Bu yüzden katman, karışım olmadan
-           * yumuşak bir bulanık hâle olarak çiziliyor.
+           * Özgün teknik siyah bir zemin + contrast(100) + mix-blend-mode ile
+           * "damla" üretiyor; açık sıva zemininde bu ya siyah bir kutu bırakıyor
+           * ya da (backdrop-filter'lı kapsülün içinde) hiç karışmıyordu.
+           * Bunun yerine birleşme SVG alfa eşiğiyle yapılıyor: bulanıklık yalnızca
+           * filtrenin içinde kalıyor, ekrana keskin kenarlı damlalar düşüyor.
            */
           .effect.filter {
-            filter: blur(6px);
-            opacity: 0.55;
-          }
-          .effect.filter::before {
-            content: "";
-            position: absolute;
-            inset: -75px;
-            z-index: -2;
-            background: transparent;
+            filter: url(#gooey-nav-blob);
           }
           .effect.filter::after {
             content: "";
@@ -319,6 +310,25 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
           }
         `}
       </style>
+      <svg aria-hidden="true" width="0" height="0" className="absolute" focusable="false">
+        <defs>
+          <filter
+            id="gooey-nav-blob"
+            x="-100%"
+            y="-100%"
+            width="300%"
+            height="300%"
+            colorInterpolationFilters="sRGB"
+          >
+            <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur" />
+            <feColorMatrix
+              in="blur"
+              mode="matrix"
+              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10"
+            />
+          </filter>
+        </defs>
+      </svg>
       <div className="relative" ref={containerRef}>
         <nav className="flex relative" style={{ transform: 'translate3d(0,0,0.01px)' }}>
           <ul
@@ -341,7 +351,7 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
                     handleClick(e, index);
                     onItemClick?.(index);
                   }}
-                  onKeyDown={e => handleKeyDown(e, index)}
+                  onKeyDown={handleKeyDown}
                   className={`outline-none ${
                     vertical
                       ? 'block px-[0.7em] py-[0.42em] whitespace-nowrap'

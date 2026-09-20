@@ -10,10 +10,7 @@ export default function Scoliosis() {
         {/* Başlık — ortalanmış, bol boşluklu */}
         <div className="mx-auto max-w-3xl text-center">
           <Reveal>
-            <span className="eyebrow">Skolyoz</span>
-          </Reveal>
-          <Reveal delay={0.08}>
-            <h2 className="title-lg mt-7">Skolyoz Nedir?</h2>
+            <h2 className="title-lg">Skolyoz Nedir?</h2>
           </Reveal>
           <Reveal delay={0.14}>
             <p className="lead mt-7">{scoliosis.definition}</p>
@@ -31,7 +28,7 @@ export default function Scoliosis() {
             { plane: 'Transvers', text: 'Omurların kendi ekseninde dönmesi', icon: PlaneTransverse },
           ].map((item, i) => (
             <Reveal key={item.plane} delay={0.08 * i}>
-              <div className="group h-full rounded-2xl border border-white/70 bg-white/76 px-6 py-7 text-center backdrop-blur-sm transition-transform duration-500 hover:-translate-y-1">
+              <div className="group h-full rounded-2xl border border-white/70 bg-white/76 px-6 py-7 text-center transition-transform duration-500 hover:-translate-y-1">
                 <span className="mx-auto grid size-11 place-items-center rounded-2xl bg-brand-100 text-brand-700 transition-colors duration-500 group-hover:bg-brand-600 group-hover:text-white">
                   <item.icon className="size-5" />
                 </span>

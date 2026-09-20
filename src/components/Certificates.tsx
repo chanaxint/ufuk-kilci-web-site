@@ -141,10 +141,7 @@ export default function Certificates() {
       <div className="section-shell">
         <div className="mx-auto max-w-2xl text-center">
           <Reveal>
-            <span className="eyebrow">Eğitim & Sertifikalar</span>
-          </Reveal>
-          <Reveal delay={0.06}>
-            <h2 className="title-lg mt-7">Duvardaki belgeler</h2>
+            <h2 className="title-lg">Duvardaki belgeler</h2>
           </Reveal>
           <Reveal delay={0.12}>
             <p className="lead mt-6">

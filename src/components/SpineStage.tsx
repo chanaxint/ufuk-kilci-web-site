@@ -20,6 +20,8 @@ export default function SpineStage() {
   const [beat, setBeat] = useState(0)
   const [hovered, setHovered] = useState<SpineRegionId | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [onScreen, setOnScreen] = useState(true)
+  const stickyRef = useRef<HTMLDivElement>(null)
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -33,6 +35,17 @@ export default function SpineStage() {
   useEffect(() => {
     const id = window.setTimeout(() => setMounted(true), 60)
     return () => window.clearTimeout(id)
+  }, [])
+
+  /* Sahne görüş alanından çıkınca WebGL render döngüsü duruyor */
+  useEffect(() => {
+    const el = stickyRef.current
+    if (!el) return
+    const io = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting), {
+      rootMargin: '250px 0px',
+    })
+    io.observe(el)
+    return () => io.disconnect()
   }, [])
 
   /* Scroll → ilerleme (ref, kare başına React render'ı olmadan) + metin durağı */
@@ -58,7 +71,7 @@ export default function SpineStage() {
 
   return (
     <section id="top" ref={stageRef} className="relative h-[380vh] lg:h-[460vh]">
-      <div className="sticky top-0 h-[100svh] overflow-hidden">
+      <div ref={stickyRef} className="sticky top-0 h-[100svh] overflow-hidden">
         {/* Zemin doku çizgileri — renk genel yüzeyden gelir */}
         <div className="pointer-events-none absolute inset-0 -z-10 grid-lines opacity-35 [mask-image:radial-gradient(75%_65%_at_50%_40%,black,transparent)]" />
 
@@ -94,6 +107,7 @@ export default function SpineStage() {
             <Suspense fallback={null}>
               <SpineStageScene
                 progress={progress}
+                active={onScreen}
                 labelsVisible={beat > 0}
                 hovered={hovered}
                 onHover={setHovered}

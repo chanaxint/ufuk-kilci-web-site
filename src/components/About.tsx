@@ -6,7 +6,7 @@ import ShinyText from './reactbits/ShinyText'
 import { ArrowRight, Check, Sparkle } from './ui/icons'
 
 const tile =
-  'relative overflow-hidden rounded-3xl border border-white/70 bg-white/70 p-7 shadow-soft backdrop-blur-sm transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:shadow-lift'
+  'relative overflow-hidden rounded-3xl border border-white/70 bg-white/70 p-7 shadow-soft transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:shadow-lift'
 
 export default function About() {
   return (
@@ -14,10 +14,7 @@ export default function About() {
       <div className="section-shell">
         <div className="max-w-2xl">
           <Reveal>
-            <span className="eyebrow">Hakkımda</span>
-          </Reveal>
-          <Reveal delay={0.06}>
-            <h2 className="title-lg mt-6">
+            <h2 className="title-lg">
               Tedaviye her zaman aynı soruyla başlarım:{' '}
               <span className="gradient-text">bu ağrı neden burada?</span>
             </h2>

@@ -113,9 +113,19 @@ const InfiniteSpiral = ({
       bounds = root.getBoundingClientRect();
     });
     resizeObserver.observe(root);
-    const intersectionObserver = new IntersectionObserver(([entry]) => {
-      visibleRef.current = entry.isIntersecting;
-    });
+    /*
+     * Projeye özel: spiral görüş alanının dışındayken döngü tamamen duruyor.
+     * Özgün kodda rAF sayfa boyunca dönüp her karede kartların stillerini
+     * yeniden yazıyordu.
+     */
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        visibleRef.current = entry.isIntersecting;
+        if (entry.isIntersecting) start();
+        else stop();
+      },
+      { rootMargin: '200px 0px' }
+    );
     intersectionObserver.observe(root);
 
     const handleScroll = () => {
@@ -183,9 +193,19 @@ const InfiniteSpiral = ({
       frameId = requestAnimationFrame(render);
     };
 
-    frameId = requestAnimationFrame(render);
-    return () => {
+    function start() {
+      if (frameId) return;
+      previousTime = performance.now();
+      frameId = requestAnimationFrame(render);
+    }
+    function stop() {
+      if (!frameId) return;
       cancelAnimationFrame(frameId);
+      frameId = 0;
+    }
+
+    return () => {
+      stop();
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
       window.removeEventListener('scroll', handleScroll);

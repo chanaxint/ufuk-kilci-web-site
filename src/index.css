@@ -100,7 +100,13 @@
 
   body {
     @apply font-sans text-ink-700 antialiased;
-    background-color: #cabea9;
+    /*
+     * Tarayıcı, kaydırma çubuğunun oluğunu yalnızca kök zemin RENGİYLE
+     * boyuyor (gradyan oraya taşmıyor). Şerit saydam olduğu için bu renk
+     * doğrudan oluğa düşüyor; duvarın ortalama tonuna ayarlandı ki sağ
+     * kenarda ayrı bir sütun görünmesin.
+     */
+    background-color: #c6baa5;
   }
 
   /* Lenis akıcı kaydırma devredeyken */
@@ -132,18 +138,36 @@
     @apply outline-2 outline-offset-3 outline-brand-600;
   }
 
+  /*
+   * Kaydırma çubuğu: şerit tamamen saydam, yalnızca tutamak görünüyor.
+   * Böylece sağ kenarda duvardan ayrışan açık bir sütun kalmıyor.
+   */
   ::-webkit-scrollbar {
     width: 10px;
+    background: transparent;
   }
   ::-webkit-scrollbar-track {
-    @apply bg-sand-100;
+    background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-ink-200;
-    border: 2px solid var(--color-sand-100);
+    background-color: rgb(74 54 38 / 0.3);
+    background-clip: content-box;
+    border: 3px solid transparent;
+    border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-ink-300;
+    background-color: rgb(74 54 38 / 0.5);
+  }
+  /*
+   * Firefox. Chromium'da scrollbar-color, ::-webkit kurallarını geçersiz
+   * kılıp ok düğmeli yerel çubuğu geri getirdiği için yalnızca ::-webkit
+   * desteklemeyen tarayıcılara veriliyor.
+   */
+  @supports not selector(::-webkit-scrollbar) {
+    html {
+      scrollbar-width: thin;
+      scrollbar-color: rgb(74 54 38 / 0.3) transparent;
+    }
   }
 }
 

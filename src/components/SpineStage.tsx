@@ -79,10 +79,10 @@ export default function SpineStage() {
           />
           <defs>
             <linearGradient id="stroke-aurora" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#1668b8" stopOpacity="0" />
-              <stop offset="35%" stopColor="#1668b8" stopOpacity="0.55" />
-              <stop offset="70%" stopColor="#16b8a3" stopOpacity="0.5" />
-              <stop offset="100%" stopColor="#e6a13c" stopOpacity="0" />
+              <stop offset="0%" stopColor="#8a5a33" stopOpacity="0" />
+              <stop offset="35%" stopColor="#8a5a33" stopOpacity="0.55" />
+              <stop offset="70%" stopColor="#7a8f5c" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="#c08f3c" stopOpacity="0" />
             </linearGradient>
           </defs>
         </svg>
@@ -136,7 +136,7 @@ export default function SpineStage() {
                   <div className="pointer-events-auto mt-9 flex flex-wrap items-center gap-3">
                     <a
                       href="#iletisim"
-                      className="group inline-flex items-center gap-2 rounded-full bg-ink-900 px-7 py-3.5 font-display text-[0.95rem] font-bold text-sand-50 shadow-[0_18px_40px_-18px_rgb(11_31_56/0.85)] transition-colors hover:bg-brand-700"
+                      className="group inline-flex items-center gap-2 rounded-full bg-ink-900 px-7 py-3.5 font-display text-[0.95rem] font-bold text-sand-50 shadow-[0_18px_40px_-18px_rgb(58_42_28/0.85)] transition-colors hover:bg-brand-700"
                     >
                       Randevu Oluştur
                       <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />

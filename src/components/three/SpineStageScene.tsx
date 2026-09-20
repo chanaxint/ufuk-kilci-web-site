@@ -130,8 +130,8 @@ export default function SpineStageScene({ progress, labelsVisible, hovered, onHo
         shadow-camera-near={1}
         shadow-camera-far={24}
       />
-      <directionalLight position={[-5, 1.5, -3]} intensity={0.95} color="#bcdcfa" />
-      <directionalLight position={[0, -3, -4]} intensity={0.5} color="#d4f3ec" />
+      <directionalLight position={[-5, 1.5, -3]} intensity={0.95} color="#ecdfc9" />
+      <directionalLight position={[0, -3, -4]} intensity={0.5} color="#e8ddc6" />
 
       <Suspense fallback={<Loader />}>
         <ScrollRig progress={progress} isMobile={isMobile}>
@@ -165,7 +165,7 @@ export default function SpineStageScene({ progress, labelsVisible, hovered, onHo
                         }}
                       />
                       <div
-                        className={`overflow-hidden rounded-2xl border border-white/60 bg-white/55 shadow-[0_8px_32px_-16px_rgb(11_31_56/0.45)] backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                        className={`overflow-hidden rounded-2xl border border-white/60 bg-white/55 shadow-[0_8px_32px_-16px_rgb(58_42_28/0.45)] backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                           active ? 'w-52 bg-white/80' : 'w-auto'
                         }`}
                       >
@@ -214,7 +214,7 @@ export default function SpineStageScene({ progress, labelsVisible, hovered, onHo
           scale={11}
           blur={3}
           far={5}
-          color="#0b1f38"
+          color="#3a2c20"
         />
       </Suspense>
     </Canvas>

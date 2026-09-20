@@ -111,7 +111,7 @@ export default function ScoliosisAngleScene({
     >
       <hemisphereLight args={['#ffffff', '#d9c7ad', 0.95]} />
       <directionalLight position={[4, 6, 5]} intensity={2.1} castShadow shadow-mapSize={[1024, 1024]} />
-      <directionalLight position={[-5, 1.5, -3]} intensity={0.9} color="#bcdcfa" />
+      <directionalLight position={[-5, 1.5, -3]} intensity={0.9} color="#ecdfc9" />
 
       <Suspense fallback={<Loader />}>
         <ScoliosisSpine angle={angle} color={color} />
@@ -120,10 +120,10 @@ export default function ScoliosisAngleScene({
         {/* Şakül çizgisi */}
         <mesh position={[0, 0, -0.35]}>
           <boxGeometry args={[0.008, SPINE_HEIGHT + 0.8, 0.008]} />
-          <meshBasicMaterial color="#0b1f38" transparent opacity={0.16} toneMapped={false} />
+          <meshBasicMaterial color="#3a2c20" transparent opacity={0.16} toneMapped={false} />
         </mesh>
 
-        <ContactShadows position={[0, -2.6, 0]} opacity={0.24} scale={9} blur={3} far={4.5} color="#0b1f38" />
+        <ContactShadows position={[0, -2.6, 0]} opacity={0.24} scale={9} blur={3} far={4.5} color="#3a2c20" />
       </Suspense>
 
       <OrbitControls

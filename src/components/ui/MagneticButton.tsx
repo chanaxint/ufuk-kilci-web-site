@@ -29,7 +29,7 @@ export default function MagneticButton({
     'relative inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 font-display text-[0.95rem] font-bold tracking-[-0.01em] transition-colors duration-300 will-change-transform'
   const styles =
     variant === 'solid'
-      ? 'bg-ink-900 text-sand-50 shadow-[0_18px_40px_-18px_rgb(11_31_56/0.85)] hover:bg-brand-700'
+      ? 'bg-ink-900 text-sand-50 shadow-[0_18px_40px_-18px_rgb(58_42_28/0.85)] hover:bg-brand-700'
       : 'border border-ink-200 bg-white/70 text-ink-800 backdrop-blur hover:border-brand-400 hover:text-brand-700'
 
   const handleMove = (e: React.PointerEvent) => {

@@ -20,12 +20,12 @@ export default function SpineGlyph({ className = '' }: { className?: string }) {
         <linearGradient id="vert" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor="#ffffff" />
           <stop offset="55%" stopColor="#efe5d8" />
-          <stop offset="100%" stopColor="#c2d1e0" />
+          <stop offset="100%" stopColor="#d6ccbd" />
         </linearGradient>
         <linearGradient id="spineLine" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#2e86d9" stopOpacity="0.15" />
-          <stop offset="45%" stopColor="#16b8a3" stopOpacity="0.55" />
-          <stop offset="100%" stopColor="#e6a13c" stopOpacity="0.25" />
+          <stop offset="0%" stopColor="#c49466" stopOpacity="0.15" />
+          <stop offset="45%" stopColor="#7a8f5c" stopOpacity="0.55" />
+          <stop offset="100%" stopColor="#c08f3c" stopOpacity="0.25" />
         </linearGradient>
       </defs>
 
@@ -60,7 +60,7 @@ export default function SpineGlyph({ className = '' }: { className?: string }) {
             height={p.h}
             rx={p.h / 2}
             fill="url(#vert)"
-            stroke="#0b1f38"
+            stroke="#3a2c20"
             strokeOpacity="0.12"
             transform={`rotate(${p.rot} ${p.x} ${p.y})`}
           />

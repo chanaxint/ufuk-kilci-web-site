@@ -197,7 +197,7 @@ export default function Contact() {
                 <div className="flex flex-wrap items-center gap-4 sm:col-span-2">
                   <button
                     type="submit"
-                    className="group inline-flex items-center gap-2 rounded-full bg-ink-900 px-7 py-3.5 font-display text-[0.95rem] font-bold text-sand-50 shadow-[0_18px_40px_-18px_rgb(11_31_56/0.85)] transition-colors duration-300 hover:bg-vital-600"
+                    className="group inline-flex items-center gap-2 rounded-full bg-ink-900 px-7 py-3.5 font-display text-[0.95rem] font-bold text-sand-50 shadow-[0_18px_40px_-18px_rgb(58_42_28/0.85)] transition-colors duration-300 hover:bg-vital-600"
                   >
                     <WhatsApp className="size-4.5" />
                     WhatsApp ile gönder

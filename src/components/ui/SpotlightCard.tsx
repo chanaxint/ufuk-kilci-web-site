@@ -11,7 +11,7 @@ type Props = {
  * İmleci takip eden yumuşak bir ışık lekesi taşıyan kart yüzeyi.
  * (Reactbits "Spotlight Card" mantığının projenin paletine uyarlanmış hâli.)
  */
-export default function SpotlightCard({ children, className = '', glow = '188 220 250' }: Props) {
+export default function SpotlightCard({ children, className = '', glow = '232 211 191' }: Props) {
   const ref = useRef<HTMLDivElement>(null)
 
   return (

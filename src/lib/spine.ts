@@ -38,7 +38,7 @@ export const spineRegions: SpineRegion[] = [
     description:
       'Başın ağırlığını taşıyan, en hareketli yedi omur. Masa başı duruşu ve ekran yüksekliği bu bölgeyi doğrudan etkiler.',
     complaints: ['Boyun düzleşmesi', 'Servikal disk hernisi', 'Gerilim tipi baş ağrısı'],
-    color: '#2e86d9',
+    color: '#8a5a33',
     focus: 0.9,
   },
   {
@@ -51,7 +51,7 @@ export const spineRegions: SpineRegion[] = [
     description:
       'Kaburgalarla eklemlenen on iki omur. Hareket kısıtlandığında yükü boyun ve bel devralır; sırt sertliği bu yüzden sessiz bir suç ortağıdır.',
     complaints: ['Kamburluk (kifoz)', 'Kürek arası ağrı', 'Kostovertebral kısıtlılık'],
-    color: '#16b8a3',
+    color: '#7a8f5c',
     focus: 0.63,
   },
   {
@@ -64,7 +64,7 @@ export const spineRegions: SpineRegion[] = [
     description:
       'Gövde yükünün büyük kısmını taşıyan beş güçlü omur. Bel ağrısı şikâyetlerinin çoğu bu bölgedeki yük dağılımı bozukluğundan doğar.',
     complaints: ['Bel fıtığı', 'Spondilolistezis', 'Siyatik ağrısı'],
-    color: '#1668b8',
+    color: '#c08f3c',
     focus: 0.38,
   },
   {
@@ -77,7 +77,7 @@ export const spineRegions: SpineRegion[] = [
     description:
       'Omurgayı leğen kemiğine bağlayan temel. Sakroiliak eklemdeki milimetrik bir asimetri, zincirin en üstünde ağrı olarak karşımıza çıkabilir.',
     complaints: ['Sakroiliak disfonksiyon', 'Koksidini', 'Pelvik asimetri'],
-    color: '#e6a13c',
+    color: '#8f4a25',
     focus: 0.15,
   },
 ]

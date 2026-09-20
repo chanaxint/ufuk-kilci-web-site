@@ -102,6 +102,7 @@ istatistikler ve eğitim yılları — yayına çıkmadan önce gerçek bilgiler
 ## Tasarım sistemi
 
 Renkler, gölgeler ve tipografi `src/index.css` içindeki `@theme` bloğunda tanımlıdır:
-`ink` (lacivert), `brand` (medikal mavi), `vital` (turkuaz), `warm` (amber), `sand` (kum/kağıt).
+`ink` (espresso — metin), `brand` (kahve — marka vurgusu), `vital` (adaçayı), `warm` (altın),
+`sand` (kağıt/kart yüzeyleri). Zemin, sıvalı duvar tonundadır; palet buna göre kurulmuştur.
 Ortak yardımcı sınıflar: `.eyebrow`, `.title-xl`, `.title-lg`, `.lead`, `.section-shell`,
 `.gradient-text`, `.grid-lines`, `.card-surface`.

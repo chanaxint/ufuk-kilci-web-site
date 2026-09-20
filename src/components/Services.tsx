@@ -4,9 +4,9 @@ import SpotlightCard from './ui/SpotlightCard'
 import { ArrowRight, Check } from './ui/icons'
 
 const accents = {
-  brand: { glow: '188 220 250', chip: 'bg-brand-100 text-brand-700', dot: 'bg-brand-500' },
-  vital: { glow: '212 243 236', chip: 'bg-vital-100 text-vital-700', dot: 'bg-vital-500' },
-  warm: { glow: '251 238 218', chip: 'bg-warm-100 text-warm-600', dot: 'bg-warm-500' },
+  brand: { glow: '232 211 191', chip: 'bg-brand-100 text-brand-700', dot: 'bg-brand-500' },
+  vital: { glow: '221 230 205', chip: 'bg-vital-100 text-vital-700', dot: 'bg-vital-500' },
+  warm: { glow: '246 234 210', chip: 'bg-warm-100 text-warm-600', dot: 'bg-warm-500' },
 } as const
 
 export default function Services() {

@@ -33,7 +33,7 @@ export default function Navbar() {
           }`}
         >
           <a href="#top" className="group flex items-center gap-3 pl-1.5">
-            <span className="grid size-10 place-items-center rounded-2xl bg-gradient-to-br from-ink-900 to-brand-700 font-display text-sm font-extrabold text-sand-50 shadow-[0_10px_24px_-12px_rgb(11_31_56/0.9)]">
+            <span className="grid size-10 place-items-center rounded-2xl bg-gradient-to-br from-ink-900 to-brand-700 font-display text-sm font-extrabold text-sand-50 shadow-[0_10px_24px_-12px_rgb(58_42_28/0.9)]">
               UK
             </span>
             <span className="flex flex-col leading-none">
@@ -69,7 +69,7 @@ export default function Navbar() {
             </a>
             <a
               href="#iletisim"
-              className="group hidden items-center gap-2 rounded-full bg-ink-900 px-5 py-2.5 font-display text-[0.88rem] font-bold whitespace-nowrap text-sand-50 shadow-[0_14px_30px_-16px_rgb(11_31_56/0.9)] transition-colors hover:bg-brand-700 sm:inline-flex"
+              className="group hidden items-center gap-2 rounded-full bg-ink-900 px-5 py-2.5 font-display text-[0.88rem] font-bold whitespace-nowrap text-sand-50 shadow-[0_14px_30px_-16px_rgb(58_42_28/0.9)] transition-colors hover:bg-brand-700 sm:inline-flex"
             >
               Randevu Al
               <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
@@ -78,7 +78,7 @@ export default function Navbar() {
               type="button"
               aria-label="Menüyü aç"
               onClick={() => setOpen(true)}
-              className="grid size-11 place-items-center rounded-full border border-white/50 bg-white/35 text-ink-800 backdrop-blur-sm lg:hidden"
+              className="grid size-11 place-items-center rounded-full border border-white/35 bg-white/18 text-ink-800 backdrop-blur-sm lg:hidden"
             >
               <Menu className="size-5" />
             </button>

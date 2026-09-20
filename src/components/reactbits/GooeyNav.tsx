@@ -4,6 +4,8 @@
  * lighten karışımı). Açık sıva zemine taşımak için karışım darken'a çevrildi,
  * yazı/parça renkleri espresso paletine bağlandı ve hiçbir madde seçili
  * olmadan başlayabilsin diye activeIndex -1 olabiliyor.
+ * Ayrıca dikey bir liste olarak da kurulabiliyor (`orientation="vertical"`);
+ * menü panelinin içinde bu hâliyle kullanılıyor.
  */
 import React, { useRef, useEffect, useState } from 'react';
 
@@ -21,6 +23,12 @@ export interface GooeyNavProps {
   timeVariance?: number;
   colors?: number[];
   initialActiveIndex?: number;
+  /** Panelin içinde dikey liste olarak kurulabilsin diye eklendi */
+  orientation?: 'horizontal' | 'vertical';
+  /** Dış kabuğun stagger animasyonuna bağlanabilmesi için sınıf kancaları */
+  itemClassName?: string;
+  labelClassName?: string;
+  onItemClick?: (index: number) => void;
 }
 
 const GooeyNav: React.FC<GooeyNavProps> = ({
@@ -31,8 +39,13 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
   particleR = 100,
   timeVariance = 300,
   colors = [1, 2, 3, 1, 2, 3, 1, 4],
-  initialActiveIndex = -1
+  initialActiveIndex = -1,
+  orientation = 'horizontal',
+  itemClassName = '',
+  labelClassName = '',
+  onItemClick
 }) => {
+  const vertical = orientation === 'vertical';
   const containerRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLUListElement>(null);
   const filterRef = useRef<HTMLSpanElement>(null);
@@ -310,21 +323,30 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
         <nav className="flex relative" style={{ transform: 'translate3d(0,0,0.01px)' }}>
           <ul
             ref={navRef}
-            className="relative z-[3] m-0 flex list-none gap-1 p-0 px-1"
+            className={`relative z-[3] m-0 flex list-none p-0 ${
+              vertical ? 'flex-col items-start gap-1.5' : 'gap-1 px-1'
+            }`}
             style={{ color: 'var(--color-1)' }}
           >
             {items.map((item, index) => (
               <li
                 key={index}
-                className={`relative cursor-pointer rounded-full font-display text-[0.9rem] font-semibold transition-[background-color_color_box-shadow] duration-300 ease ${
-                  activeIndex === index ? 'active' : ''
-                }`}
+                className={`relative cursor-pointer rounded-full font-display font-semibold transition-[background-color_color_box-shadow] duration-300 ease ${
+                  vertical ? 'text-[clamp(1.35rem,6vw,1.9rem)] tracking-[-0.02em]' : 'text-[0.9rem]'
+                } ${itemClassName} ${activeIndex === index ? 'active' : ''}`}
               >
                 <a
                   href={item.href}
-                  onClick={e => handleClick(e, index)}
+                  onClick={e => {
+                    handleClick(e, index);
+                    onItemClick?.(index);
+                  }}
                   onKeyDown={e => handleKeyDown(e, index)}
-                  className="inline-block px-[1.05em] py-[0.62em] whitespace-nowrap outline-none"
+                  className={`outline-none ${
+                    vertical
+                      ? 'block px-[0.7em] py-[0.42em] whitespace-nowrap'
+                      : 'inline-block px-[1.05em] py-[0.62em] whitespace-nowrap'
+                  } ${labelClassName}`}
                 >
                   {item.label}
                 </a>

@@ -4,6 +4,10 @@
  *  - `showHeader` ile bileşenin kendi başlık satırı (logo + aç/kapa düğmesi)
  *    gizlenebiliyor; sitenin kendi navigasyon çubuğu kullanılıyor.
  *  - `controlledOpen` ile menü dışarıdan açılıp kapatılabiliyor.
+ *  - `panelContent` ile varsayılan madde listesi yerine başka bir içerik
+ *    (projede dikey GooeyNav) çizilebiliyor. Stagger animasyonu hâlâ
+ *    `.sm-panel-itemLabel` sınıflı düğümleri aradığı için bu içerik de aynı
+ *    sınıfı taşırsa sırayla yükselerek girer.
  */
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
@@ -38,6 +42,8 @@ export interface StaggeredMenuProps {
   showHeader?: boolean;
   /** Menüyü dışarıdan kontrol et */
   controlledOpen?: boolean;
+  /** Varsayılan madde listesi yerine çizilecek içerik (projede GooeyNav) */
+  panelContent?: React.ReactNode;
 }
 
 export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
@@ -58,7 +64,8 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
   onMenuOpen,
   onMenuClose,
   showHeader = true,
-  controlledOpen
+  controlledOpen,
+  panelContent
 }: StaggeredMenuProps) => {
   const [open, setOpen] = useState(false);
   const openRef = useRef(false);
@@ -511,6 +518,7 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
           aria-hidden={!open}
         >
           <div className="sm-panel-inner flex-1 flex flex-col gap-5">
+            {panelContent ?? (
             <ul
               className="sm-panel-list list-none m-0 p-0 flex flex-col gap-2"
               role="list"
@@ -541,6 +549,7 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
                 </li>
               )}
             </ul>
+            )}
 
             {displaySocials && socialItems && socialItems.length > 0 && (
               <div className="sm-socials mt-auto pt-8 flex flex-col gap-3" aria-label="Social links">

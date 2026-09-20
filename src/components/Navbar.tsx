@@ -1,17 +1,12 @@
 import { useEffect, useState } from 'react'
-import { motion, useMotionValueEvent, useScroll } from 'motion/react'
+import { motion } from 'motion/react'
 import { doctor, navLinks } from '../lib/content'
 import GooeyNav from './reactbits/GooeyNav'
 import { StaggeredMenu } from './reactbits/StaggeredMenu'
 import ShinyText from './reactbits/ShinyText'
-import { ArrowRight, Menu, Phone } from './ui/icons'
 
 export default function Navbar() {
-  const { scrollY } = useScroll()
-  const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
-
-  useMotionValueEvent(scrollY, 'change', (v) => setScrolled(v > 40))
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''
@@ -20,100 +15,105 @@ export default function Navbar() {
     }
   }, [open])
 
+  const sideLink =
+    'font-display text-[0.78rem] font-semibold tracking-[0.16em] whitespace-nowrap text-ink-600 uppercase transition-colors duration-300 hover:text-brand-700'
+
   return (
     <>
       <motion.header
-        initial={{ y: -80, opacity: 0 }}
+        initial={{ y: -40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-        className="fixed inset-x-0 top-0 z-50"
+        className="pointer-events-none fixed inset-x-0 top-0 z-50"
       >
-        <div
-          className={`mx-auto mt-3 flex w-[min(82rem,calc(100%-1.5rem))] items-center justify-between rounded-full border px-3 py-2.5 transition-all duration-500 sm:px-4 ${
-            scrolled
-              ? 'border-white/30 bg-white/14 shadow-[0_2px_10px_-6px_rgb(58_42_28/0.16),0_16px_40px_-30px_rgb(58_42_28/0.3)] backdrop-blur-md'
-              : 'border-transparent bg-transparent'
-          }`}
-        >
-          <a href="#top" className="group flex items-center gap-3 pl-1.5">
-            <span className="grid size-10 place-items-center rounded-2xl bg-gradient-to-br from-ink-900 to-brand-700 font-display text-sm font-extrabold text-sand-50 shadow-[0_10px_24px_-12px_rgb(58_42_28/0.9)]">
-              UK
-            </span>
-            <span className="flex flex-col leading-none">
+        <div className="relative flex items-center justify-center px-5 py-5 sm:px-8 sm:py-6">
+          <div className="pointer-events-auto relative flex items-center gap-10 xl:gap-14">
+            {/*
+              Omurga ya da yorum spirali başlığın altından geçtiğinde okunurluğu
+              korumak için yumuşak bir bulanıklık lekesi. Radyal maske sayesinde
+              kenarı yok; boş duvarda hiç görünmüyor.
+            */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -inset-x-32 -inset-y-9 -z-10 backdrop-blur-[8px] [-webkit-mask-image:radial-gradient(60%_64%_at_50%_50%,black_42%,transparent_88%)] [mask-image:radial-gradient(60%_64%_at_50%_50%,black_42%,transparent_88%)]"
+            />
+
+            <a href="#hakkimda" className={`hidden lg:block ${sideLink}`}>
+              Hakkımda
+            </a>
+
+            <a href="#top" className="group relative flex flex-col items-center leading-none">
               <ShinyText
                 text={doctor.name}
                 speed={5}
-                color="#34261a"
+                color="#3b2b1d"
                 shineColor="#c49466"
                 spread={90}
-                className="font-wordmark text-[1.15rem] leading-none font-normal tracking-[0.005em] whitespace-nowrap"
+                className="font-wordmark text-[1.55rem] leading-none font-normal tracking-[0.004em] whitespace-nowrap sm:text-[1.85rem]"
               />
-              <span className="mt-1 hidden font-display text-[0.62rem] font-semibold tracking-[0.2em] whitespace-nowrap text-ink-600 uppercase sm:block">
+              <span className="mt-1.5 font-display text-[0.56rem] font-semibold tracking-[0.3em] whitespace-nowrap text-ink-600 uppercase sm:text-[0.62rem]">
                 {doctor.titles}
               </span>
-            </span>
-          </a>
-
-          {/*
-            Gooey efekti, bulanıklık + kontrast filtresiyle çalıştığı için altında
-            opak bir zemin ister. Bağlantılar bu yüzden kendi ince şeridinde durur;
-            --gooey-bg şeridin rengiyle aynı tutulur.
-          */}
-          <nav
-            className="isolate hidden rounded-full bg-[#d9d1c3] px-1 py-0.5 lg:block"
-            style={{ ['--gooey-bg' as string]: '#d9d1c3' }}
-          >
-            <GooeyNav items={navLinks.map((l) => ({ label: l.label, href: l.href }))} />
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <a
-              href={`tel:${doctor.phone.replace(/\s/g, '')}`}
-              className="hidden items-center gap-2 rounded-full border border-white/35 bg-white/18 px-4 py-2.5 font-display text-[0.85rem] font-semibold text-ink-700 backdrop-blur-sm transition-colors hover:border-brand-400 hover:text-brand-700 sm:inline-flex"
-            >
-              <Phone className="size-4" />
-              {doctor.phone}
             </a>
-            <a
-              href="#iletisim"
-              className="group hidden items-center gap-2 rounded-full bg-ink-900 px-5 py-2.5 font-display text-[0.88rem] font-bold whitespace-nowrap text-sand-50 shadow-[0_14px_30px_-16px_rgb(58_42_28/0.9)] transition-colors hover:bg-brand-700 sm:inline-flex"
-            >
-              Randevu Al
-              <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+
+            <a href="#iletisim" className={`hidden lg:block ${sideLink}`}>
+              İletişim
             </a>
-            <button
-              type="button"
-              aria-label={open ? 'Menüyü kapat' : 'Menüyü aç'}
-              aria-expanded={open}
-              onClick={() => setOpen((v) => !v)}
-              className="relative z-[60] grid size-11 place-items-center rounded-full border border-white/35 bg-white/18 text-ink-800 backdrop-blur-sm lg:hidden"
-            >
-              <Menu className="size-5" />
-            </button>
           </div>
+
+          {/* İki çizgi; açıkken çarpıya dönüyor */}
+          <button
+            type="button"
+            aria-label={open ? 'Menüyü kapat' : 'Menüyü aç'}
+            aria-expanded={open}
+            aria-controls="staggered-menu-panel"
+            onClick={() => setOpen((v) => !v)}
+            className="pointer-events-auto absolute right-5 z-[60] grid size-11 place-items-center rounded-full text-ink-800 transition-colors duration-300 hover:text-brand-700 sm:right-8"
+          >
+            <span className="relative block h-3.5 w-7">
+              <span
+                className={`absolute left-0 block h-[2px] w-full rounded-full bg-current transition-all duration-[420ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  open ? 'top-1/2 -translate-y-1/2 rotate-45' : 'top-0 rotate-0'
+                }`}
+              />
+              <span
+                className={`absolute left-0 block h-[2px] w-full rounded-full bg-current transition-all duration-[420ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  open ? 'top-1/2 -translate-y-1/2 -rotate-45' : 'top-full -translate-y-full rotate-0'
+                }`}
+              />
+            </span>
+          </button>
         </div>
       </motion.header>
 
-      {/* Mobil menü — React Bits StaggeredMenu */}
-      <div className="lg:hidden">
-        <StaggeredMenu
-          isFixed
-          showHeader={false}
-          controlledOpen={open}
-          position="right"
-          colors={['#e6d3bf', '#c49466']}
-          accentColor="#8a5a33"
-          items={navLinks.map((l) => ({ label: l.label, ariaLabel: l.label, link: l.href }))}
-          socialItems={[
-            { label: 'WhatsApp', link: doctor.whatsapp },
-            { label: 'Instagram', link: doctor.instagram },
-            { label: 'Randevu', link: '#iletisim' },
-          ]}
-          displayItemNumbering
-          closeOnClickAway
-          onMenuClose={() => setOpen(false)}
-        />
-      </div>
+      {/* Tüm navigasyon burada — React Bits StaggeredMenu + dikey GooeyNav */}
+      <StaggeredMenu
+        isFixed
+        showHeader={false}
+        controlledOpen={open}
+        position="right"
+        colors={['#e6d3bf', '#c49466']}
+        accentColor="#8a5a33"
+        items={navLinks.map((l) => ({ label: l.label, ariaLabel: l.label, link: l.href }))}
+        panelContent={
+          <GooeyNav
+            orientation="vertical"
+            items={navLinks.map((l) => ({ label: l.label, href: l.href }))}
+            itemClassName="sm-panel-itemWrap"
+            labelClassName="sm-panel-itemLabel"
+            /* Damla efekti tamamlansın diye kapanış hafif gecikmeli */
+            onItemClick={() => window.setTimeout(() => setOpen(false), 420)}
+          />
+        }
+        socialItems={[
+          { label: doctor.phone, link: `tel:${doctor.phone.replace(/\s/g, '')}` },
+          { label: 'WhatsApp', link: doctor.whatsapp },
+          { label: 'Instagram', link: doctor.instagram },
+          { label: 'Randevu Al', link: '#iletisim' },
+        ]}
+        closeOnClickAway
+        onMenuClose={() => setOpen(false)}
+      />
     </>
   )
 }

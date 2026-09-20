@@ -18,6 +18,7 @@ export const navLinks = [
   { label: 'Hakkımda', href: '#hakkimda' },
   { label: 'Sertifikalar', href: '#sertifikalar' },
   { label: 'S.S.S.', href: '#sss' },
+  { label: 'İletişim', href: '#iletisim' },
 ]
 
 export const stats = [

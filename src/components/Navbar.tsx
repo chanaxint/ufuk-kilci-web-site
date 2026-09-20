@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { doctor, navLinks } from '../lib/content'
-import GooeyNav from './reactbits/GooeyNav'
+import DrawUnderlineLink from './reactbits/DrawUnderlineLink'
 import { StaggeredMenu } from './reactbits/StaggeredMenu'
 import ShinyText from './reactbits/ShinyText'
 
@@ -112,7 +112,7 @@ export default function Navbar() {
         </div>
       </motion.header>
 
-      {/* Tüm navigasyon burada — React Bits StaggeredMenu + dikey GooeyNav */}
+      {/* Tüm navigasyon burada — StaggeredMenu paneli + elle çizilen alt çizgili bağlantılar */}
       <StaggeredMenu
         isFixed
         showHeader={false}
@@ -122,14 +122,20 @@ export default function Navbar() {
         accentColor="#8a5a33"
         items={navLinks.map((l) => ({ label: l.label, ariaLabel: l.label, link: l.href }))}
         panelContent={
-          <GooeyNav
-            orientation="vertical"
-            items={navLinks.map((l) => ({ label: l.label, href: l.href }))}
-            itemClassName="sm-panel-itemWrap"
-            labelClassName="sm-panel-itemLabel"
-            /* Damla efekti tamamlansın diye kapanış hafif gecikmeli */
-            onItemClick={() => window.setTimeout(() => setOpen(false), 420)}
-          />
+          <ul className="flex list-none flex-col gap-1 p-0" role="list">
+            {navLinks.map((l) => (
+              <li key={l.href}>
+                <DrawUnderlineLink
+                  text={l.label}
+                  href={l.href}
+                  stroke="#8a5a33"
+                  className="font-display text-[clamp(1.45rem,6.5vw,2.05rem)] font-semibold tracking-[-0.02em] text-ink-900 transition-colors duration-300 hover:text-brand-700 focus-visible:text-brand-700"
+                  /* Çizgi tamamlansın diye kapanış hafif gecikmeli */
+                  onNavigate={() => window.setTimeout(() => setOpen(false), 420)}
+                />
+              </li>
+            ))}
+          </ul>
         }
         socialItems={[
           { label: doctor.phone, link: `tel:${doctor.phone.replace(/\s/g, '')}` },

@@ -5,7 +5,7 @@
  *    gizlenebiliyor; sitenin kendi navigasyon çubuğu kullanılıyor.
  *  - `controlledOpen` ile menü dışarıdan açılıp kapatılabiliyor.
  *  - `panelContent` ile varsayılan madde listesi yerine başka bir içerik
- *    (projede dikey GooeyNav) çizilebiliyor. Stagger animasyonu hâlâ
+ *    (projede alt çizgili bağlantı listesi) çizilebiliyor. Stagger animasyonu hâlâ
  *    `.sm-panel-itemLabel` sınıflı düğümleri aradığı için bu içerik de aynı
  *    sınıfı taşırsa sırayla yükselerek girer.
  */
@@ -42,7 +42,7 @@ export interface StaggeredMenuProps {
   showHeader?: boolean;
   /** Menüyü dışarıdan kontrol et */
   controlledOpen?: boolean;
-  /** Varsayılan madde listesi yerine çizilecek içerik (projede GooeyNav) */
+  /** Varsayılan madde listesi yerine çizilecek içerik */
   panelContent?: React.ReactNode;
 }
 

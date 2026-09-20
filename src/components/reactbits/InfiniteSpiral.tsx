@@ -152,7 +152,9 @@ const InfiniteSpiral = ({
       const half = count / 2;
       const width = Math.max(bounds.width, 1);
       const height = Math.max(bounds.height, 1);
-      const fit = Math.min(1, width / (cardWidth * 2.8), height / (cardHeight * 2.35));
+      // Projeye özel: kartların ekran kenarından taşmasına izin veriyoruz,
+      // bu yüzden sığdırma katsayısı eskisinden cömert.
+      const fit = Math.min(1, width / (cardWidth * 2.1), height / (cardHeight * 2));
       const responsiveRadius = Math.min(radius, Math.max(72, width * 0.36)) * fit;
       const fadeStart = clamp(1 - edgeFade, 0, 0.98);
       const turnSize = Math.max(cardsPerTurn, 1);
@@ -242,8 +244,13 @@ const InfiniteSpiral = ({
     filter: `grayscale(${Math.min(1, Math.max(0, grayscale))})`
   };
 
+  /*
+   * Projeye özel: kartlar alçı zemine otursun diye saf beyaz yerine sıcak bir
+   * krem; gölge yumuşatıldı. backdrop-blur kaldırıldı — üst maske altında
+   * arka plan tamponu boşaldığı için bulanıklık kartları soluklaştırıyordu.
+   */
   const itemClassName =
-    'absolute left-1/2 top-1/2 block h-[var(--spiral-height)] w-[var(--spiral-width)] overflow-hidden rounded-[var(--spiral-radius)] border border-white/70 bg-white/88 shadow-[0_14px_38px_-18px_rgb(58_42_28/0.45)] backdrop-blur-sm [backface-visibility:hidden] [transform-style:preserve-3d] [will-change:transform,opacity,filter] motion-reduce:transition-none';
+    'absolute left-1/2 top-1/2 block h-[var(--spiral-height)] w-[var(--spiral-width)] overflow-hidden rounded-[var(--spiral-radius)] border border-white/60 bg-[rgb(253_250_245/0.92)] shadow-[0_20px_50px_-26px_rgb(58_42_28/0.4)] [backface-visibility:hidden] [transform-style:preserve-3d] [will-change:transform,opacity,filter] motion-reduce:transition-none';
 
   return (
     <div

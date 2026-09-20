@@ -8,18 +8,18 @@ export default function Testimonials() {
     id: i,
     label: `${item.name} — ${item.role}`,
     node: (
-      <figure className="flex h-full w-full flex-col justify-between p-4">
+      <figure className="flex h-full w-full flex-col justify-between p-5">
         <div className="flex items-center gap-0.5 text-warm-500">
           {Array.from({ length: 5 }).map((_, s) => (
-            <Star key={s} className="size-3" />
+            <Star key={s} className="size-3.5" />
           ))}
         </div>
-        <blockquote className="mt-2.5 line-clamp-4 text-[0.78rem] leading-snug text-ink-700">
+        <blockquote className="mt-3 line-clamp-6 text-[0.86rem] leading-relaxed text-ink-700">
           {item.quote}
         </blockquote>
-        <figcaption className="mt-3 border-t border-ink-200/50 pt-3">
-          <span className="block font-display text-[0.82rem] font-bold text-ink-900">{item.name}</span>
-          <span className="block text-[0.72rem] text-ink-500">{item.role}</span>
+        <figcaption className="mt-4 border-t border-ink-200/50 pt-3">
+          <span className="block font-display text-[0.9rem] font-bold text-ink-900">{item.name}</span>
+          <span className="block text-[0.78rem] text-ink-500">{item.role}</span>
         </figcaption>
       </figure>
     ),
@@ -40,8 +40,8 @@ export default function Testimonials() {
             </Reveal>
             <Reveal delay={0.12}>
               <p className="lead mt-5 max-w-lg">
-                Sayfayı kaydırdıkça yorumlar spiral boyunca yukarı süzülür; okumak istediğiniz
-                kartın üzerinde durabilir ya da sürükleyerek gezinebilirsiniz.
+                Sayfayı kaydırdıkça yorumlar spiral boyunca yukarı süzülür; durduğunuzda spiral de
+                durur, okumak istediğiniz kart karşınızda kalır.
               </p>
             </Reveal>
           </div>
@@ -59,28 +59,31 @@ export default function Testimonials() {
             </div>
           </Reveal>
         </div>
+      </div>
 
-        <Reveal delay={0.12}>
-          <div className="mt-10 h-[30rem] w-full sm:h-[38rem]">
-            <InfiniteSpiral
-              items={items}
-              animationMode="all"
-              direction="up"
-              speed={0.5}
-              radius={210}
-              cardWidth={230}
-              cardHeight={200}
-              verticalSpacing={92}
-              cardsPerTurn={6}
-              cardTilt={6}
-              cardRadius={20}
-              centerScale={1.06}
-              edgeFade={0.55}
-              edgeBlur={1.5}
-              pauseOnHover
-            />
-          </div>
-        </Reveal>
+      {/*
+        Spiral bilerek kabuğun dışında: tam genişlikte akıp ekranın kenarlarından
+        çıkıyor. Üst/alt maske kartların sert bir çizgiyle kesilmesini engelleyip
+        zemine eritiyor.
+      */}
+      <div className="mt-6 h-[32rem] w-full sm:mt-10 sm:h-[40rem] lg:h-[46rem]">
+        <InfiniteSpiral
+          className="[-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,black_12%,black_88%,transparent_100%)] [mask-image:linear-gradient(to_bottom,transparent_0%,black_12%,black_88%,transparent_100%)]"
+          items={items}
+          animationMode="scroll"
+          speed={1}
+          radius={560}
+          perspective={1800}
+          cardWidth={264}
+          cardHeight={272}
+          verticalSpacing={142}
+          cardsPerTurn={6}
+          cardTilt={5}
+          cardRadius={22}
+          centerScale={1.04}
+          edgeFade={0.42}
+          edgeBlur={1.6}
+        />
       </div>
     </section>
   )

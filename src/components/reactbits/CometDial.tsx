@@ -23,6 +23,11 @@ export interface CometDialProps {
   min?: number;
   max?: number;
   step?: number;
+  /**
+   * Projeye özel: yalnızca bu değerlere oturur. Verildiğinde `step` yok sayılır;
+   * sürükleme sırasında da ibre aradaki değerlerde durmaz, duraktan durağa geçer.
+   */
+  stops?: number[];
   unit?: string;
   label?: string;
   accent?: string;
@@ -96,6 +101,7 @@ const CometDial: React.FC<CometDialProps> = ({
   min = 0,
   max = 100,
   step = 1,
+  stops,
   unit = '%',
   label = 'Level',
   accent = '#f5f5f5',
@@ -135,8 +141,12 @@ const CometDial: React.FC<CometDialProps> = ({
   const decimals = decimalsOf(step);
   const k = 200 + (clamp(speed, 0, 100) / 100) * 700;
   const crit = 2 * Math.sqrt(k);
-  const snap = (v: number) =>
-    step > 0 ? clamp(Math.round((v - min) / step) * step + min, min, max) : clamp(v, min, max);
+  const snap = (v: number) => {
+    if (stops && stops.length) {
+      return stops.reduce((best, s) => (Math.abs(s - v) < Math.abs(best - v) ? s : best), stops[0]);
+    }
+    return step > 0 ? clamp(Math.round((v - min) / step) * step + min, min, max) : clamp(v, min, max);
+  };
 
   const commit = (v: number, finished: boolean, detail?: CometDialChangeDetail) => {
     const s = snap(v);
@@ -219,7 +229,7 @@ const CometDial: React.FC<CometDialProps> = ({
       el.setAttribute('stroke-width', (thickness + cometWidth * w * s).toFixed(2));
       el.style.opacity = (w * s).toFixed(3);
     }
-    const shown = clamp(r, min, max).toFixed(decimals);
+    const shown = clamp(stops && stops.length ? snap(r) : r, min, max).toFixed(decimals);
     if (shown !== L.text) {
       L.text = shown;
       if (figure.current) figure.current.textContent = shown;
@@ -259,7 +269,8 @@ const CometDial: React.FC<CometDialProps> = ({
       g.moved = true;
       reading.stop();
     }
-    g.at = angleAt(e.clientX, e.clientY);
+    /* Durak listesi varsa ibrenin hedefi de duraklara oturur */
+    g.at = snap(angleAt(e.clientX, e.clientY));
     g.hist.push([performance.now(), g.at]);
     if (g.hist.length > 4) g.hist.shift();
     commit(g.at, false);

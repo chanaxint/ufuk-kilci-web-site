@@ -10,7 +10,6 @@ import Scoliosis from './components/Scoliosis'
 import Certificates from './components/Certificates'
 import ScoliosisAngles from './components/ScoliosisAngles'
 import About from './components/About'
-import Services from './components/Services'
 import Testimonials from './components/Testimonials'
 import Faq from './components/Faq'
 import Contact from './components/Contact'
@@ -68,8 +67,6 @@ export default function App() {
         <ScoliosisAngles />
         <SectionRule />
         <Testimonials />
-        <SectionRule />
-        <Services />
         <SectionRule />
         <About />
         <SectionRule />

@@ -117,14 +117,15 @@ export default function ScoliosisAngles() {
                   value={angle}
                   min={0}
                   max={MAX}
-                  step={1}
+                  /* Skalada yalnızca bu duraklar var; sürüklerken de aradaki değerlere düşmez */
+                  stops={TICKS}
                   unit="°"
                   label="Cobb açısı"
                   size={196}
                   thickness={6}
                   accent={stage.color}
                   ink="#4a3626"
-                  onChange={(v) => setAngle(Math.round(v))}
+                  onChange={(v) => setAngle(snapToTick(v))}
                   onChangeEnd={(v) => setAngle(snapToTick(v))}
                 />
 

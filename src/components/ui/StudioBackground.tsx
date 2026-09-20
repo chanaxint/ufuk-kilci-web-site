@@ -22,24 +22,24 @@ export default function StudioBackground() {
         className="absolute -top-[15%] -left-[10%] h-[80vh] w-[75vw] rounded-[45%] blur-3xl will-change-transform"
         style={{
           background:
-            'radial-gradient(closest-side, rgb(255 252 244 / 0.78), rgb(255 250 240 / 0.3) 52%, transparent 76%)',
-          animation: 'auroraA 30s ease-in-out infinite',
+            'radial-gradient(closest-side, rgb(255 253 247 / 0.95), rgb(255 251 242 / 0.45) 52%, transparent 78%)',
+          animation: 'auroraA 21s ease-in-out infinite',
         }}
       />
       <div
         className="absolute top-[26%] -right-[12%] h-[72vh] w-[68vw] rounded-[45%] blur-3xl will-change-transform"
         style={{
           background:
-            'radial-gradient(closest-side, rgb(255 251 242 / 0.7), rgb(255 249 238 / 0.26) 52%, transparent 76%)',
-          animation: 'auroraB 38s ease-in-out infinite',
+            'radial-gradient(closest-side, rgb(255 252 244 / 0.88), rgb(255 250 240 / 0.4) 52%, transparent 78%)',
+          animation: 'auroraB 27s ease-in-out infinite',
         }}
       />
       <div
         className="absolute -bottom-[14%] left-[22%] h-[64vh] w-[70vw] rounded-[45%] blur-3xl will-change-transform"
         style={{
           background:
-            'radial-gradient(closest-side, rgb(255 253 246 / 0.62), rgb(255 250 240 / 0.22) 55%, transparent 78%)',
-          animation: 'auroraC 46s ease-in-out infinite',
+            'radial-gradient(closest-side, rgb(255 253 247 / 0.82), rgb(255 251 242 / 0.36) 55%, transparent 80%)',
+          animation: 'auroraC 33s ease-in-out infinite',
         }}
       />
 

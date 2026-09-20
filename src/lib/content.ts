@@ -14,7 +14,6 @@ export const doctor = {
 
 export const navLinks = [
   { label: 'Skolyoz', href: '#skolyoz' },
-  { label: 'Tedaviler', href: '#tedaviler' },
   { label: 'Hakkımda', href: '#hakkimda' },
   { label: 'Sertifikalar', href: '#sertifikalar' },
   { label: 'S.S.S.', href: '#sss' },
@@ -38,57 +37,6 @@ export const trustBadges = [
   'Sporcu Rehabilitasyonu',
   'Nörolojik Rehabilitasyon',
 ]
-
-export const services = [
-  {
-    id: 'manuel-terapi',
-    title: 'Manuel Terapi',
-    description:
-      'Eklem mobilizasyonu ve yumuşak doku teknikleriyle kısıtlanmış hareketi geri kazandırır, ağrıyı kaynağında ele alırız.',
-    points: ['Eklem mobilizasyonu', 'Miyofasyal gevşetme', 'Trigger point tedavisi'],
-    accent: 'brand',
-  },
-  {
-    id: 'osteopati',
-    title: 'Osteopatik Tedavi',
-    description:
-      'Vücudu tek bir bütün olarak okuyan, kraniyosakral ve viseral tekniklerle desteklenen bütüncül bir yaklaşım.',
-    points: ['Kraniyosakral terapi', 'Viseral manipülasyon', 'Yapısal denge'],
-    accent: 'vital',
-  },
-  {
-    id: 'omurga',
-    title: 'Omurga Sağlığı',
-    description:
-      'Bel ve boyun fıtığı, skolyoz, düzleşme ve duruş bozukluklarında kademeli, kanıta dayalı tedavi programları.',
-    points: ['Bel & boyun fıtığı', 'Skolyoz takibi', 'Postür rehabilitasyonu'],
-    accent: 'brand',
-  },
-  {
-    id: 'sporcu',
-    title: 'Sporcu Rehabilitasyonu',
-    description:
-      'Sahaya güvenle dönüş için performans testleri, yüklenme planlaması ve sakatlık tekrarını önleyen programlar.',
-    points: ['Return-to-play testleri', 'Kuvvet planlaması', 'Sakatlık önleme'],
-    accent: 'warm',
-  },
-  {
-    id: 'egzersiz',
-    title: 'Kişiye Özel Egzersiz',
-    description:
-      'Klinikte öğrenilen, evde sürdürülen; ölçülebilir hedeflerle ilerleyen bireysel egzersiz reçeteleri.',
-    points: ['Klinik pilates', 'Core stabilizasyon', 'Ev programı takibi'],
-    accent: 'vital',
-  },
-  {
-    id: 'agri',
-    title: 'Kronik Ağrı Yönetimi',
-    description:
-      'Uzun süredir devam eden ağrılarda ağrı bilimi eğitimi, yük yönetimi ve fonksiyonel geri dönüş stratejileri.',
-    points: ['Ağrı nörobilimi eğitimi', 'Kuru iğneleme', 'Yük yönetimi'],
-    accent: 'warm',
-  },
-] as const
 
 export const testimonials = [
   {

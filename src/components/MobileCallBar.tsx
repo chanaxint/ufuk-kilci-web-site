@@ -9,11 +9,11 @@ export default function MobileCallBar() {
       initial={{ y: 90 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.8, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}
-      className="fixed inset-x-3 bottom-3 z-30 flex items-center gap-2 rounded-full border border-white/80 bg-white/90 p-1.5 shadow-lift backdrop-blur-xl sm:hidden"
+      className="fixed inset-x-3 bottom-3 z-30 flex items-center gap-2.5 sm:hidden"
     >
       <a
         href={`tel:${doctor.phone.replace(/\s/g, '')}`}
-        className="flex flex-1 items-center justify-center gap-2 rounded-full bg-ink-900 py-3 font-display text-[0.88rem] font-bold text-sand-50"
+        className="flex flex-1 items-center justify-center gap-2 rounded-full bg-ink-900 py-3.5 font-display text-[0.88rem] font-bold text-sand-50 shadow-[0_14px_30px_-16px_rgb(58_42_28/0.9)]"
       >
         <Phone className="size-4" />
         Hemen Ara
@@ -22,7 +22,7 @@ export default function MobileCallBar() {
         href={doctor.whatsapp}
         target="_blank"
         rel="noreferrer"
-        className="flex flex-1 items-center justify-center gap-2 rounded-full bg-vital-600 py-3 font-display text-[0.88rem] font-bold text-white"
+        className="flex flex-1 items-center justify-center gap-2 rounded-full bg-vital-600 py-3.5 font-display text-[0.88rem] font-bold text-white shadow-[0_14px_30px_-16px_rgb(58_42_28/0.9)]"
       >
         <WhatsApp className="size-4" />
         WhatsApp

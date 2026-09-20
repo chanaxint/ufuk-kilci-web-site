@@ -265,12 +265,12 @@ const InfiniteSpiral = ({
   };
 
   /*
-   * Projeye özel: kartlar alçı zemine otursun diye saf beyaz yerine sıcak bir
-   * krem; gölge yumuşatıldı. backdrop-blur kaldırıldı — üst maske altında
-   * arka plan tamponu boşaldığı için bulanıklık kartları soluklaştırıyordu.
+   * Projeye özel: kart yüzeyi tamamen kaldırıldı — beyaz zemin, çerçeve ve
+   * gölge yok. Yorumlar doğrudan sıvalı duvarın üzerinde süzülüyor; okunurluğu
+   * kart değil, merkezdeki maddenin netliği ve kenarlardaki sönümlenme sağlıyor.
    */
   const itemClassName =
-    'absolute left-1/2 top-1/2 block h-[var(--spiral-height)] w-[var(--spiral-width)] overflow-hidden rounded-[var(--spiral-radius)] border border-white/60 bg-[rgb(253_250_245/0.92)] shadow-[0_20px_50px_-26px_rgb(58_42_28/0.4)] [backface-visibility:hidden] [transform-style:preserve-3d] [will-change:transform,opacity,filter] motion-reduce:transition-none';
+    'absolute left-1/2 top-1/2 block h-[var(--spiral-height)] w-[var(--spiral-width)] overflow-hidden [backface-visibility:hidden] [transform-style:preserve-3d] [will-change:transform,opacity,filter] motion-reduce:transition-none';
 
   return (
     <div

@@ -43,7 +43,7 @@ export default function Testimonials() {
             </Reveal>
           </div>
           <Reveal delay={0.1}>
-            <div className="flex items-center gap-4 rounded-2xl border border-white/70 bg-white/76 px-5 py-4 shadow-soft">
+            <div className="flex items-center gap-4 border-l border-ink-200/60 pl-5">
               <span className="font-display text-3xl font-extrabold text-ink-900">4.9</span>
               <span>
                 <span className="flex items-center gap-0.5 text-warm-500">

@@ -5,8 +5,9 @@ import CountUp from './ui/CountUp'
 import ShinyText from './reactbits/ShinyText'
 import { ArrowRight, Check, Sparkle } from './ui/icons'
 
+/* Kart yüzeyi yok; bölümler yalnızca ince bir üst çizgiyle ayrılıyor */
 const tile =
-  'relative overflow-hidden rounded-3xl border border-white/70 bg-white/70 p-7 shadow-soft transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:shadow-lift'
+  'relative border-t border-ink-200/55 pt-6 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1'
 
 export default function About() {
   return (
@@ -22,10 +23,10 @@ export default function About() {
         </div>
 
         {/* Bento ızgara */}
-        <div className="mt-14 grid auto-rows-auto grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-14 grid auto-rows-auto grid-cols-1 gap-x-10 gap-y-11 sm:grid-cols-2 lg:grid-cols-4">
           {/* Fotoğraf */}
           <Reveal className="sm:col-span-2 lg:row-span-2">
-            <div className="group relative h-full overflow-hidden rounded-3xl border border-white/70 shadow-lift">
+            <div className="group relative h-full overflow-hidden rounded-3xl shadow-lift">
               <motion.img
                 src={doctor.photo}
                 alt={`${doctor.name} — ${doctor.titles}`}
@@ -70,7 +71,7 @@ export default function About() {
                 {['Manuel Terapi', 'Osteopati', 'Schroth', 'Kuru İğneleme'].map((chip) => (
                   <span
                     key={chip}
-                    className="rounded-full bg-sand-100 px-3.5 py-1.5 font-display text-[0.76rem] font-semibold text-ink-600"
+                    className="rounded-full border border-ink-200/70 px-3.5 py-1.5 font-display text-[0.76rem] font-semibold text-ink-600"
                   >
                     {chip}
                   </span>

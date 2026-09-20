@@ -28,30 +28,24 @@ export default function Faq() {
           </div>
 
           <div className="lg:col-span-8">
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col border-t border-ink-200/50">
               {faqs.map((faq, i) => {
                 const active = open === i
                 return (
                   <Reveal key={faq.q} delay={i * 0.05}>
-                    <div
-                      className={`overflow-hidden rounded-2xl border transition-all duration-500 ${
-                        active
-                          ? 'border-transparent bg-white shadow-lift'
-                          : 'border-white/70 bg-white/76 hover:bg-white/85'
-                      }`}
-                    >
+                    <div className="overflow-hidden border-b border-ink-200/50">
                       <button
                         type="button"
                         onClick={() => setOpen(active ? null : i)}
                         aria-expanded={active}
-                        className="flex w-full items-center justify-between gap-5 px-6 py-5 text-left sm:px-7"
+                        className="flex w-full items-center justify-between gap-5 py-5 pr-1 text-left"
                       >
                         <span className="font-display text-[1.05rem] font-bold text-ink-900 sm:text-[1.15rem]">
                           {faq.q}
                         </span>
                         <span
                           className={`grid size-8 shrink-0 place-items-center rounded-full transition-all duration-500 ${
-                            active ? 'rotate-45 bg-ink-900 text-sand-50' : 'bg-sand-100 text-ink-600'
+                            active ? 'rotate-45 bg-ink-900 text-sand-50' : 'border border-ink-200/70 text-ink-600'
                           }`}
                         >
                           <Plus className="size-4" />
@@ -65,7 +59,7 @@ export default function Faq() {
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                           >
-                            <p className="px-6 pb-6 text-[0.98rem] leading-relaxed text-ink-600 sm:px-7">
+                            <p className="max-w-2xl pr-8 pb-6 text-[0.98rem] leading-relaxed text-ink-600">
                               {faq.a}
                             </p>
                           </motion.div>

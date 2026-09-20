@@ -78,7 +78,7 @@ function ViewRig({ view, controls }: { view: SpineView; controls: React.RefObjec
 function Loader() {
   return (
     <Html center>
-      <div className="flex items-center gap-3 rounded-full border border-white/70 bg-white/80 px-4 py-2 shadow-soft backdrop-blur-xl">
+      <div className="flex items-center gap-3">
         <span className="size-2 animate-ping rounded-full bg-brand-500" />
         <span className="font-display text-[0.8rem] font-semibold text-ink-700">Model yükleniyor…</span>
       </div>

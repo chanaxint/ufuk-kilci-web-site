@@ -21,14 +21,14 @@ export default function Scoliosis() {
         </div>
 
         {/* Üç boyut vurgusu */}
-        <div className="mx-auto mt-16 grid max-w-4xl gap-4 sm:grid-cols-3">
+        <div className="mx-auto mt-16 grid max-w-4xl gap-x-10 gap-y-12 sm:grid-cols-3">
           {[
             { plane: 'Frontal', text: 'Yana doğru eğrilik', icon: PlaneFrontal },
             { plane: 'Sagittal', text: 'Öne–arkaya kavis değişimi', icon: PlaneSagittal },
             { plane: 'Transvers', text: 'Omurların kendi ekseninde dönmesi', icon: PlaneTransverse },
           ].map((item, i) => (
             <Reveal key={item.plane} delay={0.08 * i}>
-              <div className="group h-full rounded-2xl border border-white/70 bg-white/76 px-6 py-7 text-center transition-transform duration-500 hover:-translate-y-1">
+              <div className="group h-full border-t border-ink-200/55 px-2 pt-7 text-center transition-transform duration-500 hover:-translate-y-1">
                 <span className="mx-auto grid size-11 place-items-center rounded-2xl bg-brand-100 text-brand-700 transition-colors duration-500 group-hover:bg-brand-600 group-hover:text-white">
                   <item.icon className="size-5" />
                 </span>

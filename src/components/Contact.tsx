@@ -4,7 +4,7 @@ import Reveal from './ui/Reveal'
 import { ArrowRight, Clock, Instagram, Mail, MapPin, Phone, WhatsApp } from './ui/icons'
 
 const inputClass =
-  'w-full rounded-2xl border border-ink-200/70 bg-white/80 px-4 py-3.5 font-sans text-[0.95rem] text-ink-800 shadow-[0_1px_0_rgb(255_255_255/0.9)_inset] transition-colors duration-300 placeholder:text-ink-300 focus-visible:border-brand-500 focus-visible:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600'
+  'w-full rounded-2xl border border-ink-300/70 bg-transparent px-4 py-3.5 font-sans text-[0.95rem] text-ink-800 transition-colors duration-300 placeholder:text-ink-300 focus-visible:border-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600'
 
 export default function Contact() {
   const [form, setForm] = useState({
@@ -37,10 +37,10 @@ export default function Contact() {
   return (
     <section id="iletisim" className="relative scroll-mt-28 py-24 sm:py-28">
       <div className="section-shell">
-        <div className="overflow-hidden rounded-[2.5rem] border border-white/70 bg-white/70 shadow-lift">
-          <div className="grid lg:grid-cols-12">
+        <div>
+          <div className="grid items-start gap-12 lg:grid-cols-12 lg:gap-14">
             {/* Bilgi paneli */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-ink-900 via-ink-800 to-brand-700 p-8 sm:p-10 lg:col-span-5">
+            <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-ink-900 via-ink-800 to-brand-700 p-8 shadow-lift sm:p-10 lg:col-span-5">
               <div className="pointer-events-none absolute inset-0 grid-lines opacity-20" />
               <div className="pointer-events-none absolute -right-20 -bottom-24 size-72 rounded-full bg-vital-500/20 blur-3xl" />
 
@@ -65,7 +65,7 @@ export default function Contact() {
                       href={href}
                       target={label === 'Klinik' ? '_blank' : undefined}
                       rel="noreferrer"
-                      className="group flex items-start gap-4 rounded-2xl border border-white/15 bg-white/8 p-4 transition-colors duration-300 hover:border-white/35 hover:bg-white/15"
+                      className="group flex items-start gap-4 border-b border-white/15 py-4 transition-colors duration-300 last:border-0 hover:border-white/40"
                     >
                       <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white/15 text-sand-50">
                         <Icon className="size-4.5" />
@@ -82,7 +82,7 @@ export default function Contact() {
                   ))}
                 </div>
 
-                <div className="mt-8 rounded-2xl border border-white/15 bg-white/8 p-5">
+                <div className="mt-8 border-t border-white/15 pt-6">
                   <span className="flex items-center gap-2 font-display text-[0.68rem] font-bold tracking-[0.16em] text-brand-200 uppercase">
                     <Clock className="size-4" />
                     Çalışma Saatleri
@@ -124,7 +124,7 @@ export default function Contact() {
             </div>
 
             {/* Form */}
-            <div className="p-8 sm:p-10 lg:col-span-7">
+            <div className="lg:col-span-7 lg:pt-1">
               <Reveal>
                 <h3 className="font-display text-2xl font-extrabold text-ink-900">Randevu talebi</h3>
                 <p className="mt-2 text-[0.95rem] text-ink-500">
@@ -215,7 +215,7 @@ export default function Contact() {
                   { title: 'Ücretsiz ön görüşme', text: '10 dakikalık telefon değerlendirmesi' },
                   { title: 'Kolay ulaşım', text: 'Metro ve otoparka yakın konum' },
                 ].map((item) => (
-                  <div key={item.title} className="rounded-2xl bg-sand-100/70 px-4 py-4">
+                  <div key={item.title}>
                     <p className="flex items-center gap-2 font-display text-[0.9rem] font-bold text-ink-900">
                       <span className="size-1.5 rounded-full bg-vital-500" />
                       {item.title}

@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useRef, useState } from 'react'
 import { motion, useInView } from 'motion/react'
 import { angleStages } from '../lib/content'
 import Reveal from './ui/Reveal'
@@ -30,13 +30,6 @@ export default function ScoliosisAngles() {
   const [angle, setAngle] = useState(0)
   const [view, setView] = useState<SpineView>('front')
 
-  /* Bölüm görünüme girdiğinde eğriliği bir kez canlandır */
-  useEffect(() => {
-    if (!inView) return
-    const id = window.setTimeout(() => setAngle(28), 450)
-    return () => window.clearTimeout(id)
-  }, [inView])
-
   const stage = stageFor(angle)
 
   return (
@@ -58,16 +51,14 @@ export default function ScoliosisAngles() {
         <div ref={ref} className="mt-16 grid items-center gap-12 lg:grid-cols-12 lg:gap-10">
           {/* Omurga çizimi + skala */}
           <div className="lg:col-span-5">
-            <div className="relative mx-auto max-w-md rounded-[2rem] border border-white/70 bg-gradient-to-b from-white/80 via-brand-50/60 to-sand-100/80 px-6 pt-4 pb-8 shadow-lift">
-              <div className="pointer-events-none absolute inset-0 grid-lines rounded-[2rem] opacity-40" />
-
+            <div className="relative mx-auto max-w-md px-1 pt-1 pb-2">
               {/* Görünüm değiştirici */}
               <div className="relative z-10 flex items-center justify-between gap-2 pt-1">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/70 bg-white/70 px-3 py-1.5 font-display text-[0.62rem] font-bold tracking-[0.14em] text-ink-500 uppercase">
+                <span className="inline-flex items-center gap-1.5 font-display text-[0.62rem] font-bold tracking-[0.14em] text-ink-500 uppercase">
                   <Rotate3D className="size-3.5 text-brand-600" />
                   Sürükleyin
                 </span>
-                <div className="flex rounded-full border border-white/70 bg-white/70 p-1">
+                <div className="flex rounded-full border border-ink-200/70 p-1">
                   {([
                     ['front', 'Önden'],
                     ['top', 'Üstten'],
@@ -188,16 +179,14 @@ export default function ScoliosisAngles() {
             </motion.p>
 
             {/* Evre listesi */}
-            <div className="mt-10 flex flex-col gap-2.5">
+            <div className="mt-10 flex flex-col border-t border-ink-200/50">
               {angleStages.map((item) => {
                 const active = item.label === stage.label
                 return (
                   <div
                     key={item.label}
-                    className={`flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl border px-5 py-4 transition-all duration-500 ${
-                      active
-                        ? 'border-transparent bg-white shadow-lift'
-                        : 'border-white/60 bg-white/72'
+                    className={`flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-ink-200/50 py-4 pl-4 transition-all duration-500 ${
+                      active ? 'border-l-2 border-l-ink-900' : 'border-l-2 border-l-transparent'
                     }`}
                   >
                     <span

@@ -89,7 +89,7 @@ function ScrollRig({
 function Loader() {
   return (
     <Html center>
-      <div className="flex items-center gap-3 rounded-full border border-white/70 bg-white/80 px-5 py-2.5 shadow-soft backdrop-blur-xl">
+      <div className="flex items-center gap-3">
         <span className="size-2.5 animate-ping rounded-full bg-brand-500" />
         <span className="font-display text-sm font-semibold text-ink-700">Model yükleniyor…</span>
       </div>
@@ -183,15 +183,13 @@ export default function SpineStageScene({ progress, active, labelsVisible, hover
                         }`}
                         style={{ background: part.region.color }}
                       />
+                      {/* Kart yüzeyi yok: bölge adı doğrudan zeminin üzerine yazılıyor */}
                       <div
-                        /* backdrop-filter yalnızca kart gerçekten görünürken kurulur */
-                        className={`overflow-hidden rounded-2xl border border-white/60 bg-white/55 shadow-[0_8px_32px_-16px_rgb(58_42_28/0.45)] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                          active
-                            ? 'w-52 bg-white/80 opacity-100 backdrop-blur-xl'
-                            : 'pointer-events-none w-auto opacity-0'
+                        className={`transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                          active ? 'w-52 opacity-100' : 'pointer-events-none w-auto opacity-0'
                         }`}
                       >
-                        <div className="px-4 py-3">
+                        <div className="py-1">
                           <div className={`flex items-center gap-2 ${right ? '' : 'flex-row-reverse'}`}>
                             <span
                               className="size-1.5 shrink-0 rounded-full"

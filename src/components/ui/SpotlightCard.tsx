@@ -8,8 +8,11 @@ type Props = {
 }
 
 /**
- * İmleci takip eden yumuşak bir ışık lekesi taşıyan kart yüzeyi.
- * (Reactbits "Spotlight Card" mantığının projenin paletine uyarlanmış hâli.)
+ * İmleci takip eden yumuşak bir ışık lekesi.
+ *
+ * Artık bir "kart" değil: beyaz yüzey, çerçeve ve gölge kaldırıldı; içerik
+ * doğrudan sıvalı zeminin üzerinde duruyor, imleç yalnızca ılık bir ışık
+ * bırakıyor.
  */
 export default function SpotlightCard({ children, className = '', glow = '232 211 191' }: Props) {
   const ref = useRef<HTMLDivElement>(null)
@@ -26,14 +29,14 @@ export default function SpotlightCard({ children, className = '', glow = '232 21
         el.style.setProperty('--spot', '1')
       }}
       onPointerLeave={() => ref.current?.style.setProperty('--spot', '0')}
-      className={`group relative overflow-hidden rounded-3xl border border-white/70 bg-white/75 shadow-soft transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:shadow-lift ${className}`}
+      className={`group relative rounded-3xl transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 ${className}`}
       style={{ ['--spot' as string]: '0' }}
     >
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-[var(--spot)] transition-opacity duration-300"
         style={{
-          background: `radial-gradient(22rem 22rem at var(--x) var(--y), rgb(${glow} / 0.55), transparent 65%)`,
+          background: `radial-gradient(20rem 20rem at var(--x) var(--y), rgb(${glow} / 0.38), transparent 68%)`,
         }}
       />
       <div className="relative">{children}</div>

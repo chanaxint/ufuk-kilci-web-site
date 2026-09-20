@@ -29,13 +29,13 @@ export default function Services() {
           </Reveal>
         </div>
 
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-14 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((service, i) => {
             const accent = accents[service.accent]
             return (
               <Reveal key={service.id} delay={0.06 * i}>
                 <SpotlightCard glow={accent.glow} className="h-full">
-                  <div className="flex h-full flex-col p-7">
+                  <div className="flex h-full flex-col border-t border-ink-200/55 pt-6 pr-4">
                     <div className="flex items-start justify-between">
                       <span
                         className={`grid size-11 place-items-center rounded-2xl font-display text-sm font-extrabold ${accent.chip}`}
@@ -68,7 +68,7 @@ export default function Services() {
         </div>
 
         <Reveal delay={0.1}>
-          <div className="mt-10 flex flex-wrap items-center justify-between gap-5 rounded-3xl border border-white/70 bg-gradient-to-r from-ink-900 to-brand-700 px-7 py-7 shadow-lift sm:px-9">
+          <div className="mt-16 flex flex-wrap items-center justify-between gap-5 rounded-3xl bg-gradient-to-r from-ink-900 to-brand-700 px-7 py-7 shadow-lift sm:px-9">
             <div className="max-w-lg">
               <p className="font-display text-xl font-extrabold text-sand-50 sm:text-2xl">
                 Hangi programın size uyduğundan emin değil misiniz?

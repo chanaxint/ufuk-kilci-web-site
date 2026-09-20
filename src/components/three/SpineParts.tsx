@@ -15,9 +15,16 @@ type Props = {
 
 /**
  * Omurga, anatomik bölgelere ayrılmış dört ayrı mesh olarak çizilir.
- * Üzerine gelinen bölge dışa doğru kayar (exploded view), komşu bölgeler
- * ondan hafifçe uzaklaşır ve bölge rengiyle vurgulanır.
+ *
+ * Üzerine gelinen bölge yalnızca çok az dışa kayar ve bölge rengiyle
+ * vurgulanır. Kayma eskiden büyüktü; parça imlecin altından çıkıyor,
+ * pointerout tetikleniyor, parça geri dönüyor ve titreme başlıyordu. Ayrıca
+ * imleç olaylarını hareket etmeyen görünmez bir isabet gövdesi karşılıyor,
+ * böylece vurgu hiçbir koşulda kendi kendini bozamıyor.
  */
+const SHIFT_ACTIVE = 0.075
+const SHIFT_NEIGHBOUR = 0.03
+
 export default function SpineParts({ hovered, onHover, onParts }: Props) {
   const { scene } = useGLTF(MODEL_URL)
 
@@ -70,11 +77,11 @@ export default function SpineParts({ hovered, onHover, onParts }: Props) {
       if (activeIndex === -1) {
         target.set(0, 0, 0)
       } else if (i === activeIndex) {
-        target.copy(part.explodeDir).multiplyScalar(0.3)
+        target.copy(part.explodeDir).multiplyScalar(SHIFT_ACTIVE)
       } else {
         // Komşu parçalar, seçilen parçadan dikey olarak azıcık uzaklaşır
         const away = Math.sign(part.center.y - parts[activeIndex].center.y) || 1
-        target.set(0, away * 0.07, 0)
+        target.set(0, away * SHIFT_NEIGHBOUR, 0)
       }
 
       group.position.lerp(target, k)
@@ -93,12 +100,10 @@ export default function SpineParts({ hovered, onHover, onParts }: Props) {
   return (
     <group>
       {parts.map((part, i) => (
-        <group key={part.region.id} ref={(el) => void (groups.current[i] = el)}>
+        <group key={part.region.id}>
+          {/* Hareket etmeyen isabet gövdesi — görünmez, yalnızca imleci karşılar */}
           <mesh
             geometry={part.geometry}
-            material={materials[i]}
-            castShadow
-            receiveShadow
             onPointerOver={(e) => {
               e.stopPropagation()
               onHover(part.region.id)
@@ -109,7 +114,13 @@ export default function SpineParts({ hovered, onHover, onParts }: Props) {
               onHover(null)
               document.body.style.cursor = 'auto'
             }}
-          />
+          >
+            <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+          </mesh>
+
+          <group ref={(el) => void (groups.current[i] = el)}>
+            <mesh geometry={part.geometry} material={materials[i]} castShadow receiveShadow />
+          </group>
         </group>
       ))}
     </group>

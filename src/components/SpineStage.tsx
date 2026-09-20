@@ -169,7 +169,7 @@ export default function SpineStage() {
                     </a>
                     <a
                       href="#skolyoz"
-                      className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white/76 px-7 py-3.5 font-display text-[0.95rem] font-bold text-ink-800 backdrop-blur transition-colors hover:border-brand-400 hover:text-brand-700"
+                      className="inline-flex items-center gap-2 rounded-full border border-ink-300/80 px-7 py-3.5 font-display text-[0.95rem] font-bold text-ink-800 transition-colors hover:border-brand-500 hover:text-brand-700"
                     >
                       Skolyoz Tedavisi
                       <ArrowDown className="size-4" />
@@ -211,7 +211,7 @@ export default function SpineStage() {
                             : 'lg:col-span-3 lg:col-start-10 lg:translate-y-[14vh] lg:text-right'
                         }
                       >
-                        <div className="max-lg:rounded-2xl max-lg:border max-lg:border-white/70 max-lg:bg-white/75 max-lg:px-5 max-lg:py-4 max-lg:backdrop-blur-xl">
+                        <div>
                           <span className="font-display text-[clamp(1.6rem,7vw,3.4rem)] leading-none font-extrabold tracking-[-0.03em] gradient-text">
                             {item.kicker}
                           </span>
@@ -256,9 +256,9 @@ export default function SpineStage() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="hidden rounded-full border border-white/70 bg-white/70 px-4 py-2 text-[0.76rem] font-medium text-ink-500 backdrop-blur-xl lg:block"
+                className="hidden text-[0.76rem] font-medium tracking-[0.02em] text-ink-500 lg:block"
               >
-                Omurganın bir bölgesine gelin — parça ayrılsın, bilgisi açılsın
+                Omurganın bir bölgesine gelin — bölge vurgulansın, bilgisi açılsın
               </motion.span>
             )}
           </AnimatePresence>

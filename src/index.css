@@ -194,6 +194,21 @@
     @apply mx-auto w-full max-w-[82rem] px-5 sm:px-8;
   }
 
+  /*
+   * Bölümleri ayıran ince, uçları sönen çizgi. Kartlar kalktıktan sonra
+   * sayfanın nerede bölündüğünü gösteren tek işaret bu.
+   */
+  .rule {
+    @apply h-px w-full;
+    background: linear-gradient(
+      to right,
+      transparent,
+      rgb(74 54 38 / 0.16) 18%,
+      rgb(74 54 38 / 0.16) 82%,
+      transparent
+    );
+  }
+
   .gradient-text {
     @apply bg-gradient-to-br from-ink-800 via-brand-600 to-warm-500 bg-clip-text text-transparent;
   }

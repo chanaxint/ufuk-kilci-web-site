@@ -182,9 +182,14 @@ export default function SpineStage() {
         </AnimatePresence>
 
         {/* Duraklar (beat 1–3) */}
+        {/*
+          Bir bölgeye gelindiğinde durak metni neredeyse tamamen siliniyor ve
+          hafifçe bulanıklaşıyor: bölge açıklaması onunla çakışmadan okunuyor,
+          alan derinlik hissiyle geri çekiliyor.
+        */}
         <div
-          className="pointer-events-none absolute inset-0 flex items-end pb-24 transition-opacity duration-500 lg:items-center lg:pb-0"
-          style={{ opacity: hovered ? 0.28 : 1 }}
+          className="pointer-events-none absolute inset-0 flex items-end pb-24 transition-[opacity,filter] duration-500 lg:items-center lg:pb-0"
+          style={{ opacity: hovered ? 0.07 : 1, filter: hovered ? 'blur(3px)' : 'none' }}
         >
           <div className="section-shell w-full">
             <div className="grid grid-cols-1 items-center gap-3 lg:grid-cols-12 lg:gap-6">

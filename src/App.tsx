@@ -16,6 +16,7 @@ import Faq from './components/Faq'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
 import MobileCallBar from './components/MobileCallBar'
+import SectionRule from './components/ui/SectionRule'
 import { useSmoothScroll } from './lib/useSmoothScroll'
 
 export default function App() {
@@ -63,12 +64,19 @@ export default function App() {
       >
         <SpineStage />
         <Scoliosis />
+        <SectionRule />
         <ScoliosisAngles />
+        <SectionRule />
         <Testimonials />
+        <SectionRule />
         <Services />
+        <SectionRule />
         <About />
+        <SectionRule />
         <Certificates />
+        <SectionRule />
         <Faq />
+        <SectionRule />
         <Contact />
       </motion.main>
 

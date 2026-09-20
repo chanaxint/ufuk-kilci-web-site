@@ -167,13 +167,22 @@ const InfiniteSpiral = ({
       const fit = Math.min(1, width / (cardWidth * 2.1), height / (cardHeight * 2));
       const responsiveRadius = Math.min(radius, Math.max(72, width * 0.36)) * fit;
       const fadeStart = clamp(1 - edgeFade, 0, 0.98);
+      const halfHeight = Math.max(height / 2, 1);
       const turnSize = Math.max(cardsPerTurn, 1);
 
       cardRefs.current.forEach((card, index) => {
         if (!card) return;
         const offset = modulo(index - progressRef.current + half, count) - half;
         const edge = Math.min(Math.abs(offset) / Math.max(half, 1), 1);
-        const opacity = 1 - smoothstep(fadeStart, 1, edge);
+        /*
+         * Projeye özel: üst/alt sönümlenme CSS maskesi yerine burada, kart
+         * başına hesaplanıyor. Maske ata bir katman olduğu için altındaki
+         * backdrop-filter'ı boşa düşürüyordu; kartların hafif bulanıklığı
+         * ancak böyle çalışıyor.
+         */
+        const y = offset * verticalSpacing * fit;
+        const vFade = 1 - smoothstep(0.52, 0.98, Math.abs(y) / halfHeight);
+        const opacity = (1 - smoothstep(fadeStart, 1, edge)) * vFade;
         const focus = 1 - Math.min(Math.abs(offset) / Math.max(turnSize * 0.65, 1), 1);
         const scale = (1 + (centerScale - 1) * focus) * fit;
         const angle = offset * (360 / turnSize) + rotation;
@@ -184,7 +193,7 @@ const InfiniteSpiral = ({
         const visualScale = scale * depthScale;
         const depth = (z / Math.max(responsiveRadius, 1) + 1) / 2;
         const blur = edgeBlur * smoothstep(0.35, 1, edge);
-        card.style.transform = `translate(-50%, -50%) translate3d(${x}px, ${offset * verticalSpacing * fit}px, 0) rotateZ(${cardTilt}deg) scale(${visualScale})`;
+        card.style.transform = `translate(-50%, -50%) translate3d(${x}px, ${y}px, 0) rotateZ(${cardTilt}deg) scale(${visualScale})`;
         card.style.opacity = opacity.toFixed(3);
         card.style.filter = blur > 0.01 ? `blur(${blur.toFixed(2)}px)` : 'none';
         card.style.zIndex = String(Math.round(depth * 100000) + index);
@@ -265,17 +274,17 @@ const InfiniteSpiral = ({
   };
 
   /*
-   * Projeye özel: kart yüzeyi tamamen kaldırıldı — beyaz zemin, çerçeve ve
-   * gölge yok. Yorumlar doğrudan sıvalı duvarın üzerinde süzülüyor; okunurluğu
-   * kart değil, merkezdeki maddenin netliği ve kenarlardaki sönümlenme sağlıyor.
+   * Projeye özel: beyaz kart yüzeyi yok. Yorumlar birbirinden yalnızca ince
+   * bir çerçeve ve arkalarındaki hafif bulanıklıkla ayrılıyor; zemin sıvalı
+   * duvarın kendisi olarak kalıyor.
    */
   const itemClassName =
-    'absolute left-1/2 top-1/2 block h-[var(--spiral-height)] w-[var(--spiral-width)] overflow-hidden [backface-visibility:hidden] [transform-style:preserve-3d] [will-change:transform,opacity,filter] motion-reduce:transition-none';
+    'absolute left-1/2 top-1/2 block h-[var(--spiral-height)] w-[var(--spiral-width)] overflow-hidden rounded-[var(--spiral-radius)] border border-white/55 bg-white/10 backdrop-blur-[5px] shadow-[0_18px_44px_-30px_rgb(58_42_28/0.45)] [backface-visibility:hidden] [transform-style:preserve-3d] [will-change:transform,opacity,filter] motion-reduce:transition-none';
 
   return (
     <div
       ref={rootRef}
-      className={`relative isolate h-full min-h-80 w-full overflow-hidden ${className}`}
+      className={`relative h-full min-h-80 w-full overflow-hidden ${className}`}
       style={rootStyle}
       onMouseEnter={() => {
         hoveredRef.current = true;

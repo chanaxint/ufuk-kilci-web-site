@@ -65,7 +65,6 @@ export default function Testimonials() {
       */}
       <div className="mt-6 h-[32rem] w-full sm:mt-10 sm:h-[40rem] lg:h-[46rem]">
         <InfiniteSpiral
-          className="[-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,black_12%,black_88%,transparent_100%)] [mask-image:linear-gradient(to_bottom,transparent_0%,black_12%,black_88%,transparent_100%)]"
           items={items}
           animationMode="scroll"
           speed={1}

@@ -6,6 +6,8 @@ import { doctor, stageBeats } from '../lib/content'
 import ShinyText from './reactbits/ShinyText'
 import type { SpineRegionId } from '../lib/spine'
 import { ArrowDown, ArrowRight } from './ui/icons'
+import SceneBoundary from './ui/SceneBoundary'
+import { hasWebGL } from '../lib/webgl'
 
 const SpineStageScene = lazy(() => import('./three/SpineStageScene'))
 
@@ -33,6 +35,7 @@ export default function SpineStage() {
 
   /* WebGL bağlamını ilk karede değil, bileşen bağlandıktan hemen sonra kur */
   useEffect(() => {
+    if (!hasWebGL()) return
     const id = window.setTimeout(() => setMounted(true), 60)
     return () => window.clearTimeout(id)
   }, [])
@@ -104,16 +107,18 @@ export default function SpineStage() {
         {/* 3B sahne */}
         <div className="absolute inset-0">
           {mounted && (
-            <Suspense fallback={null}>
-              <SpineStageScene
-                progress={progress}
-                active={onScreen}
-                labelsVisible={beat > 0}
-                hovered={hovered}
-                onHover={setHovered}
-                isMobile={isMobile}
-              />
-            </Suspense>
+            <SceneBoundary>
+              <Suspense fallback={null}>
+                <SpineStageScene
+                  progress={progress}
+                  active={onScreen}
+                  labelsVisible={beat > 0}
+                  hovered={hovered}
+                  onHover={setHovered}
+                  isMobile={isMobile}
+                />
+              </Suspense>
+            </SceneBoundary>
           )}
         </div>
 

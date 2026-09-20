@@ -6,6 +6,9 @@ import type { SpineView } from './three/ScoliosisAngleScene'
 import CometDial from './reactbits/CometDial'
 import { Rotate3D } from './ui/icons'
 
+import SceneBoundary from './ui/SceneBoundary'
+import { hasWebGL } from '../lib/webgl'
+
 const ScoliosisAngleScene = lazy(() => import('./three/ScoliosisAngleScene'))
 
 const MAX = 50
@@ -84,15 +87,24 @@ export default function ScoliosisAngles() {
               </div>
 
               <div className="relative h-[20rem] sm:h-[26rem]">
-                {inView && (
-                  <Suspense fallback={null}>
-                    <ScoliosisAngleScene
-                      angle={angle}
-                      color={stage.color}
-                      view={view}
-                      active={onScreen}
-                    />
-                  </Suspense>
+                {inView && hasWebGL() && (
+                  <SceneBoundary
+                    fallback={
+                      <p className="flex h-full items-center justify-center px-6 text-center text-[0.85rem] text-ink-500">
+                        3B görünüm bu tarayıcıda açılamadı; açı bilgisi yandaki
+                        ölçekten okunabilir.
+                      </p>
+                    }
+                  >
+                    <Suspense fallback={null}>
+                      <ScoliosisAngleScene
+                        angle={angle}
+                        color={stage.color}
+                        view={view}
+                        active={onScreen}
+                      />
+                    </Suspense>
+                  </SceneBoundary>
                 )}
               </div>
 

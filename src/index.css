@@ -86,7 +86,7 @@
 
   body {
     @apply font-sans text-ink-700 antialiased;
-    background-color: #f5f3f0;
+    background-color: #cabea9;
   }
 
   /* Lenis akıcı kaydırma devredeyken */
@@ -151,7 +151,7 @@
   }
 
   .lead {
-    @apply text-lg leading-relaxed text-ink-600 sm:text-[1.15rem];
+    @apply text-lg leading-relaxed text-ink-700 sm:text-[1.15rem];
   }
 
   .card-surface {

@@ -23,7 +23,7 @@ export default function Faq() {
               </h2>
             </Reveal>
             <Reveal delay={0.12}>
-              <p className="mt-5 text-[1rem] leading-relaxed text-ink-500">
+              <p className="mt-5 text-[1rem] leading-relaxed text-ink-700">
                 Cevabını bulamadığınız bir soru varsa yazmanız yeterli; aynı gün içinde dönüş
                 yapıyorum.
               </p>

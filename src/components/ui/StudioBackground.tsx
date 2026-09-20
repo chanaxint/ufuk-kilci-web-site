@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 
 /**
- * Sitenin tamamının oturduğu tek zemin: yumuşak ışık alan beyaz bir yüzey.
+ * Sitenin tamamının oturduğu tek zemin: loş ışık alan sıvalı bir duvar.
  *
  * Katmanlar: dikey beyaz gradyan → ince sıva dokusu → kenarlara doğru
  * koyulaşan vinyet → imleci takip eden ışık havuzu. Işık doğrudan DOM'a
@@ -21,7 +21,7 @@ export default function StudioBackground() {
         const x = (e.clientX / window.innerWidth) * 100
         const y = (e.clientY / window.innerHeight) * 100
         if (glow.current) {
-          glow.current.style.background = `radial-gradient(46rem 38rem at ${x}% ${y}%, rgb(255 255 255 / 0.98), rgb(255 255 255 / 0.6) 34%, rgb(255 255 255 / 0.22) 56%, transparent 74%)`
+          glow.current.style.background = `radial-gradient(46rem 38rem at ${x}% ${y}%, rgb(255 249 236 / 0.75), rgb(255 247 232 / 0.4) 34%, rgb(255 246 230 / 0.15) 56%, transparent 74%)`
         }
       })
     }
@@ -35,12 +35,12 @@ export default function StudioBackground() {
 
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      {/* Yüzey */}
+      {/* Sıvalı yüzey */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            'linear-gradient(180deg, #fbfaf9 0%, #f4f2ef 36%, #edebe7 70%, #e6e3de 100%)',
+            'linear-gradient(180deg, #d3c8b4 0%, #cabea9 38%, #c4b8a2 72%, #c0b39c 100%)',
         }}
       />
 
@@ -49,7 +49,7 @@ export default function StudioBackground() {
         className="absolute inset-0"
         style={{
           background:
-            'radial-gradient(64rem 40rem at 50% -10%, rgb(255 255 255 / 0.72), transparent 60%)',
+            'radial-gradient(66rem 42rem at 50% -10%, rgb(255 246 230 / 0.55), transparent 62%)',
         }}
       />
 
@@ -59,12 +59,12 @@ export default function StudioBackground() {
         className="absolute inset-0 transition-[background] duration-200 ease-out"
         style={{
           background:
-            'radial-gradient(46rem 38rem at 50% 42%, rgb(255 255 255 / 0.98), rgb(255 255 255 / 0.6) 34%, rgb(255 255 255 / 0.22) 56%, transparent 74%)',
+            'radial-gradient(46rem 38rem at 50% 42%, rgb(255 249 236 / 0.75), rgb(255 247 232 / 0.4) 34%, rgb(255 246 230 / 0.15) 56%, transparent 74%)',
         }}
       />
 
       {/* Sıva dokusu — bantlanmayı kırar, yüzeye derinlik verir */}
-      <svg className="absolute inset-0 size-full opacity-[0.05] mix-blend-multiply">
+      <svg className="absolute inset-0 size-full opacity-[0.13] mix-blend-multiply">
         <filter id="studioGrain">
           <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="4" stitchTiles="stitch" />
           <feColorMatrix type="saturate" values="0" />
@@ -77,7 +77,7 @@ export default function StudioBackground() {
         className="absolute inset-0"
         style={{
           background:
-            'radial-gradient(125% 95% at 50% 42%, transparent 44%, rgb(52 45 34 / 0.14) 100%)',
+            'radial-gradient(135% 105% at 50% 45%, transparent 62%, rgb(48 38 24 / 0.16) 100%)',
         }}
       />
     </div>

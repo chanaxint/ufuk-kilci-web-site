@@ -158,7 +158,7 @@ export default function ScoliosisAngles() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.4 }}
-                className="mt-6 max-w-xl text-[1.05rem] leading-relaxed text-ink-600"
+                className="mt-6 max-w-xl text-[1.05rem] leading-relaxed text-ink-700"
               >
                 {stage.text}
               </motion.p>
@@ -190,7 +190,7 @@ export default function ScoliosisAngles() {
               })}
             </div>
 
-            <p className="mt-7 text-[0.84rem] leading-relaxed text-ink-500">
+            <p className="mt-7 text-[0.84rem] leading-relaxed text-ink-700">
               Cobb açısı yalnızca röntgen üzerinde ölçülür. Buradaki görsel, aralıkların ne anlama
               geldiğini anlatmak içindir; tanı ve tedavi kararı klinik değerlendirmeyle verilir.
             </p>

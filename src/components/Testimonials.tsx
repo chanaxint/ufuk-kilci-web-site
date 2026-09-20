@@ -95,7 +95,7 @@ export default function Testimonials() {
       </div>
 
       <div className="section-shell mt-8">
-        <p className="text-center text-[0.82rem] text-ink-500">
+        <p className="text-center text-[0.82rem] text-ink-700">
           Şeridin üzerine gelince durur — okumak istediğiniz yorumda bekleyin.
         </p>
       </div>

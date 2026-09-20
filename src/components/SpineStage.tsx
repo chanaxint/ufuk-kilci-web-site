@@ -192,7 +192,7 @@ export default function SpineStage() {
                           <p className="mt-1.5 font-display text-xl font-extrabold tracking-[-0.02em] text-ink-900 sm:text-2xl lg:mt-3 lg:text-3xl">
                             {item.title}
                           </p>
-                          <p className="mt-2 text-[0.9rem] leading-relaxed text-ink-600 lg:mt-3 lg:text-[0.98rem]">
+                          <p className="mt-2 text-[0.9rem] leading-relaxed text-ink-700 lg:mt-3 lg:text-[0.98rem]">
                             {item.text}
                           </p>
                         </div>

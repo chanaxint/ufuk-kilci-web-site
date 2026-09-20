@@ -25,7 +25,7 @@ export default function Services() {
             </Reveal>
           </div>
           <Reveal delay={0.12}>
-            <p className="max-w-sm text-[1rem] leading-relaxed text-ink-500">
+            <p className="max-w-sm text-[1rem] leading-relaxed text-ink-700">
               Her program detaylı değerlendirmeyle başlar; teknikler ve seans sıklığı kişiye göre
               belirlenir.
             </p>

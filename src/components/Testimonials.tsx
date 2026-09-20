@@ -1,9 +1,38 @@
+import { useEffect, useRef } from 'react'
 import { testimonials } from '../lib/content'
 import Reveal from './ui/Reveal'
 import InfiniteSpiral from './reactbits/InfiniteSpiral'
 import { Star } from './ui/icons'
 
 export default function Testimonials() {
+  const pinRef = useRef<HTMLDivElement>(null)
+  /* Spiralin ilerlemesi (madde cinsinden); React render'ı olmadan güncellenir */
+  const spin = useRef(0)
+
+  /*
+   * Duraklama alanının ne kadarı geçildiyse spiral o kadar döner. Bir
+   * duraklama = tam bir tur: bütün yorumlar bir kez merkezden geçer ve
+   * ancak ondan sonra sayfa aşağı akmaya devam eder.
+   */
+  useEffect(() => {
+    const el = pinRef.current
+    if (!el) return
+    const update = () => {
+      const travel = el.offsetHeight - window.innerHeight
+      if (travel <= 0) return
+      const passed = -el.getBoundingClientRect().top
+      const p = Math.min(Math.max(passed / travel, 0), 1)
+      spin.current = p * testimonials.length
+    }
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [])
+
   const items = testimonials.map((item, i) => ({
     id: i,
     label: `${item.name} — ${item.role}`,
@@ -37,8 +66,9 @@ export default function Testimonials() {
             </Reveal>
             <Reveal delay={0.12}>
               <p className="lead mt-5 max-w-lg">
-                Sayfayı kaydırdıkça yorumlar spiral boyunca yukarı süzülür; durduğunuzda spiral de
-                durur, okumak istediğiniz kart karşınızda kalır.
+                Bu bölümde sayfa bir süre yerinde kalır: kaydırdıkça yorumlar spiral boyunca bir
+                tam tur döner, hepsi bir kez karşınızdan geçer; tur bitince sayfa kaldığı yerden
+                akmaya devam eder.
               </p>
             </Reveal>
           </div>
@@ -67,19 +97,18 @@ export default function Testimonials() {
         döndürüyor. Yükseklik, birkaç yorum okunacak kadar (yaklaşık bir ekran
         boyu kaydırma) seçildi; sonra sayfa normal akışına dönüyor.
       */}
-      <div className="relative mt-6 h-[200vh] sm:mt-10">
+      <div ref={pinRef} className="relative mt-6 h-[280vh] sm:mt-10">
         <div className="sticky top-0 flex h-[100svh] items-center overflow-hidden">
           <div className="h-[32rem] w-full sm:h-[40rem] lg:h-[46rem]">
             <InfiniteSpiral
               items={items}
               animationMode="scroll"
-              /* Duraklama boyunca dört kadar yorum merkezden geçsin: okunacak kadar yavaş */
-              speed={0.7}
-              radius={560}
-              perspective={1800}
+              externalProgress={spin}
+              radius={430}
+              perspective={1700}
               cardWidth={264}
               cardHeight={272}
-              verticalSpacing={142}
+              verticalSpacing={116}
               cardsPerTurn={6}
               cardTilt={5}
               cardRadius={22}

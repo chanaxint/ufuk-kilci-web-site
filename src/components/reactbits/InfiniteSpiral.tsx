@@ -9,6 +9,7 @@ import {
   useRef,
   type CSSProperties,
   type ReactNode,
+  type RefObject,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 
@@ -44,6 +45,12 @@ export interface InfiniteSpiralProps {
   imageFit?: CSSProperties['objectFit'];
   grayscale?: number;
   className?: string;
+  /**
+   * Projeye özel: ilerlemeyi dışarıdan süren referans (madde cinsinden).
+   * Verildiğinde bileşenin kendi scroll dinleyicisi ve otomatik dönüşü
+   * devre dışı kalır; kaç maddenin döneceğini tamamen çağıran belirler.
+   */
+  externalProgress?: RefObject<number>;
 }
 
 type NormalizedItem = InfiniteSpiralItem & { alt: string };
@@ -75,7 +82,8 @@ const InfiniteSpiral = ({
   pauseOnHover = true,
   imageFit = 'cover',
   grayscale = 0,
-  className = ''
+  className = '',
+  externalProgress
 }: InfiniteSpiralProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<Array<HTMLAnchorElement | HTMLDivElement | null>>([]);
@@ -106,7 +114,8 @@ const InfiniteSpiral = ({
     let previousTime = performance.now();
     let bounds = root.getBoundingClientRect();
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const scrollEnabled = animationMode === 'scroll' || animationMode === 'all';
+    const scrollEnabled =
+      !externalProgress && (animationMode === 'scroll' || animationMode === 'all');
     const scrollSpeedMultiplier = Math.max(speed, 0) / 0.55;
     let lastScrollY = window.scrollY;
     const resizeObserver = new ResizeObserver(() => {
@@ -144,7 +153,9 @@ const InfiniteSpiral = ({
     const render = (time: number) => {
       const delta = Math.min((time - previousTime) / 1000, 0.05);
       previousTime = time;
-      const autoEnabled = animationMode === 'auto' || animationMode === 'all';
+      if (externalProgress) targetProgressRef.current = externalProgress.current;
+      const autoEnabled =
+        !externalProgress && (animationMode === 'auto' || animationMode === 'all');
       const motionPaused = draggingRef.current || (pauseOnHover && hoveredRef.current);
       const directionMultiplier = direction === 'down' ? -1 : 1;
       const desiredAutoSpeed =
@@ -235,7 +246,8 @@ const InfiniteSpiral = ({
     centerScale,
     edgeFade,
     edgeBlur,
-    pauseOnHover
+    pauseOnHover,
+    externalProgress
   ]);
 
   const rootStyle = {

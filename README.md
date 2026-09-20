@@ -11,7 +11,8 @@ uzay veya cyberpunk temalardan kaçınır.
 | Uygulama | React 19 + TypeScript + Vite 7 |
 | Stil | Tailwind CSS v4 (`src/index.css` içinde `@theme` ile tanımlı tasarım sistemi) |
 | Animasyon | Motion (framer-motion v12) + GSAP ScrollTrigger |
-| Zemin | `StudioBackground` — tüm siteyi taşıyan beyaz stüdyo yüzeyi: gradyan + sıva dokusu + vinyet + imleci takip eden ışık |
+| Zemin | `StudioBackground` — sıvalı duvar: gradyan + yavaşça dolaşan beyaz ışık bulutları + doku + vinyet |
+| Hazır bileşenler | React Bits (TS + Tailwind sürümü) — `src/components/reactbits/` |
 | Akıcı kaydırma | Lenis |
 | 3B | three.js + @react-three/fiber + @react-three/drei |
 | Tipografi | Manrope (başlık) + Inter (gövde) — Google Fonts |
@@ -37,8 +38,11 @@ npm run model      # assets/spine-draco.glb → public/models/spine.glb (Draco a
    `App.tsx` içindeki işaretli yoruma `<VideoIntro />` olarak yerleştirilecek.
 3. **SpineStage (1–4)** — sticky 3B sahne, GSAP ScrollTrigger ile sürülen dört durak.
 4. **Scoliosis (5)** — "Skolyoz Nedir?", üç anatomik düzlem, sırayla beliren belirti listesi.
-5. **ScoliosisAngles (6)** — Cobb açısına göre eğilen 3B omurga + evre skalası.
-6. **Testimonials (7)** — iki yönde kesintisiz kayan yorum şeridi, üzerine gelince durur.
+5. **ScoliosisAngles (6)** — Cobb açısına göre eğilen 3B omurga + React Bits `CometDial`.
+   Kadran yalnızca tanımlı duraklara (0/15/30/45/50) oturur; sürükleme bırakılınca en yakın
+   durağa gider, ok tuşları duraklar arasında gezinir.
+6. **Testimonials (7)** — React Bits `InfiniteSpiral`: yorum kartları spiral boyunca döner,
+   sayfa kaydırıldıkça yukarı süzülür; sürüklenebilir, üzerine gelince durur.
 7. **Services** — imleci takip eden ışık lekeli tedavi kartları.
 8. **About (9)** — bento ızgara: fotoğraf, tanıtım, sayılar, yaklaşım kartları, randevu kutusu.
 9. **Certificates (10)** — prosedürel sıva dokulu loş duvar; ahşap/altın çerçeveler içinde

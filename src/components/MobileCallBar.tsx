@@ -9,7 +9,7 @@ export default function MobileCallBar() {
       initial={{ y: 90 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.8, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}
-      className="fixed inset-x-3 bottom-3 z-50 flex items-center gap-2 rounded-full border border-white/80 bg-white/90 p-1.5 shadow-lift backdrop-blur-xl sm:hidden"
+      className="fixed inset-x-3 bottom-3 z-30 flex items-center gap-2 rounded-full border border-white/80 bg-white/90 p-1.5 shadow-lift backdrop-blur-xl sm:hidden"
     >
       <a
         href={`tel:${doctor.phone.replace(/\s/g, '')}`}

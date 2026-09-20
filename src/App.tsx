@@ -4,6 +4,7 @@ import Preloader from './components/Preloader'
 import Navbar from './components/Navbar'
 import ScrollProgress from './components/ScrollProgress'
 import StudioBackground from './components/ui/StudioBackground'
+import CursorTrail from './components/ui/CursorTrail'
 import SpineStage from './components/SpineStage'
 import Scoliosis from './components/Scoliosis'
 import Certificates from './components/Certificates'
@@ -51,6 +52,7 @@ export default function App() {
       </a>
 
       <StudioBackground />
+      <CursorTrail />
       <ScrollProgress />
       <Navbar />
 

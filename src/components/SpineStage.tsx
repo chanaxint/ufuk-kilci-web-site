@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { doctor, stageBeats } from '../lib/content'
+import ShinyText from './reactbits/ShinyText'
 import type { SpineRegionId } from '../lib/spine'
 import { ArrowDown, ArrowRight } from './ui/icons'
 
@@ -124,8 +125,14 @@ export default function SpineStage() {
                     {doctor.titles}
                   </motion.span>
 
-                  <h1 className="mt-4 font-display text-[clamp(3rem,9vw,6.5rem)] leading-[0.92] font-extrabold tracking-[-0.035em] text-ink-900">
-                    {doctor.name}
+                  <h1 className="mt-4 font-display text-[clamp(3rem,9vw,6.5rem)] leading-[0.92] font-extrabold tracking-[-0.035em]">
+                    <ShinyText
+                      text={doctor.name}
+                      speed={6}
+                      color="#5b4633"
+                      shineColor="#d9b98e"
+                      spread={100}
+                    />
                   </h1>
 
                   <p className="lead mt-6 max-w-lg">

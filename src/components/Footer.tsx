@@ -1,4 +1,5 @@
 import { doctor, navLinks } from '../lib/content'
+import ShinyText from './reactbits/ShinyText'
 import { ArrowRight, Instagram, Mail, Phone, WhatsApp } from './ui/icons'
 
 export default function Footer() {
@@ -14,7 +15,7 @@ export default function Footer() {
               UK
             </span>
             <p className="mt-6 font-display text-3xl leading-tight font-extrabold tracking-[-0.02em] sm:text-4xl">
-              {doctor.name}
+              <ShinyText text={doctor.name} speed={6} color="#e6d3bf" shineColor="#ffffff" spread={100} />
             </p>
             <p className="mt-2 font-display text-[0.72rem] font-bold tracking-[0.28em] text-brand-200 uppercase">
               {doctor.titles}

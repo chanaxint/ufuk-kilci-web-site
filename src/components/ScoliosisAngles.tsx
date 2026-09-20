@@ -1,14 +1,20 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react'
-import { AnimatePresence, motion, useInView } from 'motion/react'
+import { motion, useInView } from 'motion/react'
 import { angleStages } from '../lib/content'
 import Reveal from './ui/Reveal'
 import type { SpineView } from './three/ScoliosisAngleScene'
+import CometDial from './reactbits/CometDial'
 import { Rotate3D } from './ui/icons'
 
 const ScoliosisAngleScene = lazy(() => import('./three/ScoliosisAngleScene'))
 
 const MAX = 50
+/** Seçilebilen açılar — skalada yalnızca bu duraklar geçerli */
 const TICKS = [0, 15, 30, 45, 50]
+
+/** Sürükleme bırakıldığında en yakın durağa oturt */
+const snapToTick = (value: number) =>
+  TICKS.reduce((best, tick) => (Math.abs(tick - value) < Math.abs(best - value) ? tick : best), TICKS[0])
 
 const stageFor = (angle: number) =>
   angleStages.find((s) => angle < s.max) ?? angleStages[angleStages.length - 1]
@@ -27,7 +33,6 @@ export default function ScoliosisAngles() {
   }, [inView])
 
   const stage = stageFor(angle)
-  const pct = (angle / MAX) * 100
 
   return (
     <section id="skolyoz-acilari" className="relative scroll-mt-28 py-24 sm:py-28">
@@ -87,40 +92,47 @@ export default function ScoliosisAngles() {
                 )}
               </div>
 
-              {/* Skala */}
-              <div className="relative mt-2 px-1">
-                <div className="relative h-1.5 rounded-full bg-ink-200/50">
-                  <div
-                    className="absolute inset-y-0 left-0 rounded-full transition-[width,background-color] duration-300"
-                    style={{ width: `${pct}%`, background: stage.color }}
-                  />
-                  <span
-                    className="pointer-events-none absolute top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-ink-900 shadow-lift transition-[left] duration-300"
-                    style={{ left: `${pct}%` }}
-                  />
-                  <input
-                    type="range"
-                    min={0}
-                    max={MAX}
-                    step={1}
-                    value={angle}
-                    onChange={(e) => setAngle(Number(e.target.value))}
-                    aria-label="Cobb açısı"
-                    className="absolute inset-x-0 -top-3 h-8 w-full cursor-pointer opacity-0"
-                  />
-                </div>
+              {/* Açı kadranı — yalnızca tanımlı duraklara oturur */}
+              <div
+                className="relative mt-4 flex flex-col items-center gap-4"
+                onKeyDownCapture={(e) => {
+                  const dir = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? 1
+                    : e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? -1
+                    : 0
+                  if (!dir) return
+                  e.preventDefault()
+                  e.stopPropagation()
+                  const i = TICKS.indexOf(snapToTick(angle))
+                  setAngle(TICKS[Math.min(TICKS.length - 1, Math.max(0, i + dir))])
+                }}
+              >
+                <CometDial
+                  value={angle}
+                  min={0}
+                  max={MAX}
+                  step={1}
+                  unit="°"
+                  label="Cobb açısı"
+                  size={196}
+                  thickness={6}
+                  accent={stage.color}
+                  ink="#4a3626"
+                  onChange={(v) => setAngle(Math.round(v))}
+                  onChangeEnd={(v) => setAngle(snapToTick(v))}
+                />
 
-                <div className="mt-4 flex justify-between">
+                <div className="flex w-full items-center justify-between px-2">
                   {TICKS.map((tick) => (
                     <button
                       key={tick}
                       type="button"
                       onClick={() => setAngle(tick)}
-                      className={`font-display text-[0.78rem] font-bold tabular-nums transition-colors duration-300 ${
-                        angle === tick ? 'text-ink-900' : 'text-ink-500 hover:text-ink-800'
+                      aria-pressed={angle === tick}
+                      className={`rounded-full px-2.5 py-1 font-display text-[0.78rem] font-bold tabular-nums transition-colors duration-300 ${
+                        angle === tick ? 'bg-ink-900 text-sand-50' : 'text-ink-500 hover:text-ink-800'
                       }`}
                     >
-                      {tick}
+                      {tick}°
                     </button>
                   ))}
                 </div>
@@ -137,32 +149,27 @@ export default function ScoliosisAngles() {
               >
                 {angle}°
               </span>
-              <AnimatePresence mode="wait">
-                <motion.span
-                  key={stage.label}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.35 }}
-                  className="mb-2 font-display text-xl font-extrabold text-ink-900 sm:text-2xl"
-                >
-                  {stage.label}
-                </motion.span>
-              </AnimatePresence>
+              {/* Anahtar değişince yeni etiket anında yerini alır, sonra belirir */}
+              <motion.span
+                key={stage.label}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                className="mb-2 font-display text-xl font-extrabold text-ink-900 sm:text-2xl"
+              >
+                {stage.label}
+              </motion.span>
             </div>
 
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={stage.text}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.4 }}
-                className="mt-6 max-w-xl text-[1.05rem] leading-relaxed text-ink-700"
-              >
-                {stage.text}
-              </motion.p>
-            </AnimatePresence>
+            <motion.p
+              key={stage.text}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-6 max-w-xl text-[1.05rem] leading-relaxed text-ink-700"
+            >
+              {stage.text}
+            </motion.p>
 
             {/* Evre listesi */}
             <div className="mt-10 flex flex-col gap-2.5">

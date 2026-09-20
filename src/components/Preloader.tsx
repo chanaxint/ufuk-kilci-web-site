@@ -54,7 +54,7 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
           Fizyoterapist — Osteopat
         </motion.span>
 
-        <h1 className="mt-5 flex overflow-hidden font-display text-[clamp(2.4rem,8vw,5rem)] leading-none font-extrabold tracking-[-0.03em] text-ink-900">
+        <h1 className="mt-5 flex overflow-hidden font-display text-[clamp(2.4rem,8vw,5rem)] leading-none font-extrabold tracking-[-0.03em] text-ink-800">
           {letters(doctor.name).map((ch, i) => (
             <motion.span
               key={`${ch}-${i}`}

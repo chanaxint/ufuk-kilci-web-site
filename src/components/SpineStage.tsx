@@ -58,27 +58,9 @@ export default function SpineStage() {
   return (
     <section id="top" ref={stageRef} className="relative h-[380vh] lg:h-[460vh]">
       <div className="sticky top-0 h-[100svh] overflow-hidden">
-        {/* Aurora zemin */}
+        {/* Zemin: genel aurora katmanı üzerine ince bir dokunuş */}
         <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-b from-brand-50/90 via-sand-50 to-sand-100" />
-          <motion.div
-            aria-hidden
-            animate={{ x: ['-6%', '6%', '-6%'], y: ['-3%', '4%', '-3%'] }}
-            transition={{ duration: 26, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute -top-1/4 left-1/4 h-[70vh] w-[70vw] rounded-[45%] bg-[radial-gradient(closest-side,rgb(188_220_250/0.75),transparent)] blur-3xl"
-          />
-          <motion.div
-            aria-hidden
-            animate={{ x: ['5%', '-7%', '5%'], y: ['2%', '-5%', '2%'] }}
-            transition={{ duration: 32, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute top-1/3 -left-1/4 h-[60vh] w-[60vw] rounded-[45%] bg-[radial-gradient(closest-side,rgb(212_243_236/0.8),transparent)] blur-3xl"
-          />
-          <motion.div
-            aria-hidden
-            animate={{ x: ['-4%', '6%', '-4%'] }}
-            transition={{ duration: 38, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute right-0 bottom-0 h-[55vh] w-[55vw] rounded-[45%] bg-[radial-gradient(closest-side,rgb(251_238_218/0.85),transparent)] blur-3xl"
-          />
+          <div className="absolute inset-0 bg-gradient-to-b from-brand-50/45 via-transparent to-sand-100/35" />
           <div className="absolute inset-0 grid-lines opacity-40 [mask-image:radial-gradient(75%_65%_at_50%_40%,black,transparent)]" />
         </div>
 

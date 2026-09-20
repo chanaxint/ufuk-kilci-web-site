@@ -14,7 +14,6 @@ export const doctor = {
 
 export const navLinks = [
   { label: 'Skolyoz', href: '#skolyoz' },
-  { label: 'Süreç', href: '#surec' },
   { label: 'Tedaviler', href: '#tedaviler' },
   { label: 'Hakkımda', href: '#hakkimda' },
   { label: 'Sertifikalar', href: '#sertifikalar' },
@@ -89,36 +88,6 @@ export const services = [
     accent: 'warm',
   },
 ] as const
-
-export const processSteps = [
-  {
-    step: '01',
-    title: 'Detaylı Postür Analizi',
-    description:
-      'Şikâyetin hikâyesi, görüntüleme raporları ve hareket analizi birlikte okunur. Postür, eklem hareket açıklığı, kas kısalıkları ve yük dağılımı ölçülerek kaydedilir; böylece ilerlemeyi kıyaslayacağımız bir başlangıç noktası oluşur.',
-    duration: '45 dk',
-    angle: 35,
-    points: ['Statik ve dinamik postür ölçümü', 'Hareket açıklığı testleri', 'Adams testi & skolyometre'],
-  },
-  {
-    step: '02',
-    title: 'Kişiye Özel Protokol Tasarımı',
-    description:
-      'Bulgular sizinle birlikte yorumlanır. Hedefler, seans sıklığı ve beklenen süre net bir takvime dönüşür; hangi tekniğin neden seçildiğini bilerek başlarsınız.',
-    duration: 'Aynı gün',
-    angle: 27,
-    points: ['Ölçülebilir hedefler', 'Seans takvimi', 'Ev programının ilk sürümü'],
-  },
-  {
-    step: '03',
-    title: 'Bütüncül Manuel Terapi',
-    description:
-      'Manuel terapi, osteopatik teknikler ve egzersiz tek bir program içinde yürütülür. Her kontrol seansında ölçüm tekrarlanır ve protokol buna göre güncellenir.',
-    duration: '4–12 seans',
-    angle: 18,
-    points: ['Eklem mobilizasyonu', 'Miyofasyal teknikler', 'Ölçümle güncellenen egzersiz'],
-  },
-]
 
 export const testimonials = [
   {

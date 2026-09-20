@@ -3,13 +3,13 @@ import { AnimatePresence, motion } from 'motion/react'
 import Preloader from './components/Preloader'
 import Navbar from './components/Navbar'
 import ScrollProgress from './components/ScrollProgress'
+import AuroraBackground from './components/ui/AuroraBackground'
 import SpineStage from './components/SpineStage'
 import Scoliosis from './components/Scoliosis'
 import Certificates from './components/Certificates'
 import ScoliosisAngles from './components/ScoliosisAngles'
 import About from './components/About'
 import Services from './components/Services'
-import Process from './components/Process'
 import Testimonials from './components/Testimonials'
 import Faq from './components/Faq'
 import Contact from './components/Contact'
@@ -50,6 +50,7 @@ export default function App() {
         İçeriğe geç
       </a>
 
+      <AuroraBackground />
       <ScrollProgress />
       <Navbar />
 
@@ -62,7 +63,6 @@ export default function App() {
         <Scoliosis />
         <ScoliosisAngles />
         <Testimonials />
-        <Process />
         <Services />
         <About />
         <Certificates />

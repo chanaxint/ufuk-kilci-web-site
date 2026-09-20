@@ -26,7 +26,7 @@ export default function Testimonials() {
   }))
 
   return (
-    <section id="yorumlar" className="relative scroll-mt-28 overflow-hidden py-24 sm:py-28">
+    <section id="yorumlar" className="relative scroll-mt-28 pt-24 pb-16 sm:pt-28">
       <div className="section-shell">
         <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <div className="max-w-2xl">
@@ -60,26 +60,35 @@ export default function Testimonials() {
 
       {/*
         Spiral bilerek kabuğun dışında: tam genişlikte akıp ekranın kenarlarından
-        çıkıyor. Üst/alt maske kartların sert bir çizgiyle kesilmesini engelleyip
-        zemine eritiyor.
+        çıkıyor.
+
+        Sarmalayıcı alan viewport'tan uzun ve içerideki katman yapışkan: bu
+        bölümde sayfa bir süre yerinde kalıyor, kaydırma yalnızca yorumları
+        döndürüyor. Yükseklik, birkaç yorum okunacak kadar (yaklaşık bir ekran
+        boyu kaydırma) seçildi; sonra sayfa normal akışına dönüyor.
       */}
-      <div className="mt-6 h-[32rem] w-full sm:mt-10 sm:h-[40rem] lg:h-[46rem]">
-        <InfiniteSpiral
-          items={items}
-          animationMode="scroll"
-          speed={1}
-          radius={560}
-          perspective={1800}
-          cardWidth={264}
-          cardHeight={272}
-          verticalSpacing={142}
-          cardsPerTurn={6}
-          cardTilt={5}
-          cardRadius={22}
-          centerScale={1.04}
-          edgeFade={0.42}
-          edgeBlur={1.6}
-        />
+      <div className="relative mt-6 h-[200vh] sm:mt-10">
+        <div className="sticky top-0 flex h-[100svh] items-center overflow-hidden">
+          <div className="h-[32rem] w-full sm:h-[40rem] lg:h-[46rem]">
+            <InfiniteSpiral
+              items={items}
+              animationMode="scroll"
+              /* Duraklama boyunca dört kadar yorum merkezden geçsin: okunacak kadar yavaş */
+              speed={0.7}
+              radius={560}
+              perspective={1800}
+              cardWidth={264}
+              cardHeight={272}
+              verticalSpacing={142}
+              cardsPerTurn={6}
+              cardTilt={5}
+              cardRadius={22}
+              centerScale={1.04}
+              edgeFade={0.42}
+              edgeBlur={1.6}
+            />
+          </div>
+        </div>
       </div>
     </section>
   )

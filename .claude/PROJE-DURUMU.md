@@ -306,10 +306,13 @@ kaydırma/sticky ofsetleri, paket boyutları, SSIM.
    footer'ın zeminle ilişkisi · sertifikalara yere yaslanmış perspektif ·
    hakkımda portresinin çerçevelenmesi · yorumların yere serilmiş kâğıt notlara
    dönmesi · girişin (aydınlık klinik fotoğrafı) siteyle bağının sıkılaştırılması.
-3. **Yayın öncesi içerik**: `src/lib/content.ts` içindeki telefon, e-posta,
-   adres, Instagram/WhatsApp, 8 hasta yorumu, "4.9 / 120+ değerlendirme" ve
-   sertifika yıl/kurumları hâlâ örnek; `index.html` içindeki JSON-LD ile
-   birlikte gerçek verilerle değişecek.
+3. **Yayın öncesi içerik.** Telefon (0543 780 50 50), WhatsApp, Instagram
+   (@fzt.ufukkilci) ve adres (350 Evler Mah. Milli İrade Cad. İŞKUR yanı
+   No: 46, Daire 6-7 — Nevşehir/Merkez) **gerçek** ve `index.html` JSON-LD
+   ile birlikte güncellendi. Hâlâ örnek olanlar: **e-posta**
+   (info@ufukkilci.com), **"4.9 / 120+ değerlendirme"**, About'taki dört
+   sayı (12+ yıl, 4.500+ seans, %96 memnuniyet, 18 sertifika), **8 hasta
+   yorumu** ve sertifika yıl/kurumları.
 4. **Kedi Lottie**: şu an uzak adresten çekiliyor. `public/animations/cat.json`
    olarak indirilip `CAT_SRC` oraya çevrilebilir; lisans kontrol edilmeli.
 5. İstenirse doktor sitesine içerik eklemeleri: öncesi/sonrası vakalar, seans

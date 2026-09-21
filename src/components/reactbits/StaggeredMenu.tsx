@@ -520,11 +520,27 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
         <aside
           id="staggered-menu-panel"
           ref={panelRef}
-          className="staggered-menu-panel pointer-events-auto absolute top-0 right-0 z-10 flex h-full flex-col overflow-y-auto bg-sand-50/95 p-[7em_1.75em_2em_1.75em] backdrop-blur-[12px] sm:p-[6em_2em_2em_2em]"
-          style={{ WebkitBackdropFilter: 'blur(12px)' }}
+          /*
+            Panel yüzeyi: düz beyaz değil, sararmış kâğıt. Sıcak bir taban,
+            üzerinde iki soluk leke ve zeminle aynı tane var; yazılar koyu
+            mürekkep olduğu için okunurluk bozulmuyor.
+          */
+          className="staggered-menu-panel pointer-events-auto absolute top-0 right-0 z-10 flex h-full flex-col overflow-y-auto p-[7em_1.75em_2em_1.75em] sm:p-[6em_2em_2em_2em]"
+          style={{
+            background: `radial-gradient(70% 55% at 22% 12%, rgb(255 250 238 / 0.85), transparent 68%),
+              radial-gradient(60% 50% at 84% 82%, rgb(198 168 118 / 0.22), transparent 72%),
+              linear-gradient(168deg, #f3ead6 0%, #ece0c8 52%, #e3d5bb 100%)`,
+          }}
           aria-hidden={!open}
         >
-          <div className="sm-panel-inner flex-1 flex flex-col gap-5">
+          {/* Kâğıt lifi — sayfanın zemin dokusuyla aynı */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-[0.4] mix-blend-multiply"
+            style={{ backgroundImage: 'url(/images/doku.png)', backgroundRepeat: 'repeat' }}
+          />
+
+          <div className="sm-panel-inner relative flex-1 flex flex-col gap-5">
             {panelContent ?? (
             <ul
               className="sm-panel-list list-none m-0 p-0 flex flex-col gap-2"

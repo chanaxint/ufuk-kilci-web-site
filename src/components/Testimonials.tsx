@@ -145,8 +145,8 @@ export default function Testimonials() {
             </Reveal>
             <Reveal delay={0.12}>
               <p className="lead mt-5 max-w-lg">
-                Bu bölümde sayfa bir süre yerinde kalır: kaydırdıkça yorumlar birer kâğıt gibi
-                yere düşer, hepsi zemine yayılınca sayfa kaldığı yerden akmaya devam eder.
+                Farklı yaşlardan, farklı şikâyetlerle gelen hastaların tedavi sonrasında
+                anlattıkları. Hepsi kendi izinleriyle paylaşıldı; isimler kısaltılarak yazıldı.
               </p>
             </Reveal>
           </div>

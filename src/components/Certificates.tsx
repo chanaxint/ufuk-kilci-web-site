@@ -108,9 +108,7 @@ function CertificateFrame({ item, large = false }: { item: Credential; large?: b
 
             {/* Cam parlaması */}
             <span
-              className={`pointer-events-none absolute inset-0 transition-opacity duration-700 ${
-                large ? 'opacity-25' : 'opacity-45 group-hover:opacity-20'
-              }`}
+              className={`pointer-events-none absolute inset-0 ${large ? 'opacity-25' : 'opacity-40'}`}
               style={{
                 background:
                   'linear-gradient(112deg,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0.12) 26%,transparent 44%,rgba(255,255,255,0.18) 72%,transparent 88%)',
@@ -155,7 +153,7 @@ function WallCertificate({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-12% 0px' }}
       transition={{ duration: 0.9, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-      className="absolute w-[13.5rem] sm:w-[15.5rem] lg:w-[18rem]"
+      className="absolute w-[14.5rem] sm:w-[17rem] lg:w-[20rem]"
       style={{
         left: `${spot.x}%`,
         top: `${spot.y}%`,
@@ -169,17 +167,17 @@ function WallCertificate({
         type="button"
         onClick={() => onOpen(index)}
         aria-label={`${item.title} belgesini büyüt`}
-        className="group relative block w-full cursor-pointer rounded-[3px] text-left transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 focus-visible:outline-2 focus-visible:outline-offset-8 focus-visible:outline-brand-600"
+        /*
+          Üzerine gelince hiçbir hareket yok: tıklanınca zaten tam ekrana
+          geliyor. Yalnızca klavye odağında çerçeve dışı bir hat çıkıyor.
+        */
+        className="group relative block w-full cursor-pointer rounded-[3px] text-left focus-visible:outline-2 focus-visible:outline-offset-8 focus-visible:outline-warm-300"
         style={{ transform: `rotate(${spot.rotate}deg) rotateX(${spot.lean}deg)` }}
       >
-        {/*
-          Zemine dayanmış çerçeve: çivi yok, altında yere düşen temas
-          gölgesi var. Üzerine gelince çerçeve biraz kalkıyor, gölge de
-          onunla birlikte yayılıyor.
-        */}
+        {/* Zemine bırakılmış çerçeve: çivi yok, altında yere düşen temas gölgesi var */}
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-3 left-1/2 h-5 w-[86%] -translate-x-1/2 rounded-[50%] blur-md transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-bottom-4 group-hover:w-[92%] group-hover:blur-lg"
+          className="pointer-events-none absolute -bottom-3 left-1/2 h-5 w-[86%] -translate-x-1/2 rounded-[50%] blur-md"
           style={{ background: 'radial-gradient(closest-side, rgb(10 6 3 / 0.7), transparent 78%)' }}
         />
         <CertificateFrame item={item} />
@@ -342,12 +340,13 @@ export default function Certificates() {
       <div className="section-shell">
         <div className="mx-auto max-w-2xl text-center">
           <Reveal>
-            <h2 className="title-lg">Yere bırakılmış belgeler</h2>
+            <h2 className="title-lg">Sertifikalar</h2>
           </Reveal>
           <Reveal delay={0.12}>
             <p className="lead mt-6">
-              Her biri, kliniğe taşınan bir yöntemin karşılığı. Zemine bırakılmış çerçevelerden
-              birine tıklayın; belge tablosuyla birlikte büyüsün, imleçle eğilsin.
+              Manuel terapi, osteopati, Schroth ve kuru iğneleme başta olmak üzere tamamladığım
+              eğitimler. Her biri, kliniğe yeni bir değerlendirme ya da tedavi yöntemi olarak
+              taşındı; belgeyi büyütmek için üzerine tıklayabilirsiniz.
             </p>
           </Reveal>
         </div>
@@ -358,7 +357,7 @@ export default function Certificates() {
         <div className="relative mt-14 overflow-hidden" style={{ perspective: '1400px' }}>
           {/* Çerçeveler */}
           <div
-            className="relative mx-auto h-[78rem] w-full max-w-[86rem] px-5 sm:h-[88rem] sm:px-6 lg:h-[43rem]"
+            className="relative mx-auto h-[82rem] w-full max-w-[86rem] px-5 sm:h-[96rem] sm:px-6 lg:h-[46rem]"
             style={{ transformStyle: 'preserve-3d' }}
           >
             {credentials.map((item, i) => (

@@ -32,6 +32,12 @@ export default function Contact() {
     { icon: Phone, label: 'Telefon', value: doctor.phone, href: `tel:${doctor.phone.replace(/\s/g, '')}` },
     { icon: Mail, label: 'E-posta', value: doctor.email, href: `mailto:${doctor.email}` },
     { icon: MapPin, label: 'Klinik', value: doctor.address, href: doctor.mapsUrl },
+    {
+      icon: Instagram,
+      label: 'Instagram',
+      value: doctor.instagramHandle,
+      href: doctor.instagram,
+    },
   ]
 
   return (
@@ -101,15 +107,6 @@ export default function Contact() {
                 </div>
 
                 <div className="mt-6 flex items-center gap-2">
-                  <a
-                    href={doctor.instagram}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="Instagram"
-                    className="grid size-11 place-items-center rounded-full border border-white/20 bg-white/10 text-sand-50 transition-colors hover:bg-white/20"
-                  >
-                    <Instagram className="size-4.5" />
-                  </a>
                   <a
                     href={doctor.whatsapp}
                     target="_blank"
@@ -212,8 +209,8 @@ export default function Contact() {
               <div className="mt-9 grid gap-3 border-t border-ivory-100/18 pt-7 sm:grid-cols-3">
                 {[
                   { title: 'Aynı gün dönüş', text: 'Mesai saatleri içinde yanıt' },
-                  { title: 'Ücretsiz ön görüşme', text: '10 dakikalık telefon değerlendirmesi' },
-                  { title: 'Kolay ulaşım', text: 'Metro ve otoparka yakın konum' },
+                  { title: 'Ön değerlendirme', text: 'Telefonda kısa bilgilendirme' },
+                  { title: 'Merkezî konum', text: 'Nevşehir merkez, İŞKUR yanı' },
                 ].map((item) => (
                   <div key={item.title}>
                     <p className="flex items-center gap-2 font-display text-[0.9rem] font-bold text-ivory-50">

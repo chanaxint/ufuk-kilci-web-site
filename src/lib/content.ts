@@ -4,12 +4,14 @@ export const doctor = {
   shortBio:
     'Ağrıyı susturmak yetmez; sebebini bulmak gerekir. Omurga, duruş ve hareket bütününü değerlendirerek kişiye özel tedavi planları kuruyorum.',
   photo: '/images/ufuk-kilci.jpg',
-  phone: '+90 555 000 00 00',
+  phone: '0543 780 50 50',
   email: 'info@ufukkilci.com',
-  address: 'Örnek Mah. Sağlık Cad. No: 12, Kat 3 — İstanbul',
-  mapsUrl: 'https://maps.google.com/?q=Istanbul',
-  instagram: 'https://instagram.com/',
-  whatsapp: 'https://wa.me/905550000000',
+  address: '350 Evler Mah. Milli İrade Cad. İŞKUR yanı No: 46, Daire 6-7 — Nevşehir / Merkez',
+  mapsUrl:
+    'https://maps.google.com/?q=350+Evler+Mahallesi+Milli+İrade+Caddesi+No+46+Nevşehir+Merkez',
+  instagram: 'https://instagram.com/fzt.ufukkilci',
+  instagramHandle: '@fzt.ufukkilci',
+  whatsapp: 'https://wa.me/905437805050',
 }
 
 export const navLinks = [

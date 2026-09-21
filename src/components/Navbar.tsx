@@ -136,8 +136,8 @@ export default function Navbar() {
         showHeader={false}
         controlledOpen={open}
         position="right"
-        colors={['#e6d3bf', '#c49466']}
-        accentColor="#8a5a33"
+        colors={['#e0d2b8', '#7a5637']}
+        accentColor="#7a5637"
         items={navLinks.map((l) => ({ label: l.label, ariaLabel: l.label, link: l.href }))}
         panelContent={
           <ul className="flex list-none flex-col gap-1 p-0" role="list">
@@ -146,7 +146,7 @@ export default function Navbar() {
                 <DrawUnderlineLink
                   text={l.label}
                   href={l.href}
-                  stroke="#8a5a33"
+                  stroke="#6b4a2c"
                   labelClassName="sm-panel-itemLabel"
                   className="font-display text-[clamp(1.45rem,6.5vw,2.05rem)] font-semibold tracking-[-0.02em] text-ink-900 transition-colors duration-300 hover:text-brand-700 focus-visible:text-brand-700"
                   /* Çizgi tamamlansın diye kapanış hafif gecikmeli */

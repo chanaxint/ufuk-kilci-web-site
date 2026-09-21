@@ -20,6 +20,7 @@ const ease = (t: number) => t * t * (3 - 2 * t)
 
 /* Kaydırma inişinin kilometre taşları (bölümün ilerlemesi üzerinden) */
 const HOLD = 0.16 // buraya kadar sahne olduğu gibi duruyor
+const HANDOFF = 0.045 // fotoğraftan videoya devir bu aralıkta tamamlanıyor
 const FLOOR = 0.86 // burada kamera zemine varmış oluyor
 const BLOOM = 0.91 // ışık doluyor, sonra sahne sayfaya çözülüyor
 
@@ -236,9 +237,15 @@ export default function SpineStage() {
         onUpdate: (self) => {
           const p = self.progress
           /* Fotoğraftan videoya devir */
-          const hand = clamp01((p - HOLD) / 0.09)
-          /* Videonun kendi ilerlemesi */
-          const roll = ease(clamp01((p - HOLD) / (FLOOR - HOLD)))
+          const hand = clamp01((p - HOLD) / HANDOFF)
+          /*
+           * Videonun kendi ilerlemesi. Devir bitmeden başlamıyor: geçiş
+           * boyunca video ilk karesinde duruyor, o kare de giriş
+           * fotoğrafının aynısı olduğu için devir görünmüyor.
+           * Doğrusal: kamera parmağınıza kilitli, kaydırdığınız kadar
+           * iniyor — ortada hızlanıp yavaşlamıyor.
+           */
+          const roll = clamp01((p - HOLD - HANDOFF) / (FLOOR - HOLD - HANDOFF))
           /*
            * Zeminde önce sıcak bir ışık doluyor (masanın altından aydınlığa
            * çıkmak gibi), sonra bütün sahne sayfanın kendi zeminine çözülüyor.
@@ -247,11 +254,12 @@ export default function SpineStage() {
           const bloom = ease(clamp01((p - FLOOR) / (BLOOM - FLOOR)))
           const dissolve = ease(clamp01((p - BLOOM) / (1 - BLOOM)))
 
-          if (sceneRef.current) {
-            sceneRef.current.style.opacity = String(1 - hand)
-            /* Fotoğraf da videoyla aynı yöne, biraz daha yavaş kayıyor */
-            sceneRef.current.style.transform = `translate3d(0, ${(-hand * 6).toFixed(2)}vh, 0)`
-          }
+          /*
+           * Devir sırasında fotoğraf kıpırdamıyor: video ilk karesinde
+           * duruyor ve o kare fotoğrafın aynısı, en ufak kayma bile iki
+           * görüntüyü üst üste düşürüp hayalet yapıyor.
+           */
+          if (sceneRef.current) sceneRef.current.style.opacity = String(1 - hand)
           if (videoWrapRef.current)
             videoWrapRef.current.style.opacity = (hand * (1 - dissolve)).toFixed(3)
           if (washRef.current) washRef.current.style.opacity = (bloom * (1 - dissolve)).toFixed(3)
@@ -425,10 +433,25 @@ export default function SpineStage() {
             playsInline
             preload="none"
             disablePictureInPicture
-            className="size-full object-cover"
+            /* Fotoğrafla birebir aynı çerçeveleme: aynı oran, aynı çıpa */
+            className="size-full object-cover object-[70%_center]"
           >
-            {/* H.264 her yerde donanımla çözülüyor; VP9 yalnızca yedek */}
-            <source src="/video/masa-alti-inis.mp4" type='video/mp4; codecs="avc1.4d401f"' />
+            {/*
+              H.264 her yerde donanımla çözülüyor; dar ekrana daha küçük
+              kopya gidiyor. Sıra bilinçli: `media` koşulunu yok sayan bir
+              tarayıcı olursa herkese büyük kopya gider, tersi olmaz.
+              VP9 yalnızca H.264 çözemeyen tarayıcılar için.
+            */}
+            <source
+              src="/video/masa-alti-inis.mp4"
+              type='video/mp4; codecs="avc1.4d401f"'
+              media="(min-width: 641px)"
+            />
+            <source
+              src="/video/masa-alti-inis-mobil.mp4"
+              type='video/mp4; codecs="avc1.4d401e"'
+              media="(max-width: 640px)"
+            />
             <source src="/video/masa-alti-inis.webm" type="video/webm" />
           </video>
         </div>

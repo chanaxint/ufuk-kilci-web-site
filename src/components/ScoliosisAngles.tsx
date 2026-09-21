@@ -3,7 +3,7 @@ import { motion, useInView } from 'motion/react'
 import { angleStages } from '../lib/content'
 import Reveal from './ui/Reveal'
 import type { SpineView } from './three/ScoliosisAngleScene'
-import CometDial from './reactbits/CometDial'
+import AngleScale from './ui/AngleScale'
 import { Rotate3D } from './ui/icons'
 
 import SceneBoundary from './ui/SceneBoundary'
@@ -12,19 +12,24 @@ import { hasWebGL } from '../lib/webgl'
 const ScoliosisAngleScene = lazy(() => import('./three/ScoliosisAngleScene'))
 
 const MAX = 50
-/** Seçilebilen açılar — skalada yalnızca bu duraklar geçerli */
-const TICKS = [0, 15, 30, 45, 50]
-
-/** Sürükleme bırakıldığında en yakın durağa oturt */
-const snapToTick = (value: number) =>
-  TICKS.reduce((best, tick) => (Math.abs(tick - value) < Math.abs(best - value) ? tick : best), TICKS[0])
+/*
+ * Seçilebilen açılar. Duraklar evrelerin sınırlarıyla aynı (0-10, 10-25,
+ * 25-40, 40+): ölçek üzerinde her durak bir eşiğe denk geliyor. Eski
+ * 0/15/30/45/50 dizisinde 45 ile 50 dereceler yan yana sıkışıyordu.
+ */
+const TICKS = [0, 10, 25, 40, 50]
 
 const stageFor = (angle: number) =>
   angleStages.find((s) => angle < s.max) ?? angleStages[angleStages.length - 1]
 
 export default function ScoliosisAngles() {
   const ref = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: '-20% 0px' })
+  /*
+   * Model bölüm ekrana girmeden önce yüklenmeye başlıyor: parça, GLB ve
+   * shader derlemesi kullanıcı oraya varana kadar bitmiş oluyor. Eskiden
+   * bölüm %20 göründükten sonra başlıyordu ve model geç geliyordu.
+   */
+  const inView = useInView(ref, { once: true, margin: '900px 0px' })
   /* Bölüm ekrandan çıkınca WebGL render döngüsü duruyor */
   const onScreen = useInView(ref, { margin: '250px 0px' })
   const [angle, setAngle] = useState(0)
@@ -99,52 +104,19 @@ export default function ScoliosisAngles() {
                 )}
               </div>
 
-              {/* Açı kadranı — yalnızca tanımlı duraklara oturur */}
-              <div
-                className="relative mt-4 flex flex-col items-center gap-4"
-                onKeyDownCapture={(e) => {
-                  const dir = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? 1
-                    : e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? -1
-                    : 0
-                  if (!dir) return
-                  e.preventDefault()
-                  e.stopPropagation()
-                  const i = TICKS.indexOf(snapToTick(angle))
-                  setAngle(TICKS[Math.min(TICKS.length - 1, Math.max(0, i + dir))])
-                }}
-              >
-                <CometDial
-                  value={angle}
-                  min={0}
-                  max={MAX}
-                  /* Skalada yalnızca bu duraklar var; sürüklerken de aradaki değerlere düşmez */
-                  stops={TICKS}
-                  unit="°"
-                  label="Cobb açısı"
-                  size={196}
-                  thickness={6}
-                  accent={stage.color}
-                  ink="#4a3626"
-                  onChange={(v) => setAngle(snapToTick(v))}
-                  onChangeEnd={(v) => setAngle(snapToTick(v))}
-                />
-
-                <div className="flex w-full items-center justify-between px-2">
-                  {TICKS.map((tick) => (
-                    <button
-                      key={tick}
-                      type="button"
-                      onClick={() => setAngle(tick)}
-                      aria-pressed={angle === tick}
-                      className={`rounded-full px-2.5 py-1 font-display text-[0.78rem] font-bold tabular-nums transition-colors duration-300 ${
-                        angle === tick ? 'bg-ivory-50 text-ink-900' : 'text-ivory-300 hover:text-ivory-100'
-                      }`}
-                    >
-                      {tick}°
-                    </button>
-                  ))}
-                </div>
-              </div>
+              {/*
+                Açı ölçeği: kadran kaldırıldı, yerine tek bir yatay çizgi
+                geldi. Dereceler çizginin hemen altında ve modele yakın
+                duruyor; sürüklerken de yalnızca tanımlı duraklara oturuyor.
+              */}
+              <AngleScale
+                className="mt-2 px-2"
+                value={angle}
+                ticks={TICKS}
+                max={MAX}
+                color={stage.color}
+                onChange={setAngle}
+              />
             </div>
           </div>
 

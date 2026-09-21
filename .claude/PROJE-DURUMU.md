@@ -71,7 +71,11 @@ Aralarda `SectionRule` (ince ayırıcı çizgi).
   (elle çizilen alt çizgi efekti), sağda 2 çizgi → çarpı hamburger, panel
   StaggeredMenu. Panel **açık zeminli** (`bg-sand-50/95`), içindeki yazılar koyu.
 - **Testimonials**: sayfa sabitlenip spiral bir tam tur dönüyor, sonra akış devam ediyor.
-- **ScoliosisAngles**: kadran yalnızca tanımlı açılara oturuyor (sürüklerken de).
+- **ScoliosisAngles**: yuvarlak kadran kaldırıldı; yerinde yatay ölçek
+  (`ui/AngleScale.tsx`) var — ince çizgi, üzerinde duraklar, hemen altında
+  dereceler. Duraklar evre sınırlarıyla aynı (0/10/25/40/50) ve sürüklerken
+  de yalnızca onlara oturuyor. 3B model bölüm ekrana girmeden ~900 px önce
+  yüklenmeye başlıyor.
 - **Certificates**: çerçeveler zemine dayalı; tıklayınca tam ekran, imleçle eğiliyor,
   ok tuşu yok — boşluğa tıklayıp kapanıyor.
 

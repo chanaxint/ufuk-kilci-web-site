@@ -25,20 +25,25 @@ type FrameSpot = {
   z: number
 }
 
+/*
+ * Hiçbir çerçeve bir diğerinin üstüne binmiyor: geniş ekranda üstte üç,
+ * altta iki; dağınıklık açı, yatıklık ve ölçek farkından geliyor.
+ */
 const WIDE_SPOTS: FrameSpot[] = [
-  { x: 3, y: 12, rotate: -9.5, lean: 7, depth: 24, scale: 1, z: 2 },
-  { x: 27, y: 2, rotate: 5.5, lean: 5, depth: 48, scale: 0.94, z: 4 },
-  { x: 50, y: 20, rotate: -3, lean: 8, depth: 14, scale: 1.04, z: 3 },
-  { x: 73, y: 5, rotate: 11, lean: 6, depth: 40, scale: 0.9, z: 1 },
-  { x: 33, y: 44, rotate: -6.5, lean: 9, depth: 20, scale: 0.98, z: 5 },
+  { x: 3, y: 2, rotate: -7, lean: 6, depth: 24, scale: 1, z: 2 },
+  { x: 37, y: 4, rotate: 5, lean: 5, depth: 48, scale: 0.95, z: 4 },
+  { x: 71, y: 1, rotate: -4, lean: 7, depth: 14, scale: 0.98, z: 3 },
+  { x: 19, y: 52, rotate: 6.5, lean: 6, depth: 40, scale: 0.93, z: 1 },
+  { x: 54, y: 54, rotate: -6, lean: 8, depth: 20, scale: 0.97, z: 5 },
 ]
 
+/* Dar ekranda tek sütun; sola sağa kaydırılmış ama yine üst üste binmiyor */
 const NARROW_SPOTS: FrameSpot[] = [
-  { x: 4, y: 1, rotate: -7, lean: 6, depth: 24, scale: 1, z: 2 },
-  { x: 26, y: 20, rotate: 6, lean: 5, depth: 48, scale: 0.95, z: 4 },
-  { x: 2, y: 40, rotate: -4, lean: 8, depth: 14, scale: 1.02, z: 3 },
-  { x: 24, y: 59, rotate: 9, lean: 6, depth: 40, scale: 0.92, z: 1 },
-  { x: 6, y: 78, rotate: -8, lean: 9, depth: 20, scale: 0.97, z: 5 },
+  { x: 3, y: 1, rotate: -6, lean: 6, depth: 24, scale: 1, z: 2 },
+  { x: 22, y: 21, rotate: 5, lean: 5, depth: 48, scale: 0.95, z: 4 },
+  { x: 2, y: 41, rotate: -4, lean: 7, depth: 14, scale: 1, z: 3 },
+  { x: 21, y: 61, rotate: 7, lean: 6, depth: 40, scale: 0.93, z: 1 },
+  { x: 4, y: 80.5, rotate: -5, lean: 8, depth: 20, scale: 0.97, z: 5 },
 ]
 
 /**
@@ -312,8 +317,6 @@ function Lightbox({ index, onClose }: { index: number; onClose: () => void }) {
 }
 
 export default function Certificates() {
-  const wall = useRef<HTMLDivElement>(null)
-  const plane = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState<number | null>(null)
   /* Dar ekranda dağılım tek sütuna yakın: çerçeveler kenardan taşmasın */
   const [narrow, setNarrow] = useState(false)
@@ -328,37 +331,11 @@ export default function Certificates() {
 
   const close = useCallback(() => setOpen(null), [])
 
-  /* Fare hareketine bağlı paralaks — React state'i olmadan, doğrudan DOM'a yazılır */
-  useEffect(() => {
-    const el = wall.current
-    if (!el) return
-    if (window.matchMedia('(pointer: coarse)').matches) return
-
-    let frame = 0
-    const onMove = (e: PointerEvent) => {
-      if (frame) return
-      frame = requestAnimationFrame(() => {
-        frame = 0
-        const r = el.getBoundingClientRect()
-        const nx = (e.clientX - r.left) / r.width - 0.5
-        const ny = (e.clientY - r.top) / r.height - 0.5
-        if (plane.current) {
-          plane.current.style.transform = `rotateY(${nx * 7}deg) rotateX(${-ny * 5}deg) translateZ(0)`
-        }
-      })
-    }
-    const onLeave = () => {
-      if (plane.current) plane.current.style.transform = 'rotateY(0deg) rotateX(0deg)'
-    }
-
-    el.addEventListener('pointermove', onMove)
-    el.addEventListener('pointerleave', onLeave)
-    return () => {
-      el.removeEventListener('pointermove', onMove)
-      el.removeEventListener('pointerleave', onLeave)
-      if (frame) cancelAnimationFrame(frame)
-    }
-  }, [])
+  /*
+   * Fare paralaksı kaldırıldı: imleç çerçevelerin üzerinde gezinirken
+   * bütün grup birlikte oynuyordu. Artık yalnızca üzerine gelinen çerçeve
+   * kendi başına biraz kalkıyor.
+   */
 
   return (
     <section id="sertifikalar" className="relative scroll-mt-28 py-24 sm:py-28">
@@ -378,15 +355,10 @@ export default function Certificates() {
 
       {/* Zemin dizilimi */}
       <Reveal delay={0.1}>
-        <div
-          ref={wall}
-          className="relative mt-14 overflow-hidden"
-          style={{ perspective: '1400px' }}
-        >
+        <div className="relative mt-14 overflow-hidden" style={{ perspective: '1400px' }}>
           {/* Çerçeveler */}
           <div
-            ref={plane}
-            className="relative mx-auto h-[52rem] w-full max-w-[86rem] px-5 transition-transform duration-500 ease-out sm:h-[48rem] sm:px-6 lg:h-[34rem]"
+            className="relative mx-auto h-[78rem] w-full max-w-[86rem] px-5 sm:h-[88rem] sm:px-6 lg:h-[43rem]"
             style={{ transformStyle: 'preserve-3d' }}
           >
             {credentials.map((item, i) => (

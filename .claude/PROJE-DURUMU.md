@@ -84,7 +84,9 @@ Aralarda `SectionRule` (ince ayırıcı çizgi).
   yüklenmeye başlıyor.
 - **Certificates**: çerçeveler zemine rastgele bırakılmış gibi dağınık
   (`WIDE_SPOTS` / `NARROW_SPOTS`: her biri kendi noktası, açısı, yatıklığı
-  ve ölçeğiyle, üst üste binerek). Belge kâğıdı yıllanmış: sıcak perde,
+  ve ölçeğiyle). Hiçbiri bir diğerinin üstüne binmiyor (ölçüldü: beş
+  pencere boyunda çakışan çift yok) ve grup paralaksı yok — yalnızca
+  üzerine gelinen çerçeve kalkıyor. Belge kâğıdı yıllanmış: sıcak perde,
   kenar koyuluğu ve zeminle aynı tane. Tıklayınca tam ekran, imleçle
   eğiliyor, ok tuşu yok — boşluğa tıklayıp kapanıyor.
 

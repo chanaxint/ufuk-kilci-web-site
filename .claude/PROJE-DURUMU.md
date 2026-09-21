@@ -70,7 +70,11 @@ Aralarda `SectionRule` (ince ayırıcı çizgi).
 - **Navbar**: çubuk yok, ortada wordmark, iki yanında HAKKIMDA / İLETİŞİM
   (elle çizilen alt çizgi efekti), sağda 2 çizgi → çarpı hamburger, panel
   StaggeredMenu. Panel **açık zeminli** (`bg-sand-50/95`), içindeki yazılar koyu.
-- **Testimonials**: sayfa sabitlenip spiral bir tam tur dönüyor, sonra akış devam ediyor.
+- **Testimonials**: spiral kaldırıldı. Sayfa sabitleniyor ve kaydırdıkça
+  yorumlar birer kâğıt gibi yukarıdan düşüp zemine yapışıyor (dönüşümler
+  doğrudan DOM'a yazılıyor, React render'ı yok). Geniş ekranda sekizi de
+  yerde kalıyor; dar ekranda üçlü dalgalar hâlinde geliyor, yeni kâğıt
+  düşerken bir öncekinin yerini alıyor.
 - **ScoliosisAngles**: yuvarlak kadran kaldırıldı; yerinde yatay ölçek
   (`ui/AngleScale.tsx`) var — ince çizgi, üzerinde duraklar, hemen altında
   dereceler. Duraklar evre sınırlarıyla aynı (0/10/25/40/50) ve sürüklerken

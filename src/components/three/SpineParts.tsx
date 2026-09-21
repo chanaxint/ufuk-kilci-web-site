@@ -11,6 +11,8 @@ type Props = {
   hovered: SpineRegionId | null
   onHover: (id: SpineRegionId | null) => void
   onParts: (parts: SpinePart[]) => void
+  /** Omurgaya tıklandı — kamera modele yaklaşır */
+  onSelect?: () => void
 }
 
 /**
@@ -25,7 +27,7 @@ type Props = {
 const SHIFT_ACTIVE = 0.075
 const SHIFT_NEIGHBOUR = 0.03
 
-export default function SpineParts({ hovered, onHover, onParts }: Props) {
+export default function SpineParts({ hovered, onHover, onParts, onSelect }: Props) {
   const { scene } = useGLTF(MODEL_URL)
 
   const parts = useMemo(() => {
@@ -104,6 +106,10 @@ export default function SpineParts({ hovered, onHover, onParts }: Props) {
           {/* Hareket etmeyen isabet gövdesi — görünmez, yalnızca imleci karşılar */}
           <mesh
             geometry={part.geometry}
+            onClick={(e) => {
+              e.stopPropagation()
+              onSelect?.()
+            }}
             onPointerOver={(e) => {
               e.stopPropagation()
               onHover(part.region.id)

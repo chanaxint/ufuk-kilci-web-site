@@ -6,54 +6,38 @@ import SpineParts from './SpineParts'
 import type { SpinePart } from '../../lib/spineGeometry'
 import type { SpineRegionId } from '../../lib/spine'
 
-type Keyframe = { p: number; x: number; y: number; z: number; scale: number; rotY: number }
+type Pose = { x: number; y: number; z: number; scale: number; rotY: number }
 
-/* Scroll ilerlemesine (0→1) bağlı kamera/model koreografisi */
-const desktopKeys: Keyframe[] = [
-  { p: 0.0, x: 2.35, y: 0.25, z: 0, scale: 0.5, rotY: -0.45 },
-  { p: 0.34, x: 0.22, y: -0.12, z: 0, scale: 0.84, rotY: 0.3 },
-  { p: 0.68, x: 0.22, y: -0.12, z: 0.35, scale: 0.88, rotY: 1.0 },
-  { p: 1.0, x: 0.16, y: -0.12, z: 0.45, scale: 0.88, rotY: 1.15 },
-]
+/*
+ * İki duruş var: omurga fotoğraftaki standın üzerinde dururken (rest) ve
+ * üzerine tıklandığında kameranın yaklaştığı hâl (focus). Aradaki geçiş
+ * `focus` değeriyle (0→1) sürülüyor; scroll ile hiçbir ilgisi yok.
+ */
+const desktopRest: Pose = { x: 1.92, y: 0.16, z: 0, scale: 0.43, rotY: -0.12 }
+const desktopFocus: Pose = { x: 0.06, y: -0.02, z: 0.9, scale: 0.8, rotY: 0.3 }
 
-const mobileKeys: Keyframe[] = [
-  { p: 0.0, x: 0.05, y: 1.45, z: 0, scale: 0.3, rotY: -0.35 },
-  { p: 0.34, x: 0.0, y: 1.0, z: 0, scale: 0.46, rotY: 0.3 },
-  { p: 0.68, x: 0.0, y: 1.0, z: 0.2, scale: 0.49, rotY: 1.0 },
-  { p: 1.0, x: 0.0, y: 1.0, z: 0.35, scale: 0.51, rotY: 1.15 },
-]
+const mobileRest: Pose = { x: 0.46, y: 0.16, z: 0, scale: 0.4, rotY: -0.12 }
+const mobileFocus: Pose = { x: 0.0, y: -0.02, z: 0.9, scale: 0.72, rotY: 0.3 }
 
-function sample(keys: Keyframe[], p: number) {
-  const t = THREE.MathUtils.clamp(p, 0, 1)
-  let a = keys[0]
-  let b = keys[keys.length - 1]
-  for (let i = 0; i < keys.length - 1; i++) {
-    if (t >= keys[i].p && t <= keys[i + 1].p) {
-      a = keys[i]
-      b = keys[i + 1]
-      break
-    }
-  }
-  const span = b.p - a.p || 1
-  const local = THREE.MathUtils.clamp((t - a.p) / span, 0, 1)
-  // yumuşak geçiş (smoothstep)
-  const e = local * local * (3 - 2 * local)
+function sample(rest: Pose, focus: Pose, f: number) {
+  const t = THREE.MathUtils.clamp(f, 0, 1)
+  const e = t * t * (3 - 2 * t)
   return {
-    x: THREE.MathUtils.lerp(a.x, b.x, e),
-    y: THREE.MathUtils.lerp(a.y, b.y, e),
-    z: THREE.MathUtils.lerp(a.z, b.z, e),
-    scale: THREE.MathUtils.lerp(a.scale, b.scale, e),
-    rotY: THREE.MathUtils.lerp(a.rotY, b.rotY, e),
+    x: THREE.MathUtils.lerp(rest.x, focus.x, e),
+    y: THREE.MathUtils.lerp(rest.y, focus.y, e),
+    z: THREE.MathUtils.lerp(rest.z, focus.z, e),
+    scale: THREE.MathUtils.lerp(rest.scale, focus.scale, e),
+    rotY: THREE.MathUtils.lerp(rest.rotY, focus.rotY, e),
   }
 }
 
-/** Scroll ilerlemesini ve fare paralaksını modele uygulayan taşıyıcı. */
+/** Odak durumunu ve fare paralaksını modele uygulayan taşıyıcı. */
 function ScrollRig({
-  progress,
+  focus,
   isMobile,
   children,
 }: {
-  progress: RefObject<number>
+  focus: RefObject<number>
   isMobile: boolean
   children: React.ReactNode
 }) {
@@ -64,7 +48,9 @@ function ScrollRig({
   useFrame((_, delta) => {
     if (!rig.current || !spin.current) return
     const k = 1 - Math.pow(0.002, Math.min(delta, 0.1))
-    const target = sample(isMobile ? mobileKeys : desktopKeys, progress.current ?? 0)
+    const target = isMobile
+      ? sample(mobileRest, mobileFocus, focus.current ?? 0)
+      : sample(desktopRest, desktopFocus, focus.current ?? 0)
 
     rig.current.position.x += (target.x - rig.current.position.x) * k
     rig.current.position.y += (target.y - rig.current.position.y) * k
@@ -98,16 +84,26 @@ function Loader() {
 }
 
 type Props = {
-  progress: RefObject<number>
+  /** 0: standın üzerinde duruyor, 1: kamera omurgaya yaklaşmış */
+  focus: RefObject<number>
   /** Sahne ekranda mı — değilse render döngüsü tamamen durur */
   active: boolean
   labelsVisible: boolean
   hovered: SpineRegionId | null
   onHover: (id: SpineRegionId | null) => void
+  onSelect: () => void
   isMobile: boolean
 }
 
-export default function SpineStageScene({ progress, active, labelsVisible, hovered, onHover, isMobile }: Props) {
+export default function SpineStageScene({
+  focus,
+  active,
+  labelsVisible,
+  hovered,
+  onHover,
+  onSelect,
+  isMobile,
+}: Props) {
   const [parts, setParts] = useState<SpinePart[]>([])
   const handleParts = useCallback((p: SpinePart[]) => setParts(p), [])
 
@@ -142,8 +138,13 @@ export default function SpineStageScene({ progress, active, labelsVisible, hover
       <directionalLight position={[0, -3, -4]} intensity={0.5} color="#e8ddc6" />
 
       <Suspense fallback={<Loader />}>
-        <ScrollRig progress={progress} isMobile={isMobile}>
-          <SpineParts hovered={hovered} onHover={onHover} onParts={handleParts} />
+        <ScrollRig focus={focus} isMobile={isMobile}>
+          <SpineParts
+            hovered={hovered}
+            onHover={onHover}
+            onParts={handleParts}
+            onSelect={onSelect}
+          />
 
           {/* Etiketler modelle birlikte dönmez; omurganın iki yanında sabit durur */}
           {!isMobile &&

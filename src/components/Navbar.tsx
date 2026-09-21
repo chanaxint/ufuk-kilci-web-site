@@ -51,7 +51,11 @@ export default function Navbar() {
         transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
         className="pointer-events-none fixed inset-x-0 top-0 z-50"
       >
-        <div className="relative flex items-center justify-center px-5 py-5 sm:px-8 sm:py-6">
+        <div
+          className="relative flex items-center justify-center px-5 py-5 sm:px-8 sm:py-6"
+          /* Giriş sahnesinin koyu geçişinde başlık siliniyor */
+          style={{ opacity: 'calc(1 - var(--stage-dark, 0))' }}
+        >
           <div className="pointer-events-auto relative flex items-center gap-10 xl:gap-14">
             {/*
               Omurga ya da yorum spirali başlığın altından geçtiğinde okunurluğu

@@ -5,6 +5,22 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
+/*
+ * Etkin Lenis örneği. Giriş sahnesinde omurgaya odaklanıldığında sayfa
+ * kaydırması kilitleniyor; bir sonraki kaydırma hareketi odağı bırakıyor.
+ */
+let current: Lenis | null = null
+
+export function setScrollLocked(locked: boolean) {
+  if (locked) {
+    current?.stop()
+    document.body.style.overflow = 'hidden'
+  } else {
+    current?.start()
+    document.body.style.overflow = ''
+  }
+}
+
 /**
  * Sayfa genelinde akıcı kaydırma (Lenis) ve GSAP ScrollTrigger entegrasyonu.
  * Lenis kendi rAF döngüsü yerine GSAP ticker'ı üzerinden sürülür; böylece
@@ -24,6 +40,7 @@ export function useSmoothScroll(enabled = true) {
       touchMultiplier: 1.4,
     })
 
+    current = lenis
     lenis.on('scroll', ScrollTrigger.update)
     const tick = (time: number) => lenis.raf(time * 1000)
     gsap.ticker.add(tick)
@@ -48,6 +65,7 @@ export function useSmoothScroll(enabled = true) {
       document.removeEventListener('click', onClick)
       gsap.ticker.remove(tick)
       lenis.destroy()
+      if (current === lenis) current = null
     }
   }, [enabled])
 }

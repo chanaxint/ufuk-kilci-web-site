@@ -1,8 +1,9 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { motion } from 'motion/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { doctor, stageBeats } from '../lib/content'
+import { doctor } from '../lib/content'
+import { setScrollLocked } from '../lib/useSmoothScroll'
 import ShinyText from './reactbits/ShinyText'
 import type { SpineRegionId } from '../lib/spine'
 import { ArrowDown, ArrowRight } from './ui/icons'
@@ -13,17 +14,32 @@ const SpineStageScene = lazy(() => import('./three/SpineStageScene'))
 
 gsap.registerPlugin(ScrollTrigger)
 
-/** Scroll ilerlemesinden metin durağı (beat) indeksi */
-const beatFor = (p: number) => (p < 0.2 ? 0 : p < 0.47 ? 1 : p < 0.74 ? 2 : 3)
+const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
 
+/**
+ * Giriş sahnesi.
+ *
+ * Ekranda klinik masası duruyor ve 3B omurga, fotoğraftaki krom standın
+ * üzerinde. Omurga scroll ile gelmiyor: başından beri orada. Üzerine
+ * tıklanınca kamera yaklaşıyor (çevre görünürken), bölge adları açılıyor;
+ * bir sonraki kaydırma hareketi odağı bırakıp sahneyi geri veriyor.
+ * Kaydırmaya devam edilince sahne yukarı kayıp kararıyor — masanın altına
+ * inilmiş gibi — ve site oradan açılıyor.
+ */
 export default function SpineStage() {
   const stageRef = useRef<HTMLDivElement>(null)
-  const progress = useRef(0)
-  const [beat, setBeat] = useState(0)
+  const stickyRef = useRef<HTMLDivElement>(null)
+  const sceneRef = useRef<HTMLDivElement>(null)
+  const photoRef = useRef<HTMLDivElement>(null)
+  const heroRef = useRef<HTMLDivElement>(null)
+  const veilRef = useRef<HTMLDivElement>(null)
+  /** 0: standın üzerinde, 1: kamera yaklaşmış */
+  const focus = useRef(0)
+
+  const [focused, setFocused] = useState(false)
   const [hovered, setHovered] = useState<SpineRegionId | null>(null)
   const [mounted, setMounted] = useState(false)
   const [onScreen, setOnScreen] = useState(true)
-  const stickyRef = useRef<HTMLDivElement>(null)
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -51,7 +67,60 @@ export default function SpineStage() {
     return () => io.disconnect()
   }, [])
 
-  /* Scroll → ilerleme (ref, kare başına React render'ı olmadan) + metin durağı */
+  /*
+   * Odak geçişi: hem 3B modeli hem de fotoğrafı aynı değer sürüyor. Fotoğraf
+   * yaklaşıp hafifçe bulanıklaşıyor, böylece çevre kaybolmadan geri çekiliyor
+   * ve kamera gerçekten omurgaya yaklaşmış gibi duruyor.
+   */
+  useEffect(() => {
+    let raf = 0
+    let last = performance.now()
+    const target = focused ? 1 : 0
+
+    const step = (now: number) => {
+      const dt = Math.min((now - last) / 1000, 0.05)
+      last = now
+      const k = 1 - Math.pow(0.004, dt)
+      focus.current += (target - focus.current) * k
+      if (Math.abs(target - focus.current) < 0.002) focus.current = target
+
+      const f = focus.current
+      if (photoRef.current) {
+        photoRef.current.style.transform = `scale(${1 + f * 0.32})`
+        photoRef.current.style.filter = `blur(${(f * 3.5).toFixed(2)}px) brightness(${1 - f * 0.16})`
+      }
+      if (heroRef.current) heroRef.current.style.opacity = String(1 - Math.min(1, f * 1.6))
+
+      if (focus.current !== target) raf = requestAnimationFrame(step)
+    }
+    raf = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(raf)
+  }, [focused])
+
+  /* Odaktayken sayfa kilitli; ilk kaydırma hareketi odağı bırakıyor */
+  useEffect(() => {
+    if (!focused) return
+    setScrollLocked(true)
+    const release = () => setFocused(false)
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') release()
+    }
+    window.addEventListener('wheel', release, { passive: true })
+    window.addEventListener('touchmove', release, { passive: true })
+    window.addEventListener('keydown', onKey)
+    return () => {
+      setScrollLocked(false)
+      window.removeEventListener('wheel', release)
+      window.removeEventListener('touchmove', release)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [focused])
+
+  /*
+   * Kaydırma: sahne önce olduğu gibi duruyor, sonra yukarı kayıp sönüyor ve
+   * siyah perde aşağıdan yükselip ekranı kaplıyor; son bölümde perde açılınca
+   * sitenin sıvalı zemini görünüyor.
+   */
   useEffect(() => {
     const el = stageRef.current
     if (!el) return
@@ -61,227 +130,151 @@ export default function SpineStage() {
         start: 'top top',
         end: 'bottom bottom',
         onUpdate: (self) => {
-          progress.current = self.progress
-          const next = beatFor(self.progress)
-          setBeat((prev) => (prev === next ? prev : next))
+          const p = self.progress
+          const down = clamp01((p - 0.45) / 0.35)
+          const up = clamp01((p - 0.8) / 0.2)
+          if (sceneRef.current) {
+            sceneRef.current.style.opacity = String(1 - down)
+            sceneRef.current.style.transform = `translate3d(0, ${(-down * 16).toFixed(2)}vh, 0)`
+          }
+          if (veilRef.current) {
+            veilRef.current.style.transform = `translate3d(0, ${((1 - down) * 100).toFixed(2)}%, 0)`
+            veilRef.current.style.opacity = String(1 - up)
+          }
+          /*
+           * Sabit başlık ve mobil arama çubuğu koyu geçiş boyunca siliniyor:
+           * mürekkep rengi yazılar siyah perdenin üzerinde okunmuyordu.
+           */
+          document.documentElement.style.setProperty('--stage-dark', (down * (1 - up)).toFixed(3))
         },
       })
     }, el)
     return () => ctx.revert()
   }, [])
 
-  const activeBeat = beat > 0 ? stageBeats[beat - 1] : null
-
   return (
-    <section id="top" ref={stageRef} className="relative h-[380vh] lg:h-[460vh]">
+    <section id="top" ref={stageRef} className="relative h-[220vh]">
       <div ref={stickyRef} className="sticky top-0 h-[100svh] overflow-hidden">
-        {/* Zemin doku çizgileri — renk genel yüzeyden gelir */}
-        <div className="pointer-events-none absolute inset-0 -z-10 grid-lines opacity-35 [mask-image:radial-gradient(75%_65%_at_50%_40%,black,transparent)]" />
+        <div ref={sceneRef} className="absolute inset-0 will-change-[opacity,transform]">
+          {/* Klinik masası */}
+          <div
+            ref={photoRef}
+            className="absolute inset-0 will-change-[transform,filter]"
+            style={{ transformOrigin: '68% 46%' }}
+          >
+            <img
+              src="/images/klinik-masa.jpg"
+              alt=""
+              aria-hidden="true"
+              fetchPriority="high"
+              className="size-full object-cover object-[70%_center]"
+            />
+            {/*
+              Metni okunur tutan ışık perdesi. Geniş ekranda soldan gelir;
+              dar ekranda metin aşağıda durduğu için perde alttan gelir.
+            */}
+            <div
+              className="absolute inset-0 lg:hidden"
+              style={{
+                background:
+                  'linear-gradient(to top, rgb(250 246 239 / 0.94) 0%, rgb(250 246 239 / 0.86) 22%, rgb(250 246 239 / 0.45) 34%, transparent 46%)',
+              }}
+            />
+            <div
+              className="absolute inset-0 hidden lg:block"
+              style={{
+                background:
+                  'linear-gradient(100deg, rgb(250 246 239 / 0.74) 0%, rgb(250 246 239 / 0.4) 32%, transparent 56%), linear-gradient(to top, rgb(28 20 12 / 0.34) 0%, transparent 26%)',
+              }}
+            />
+          </div>
 
-        {/* Taslaktaki akış çizgisi */}
-        <svg
-          aria-hidden
-          viewBox="0 0 1440 420"
-          preserveAspectRatio="none"
-          className="pointer-events-none absolute inset-x-0 top-0 h-[38vh] w-full"
-        >
-          <motion.path
-            d="M -20 300 C 240 300, 380 120, 640 118 C 900 116, 1020 236, 1200 250 C 1330 260, 1400 210, 1460 120"
-            fill="none"
-            stroke="url(#stroke-aurora)"
-            strokeWidth="1.5"
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 1 }}
-            transition={{ duration: 2.2, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          />
-          <defs>
-            <linearGradient id="stroke-aurora" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#8a5a33" stopOpacity="0" />
-              <stop offset="35%" stopColor="#8a5a33" stopOpacity="0.55" />
-              <stop offset="70%" stopColor="#7a8f5c" stopOpacity="0.5" />
-              <stop offset="100%" stopColor="#c08f3c" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-        </svg>
+          {/* 3B omurga — standın üzerinde */}
+          <div className="absolute inset-0">
+            {mounted && (
+              <SceneBoundary>
+                <Suspense fallback={null}>
+                  <SpineStageScene
+                    focus={focus}
+                    active={onScreen}
+                    labelsVisible={focused}
+                    hovered={hovered}
+                    onHover={setHovered}
+                    onSelect={() => setFocused(true)}
+                    isMobile={isMobile}
+                  />
+                </Suspense>
+              </SceneBoundary>
+            )}
+          </div>
 
-        {/* 3B sahne */}
-        <div className="absolute inset-0">
-          {mounted && (
-            <SceneBoundary>
-              <Suspense fallback={null}>
-                <SpineStageScene
-                  progress={progress}
-                  active={onScreen}
-                  labelsVisible={beat > 0}
-                  hovered={hovered}
-                  onHover={setHovered}
-                  isMobile={isMobile}
-                />
-              </Suspense>
-            </SceneBoundary>
-          )}
-        </div>
+          {/* Giriş metni */}
+          <div
+            ref={heroRef}
+            className="pointer-events-none absolute inset-0 flex items-end pb-24 sm:pb-28 lg:items-center lg:pb-0"
+          >
+            <div className="section-shell">
+              <div className="max-w-2xl">
+                <motion.span
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15, duration: 0.7 }}
+                  className="font-display text-[0.7rem] font-bold tracking-[0.42em] text-ink-600 uppercase"
+                >
+                  {doctor.titles}
+                </motion.span>
 
-        {/* Giriş (beat 0) */}
-        <AnimatePresence>
-          {beat === 0 && (
-            <motion.div
-              key="hero"
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -30, filter: 'blur(6px)' }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="pointer-events-none absolute inset-0 flex items-end pb-28 lg:items-center lg:pb-0"
-            >
-              <div className="section-shell">
-                <div className="max-w-2xl">
-                  <motion.span
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15, duration: 0.7 }}
-                    className="font-display text-[0.7rem] font-bold tracking-[0.42em] text-ink-500 uppercase"
+                <h1 className="mt-4 font-wordmark text-[clamp(3.4rem,10vw,7rem)] leading-[0.95] font-normal tracking-[-0.012em]">
+                  <ShinyText
+                    text={doctor.name}
+                    speed={6}
+                    color="#4a3626"
+                    shineColor="#d9b98e"
+                    spread={100}
+                  />
+                </h1>
+
+                <p className="lead mt-6 hidden max-w-lg sm:block">
+                  Ağrıyı susturmak yetmez; sebebini bulmak gerekir. Omurga, duruş ve hareket
+                  bütününü tek bir zincir olarak değerlendiren bütüncül bir tedavi yaklaşımı.
+                </p>
+
+                <div className="pointer-events-auto mt-6 flex flex-wrap items-center gap-3 sm:mt-9">
+                  <a
+                    href="#iletisim"
+                    className="group inline-flex items-center gap-2 rounded-full bg-ink-900 px-7 py-3.5 font-display text-[0.95rem] font-bold text-sand-50 shadow-[0_18px_40px_-18px_rgb(58_42_28/0.85)] transition-colors hover:bg-brand-700"
                   >
-                    {doctor.titles}
-                  </motion.span>
-
-                  <h1 className="mt-4 font-wordmark text-[clamp(3.4rem,10vw,7rem)] leading-[0.95] font-normal tracking-[-0.012em]">
-                    <ShinyText
-                      text={doctor.name}
-                      speed={6}
-                      color="#5b4633"
-                      shineColor="#d9b98e"
-                      spread={100}
-                    />
-                  </h1>
-
-                  <p className="lead mt-6 max-w-lg">
-                    Ağrıyı susturmak yetmez; sebebini bulmak gerekir. Omurga, duruş ve hareket
-                    bütününü tek bir zincir olarak değerlendiren bütüncül bir tedavi yaklaşımı.
-                  </p>
-
-                  <div className="pointer-events-auto mt-9 flex flex-wrap items-center gap-3">
-                    <a
-                      href="#iletisim"
-                      className="group inline-flex items-center gap-2 rounded-full bg-ink-900 px-7 py-3.5 font-display text-[0.95rem] font-bold text-sand-50 shadow-[0_18px_40px_-18px_rgb(58_42_28/0.85)] transition-colors hover:bg-brand-700"
-                    >
-                      Randevu Oluştur
-                      <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-                    </a>
-                    <a
-                      href="#skolyoz"
-                      className="inline-flex items-center gap-2 rounded-full border border-ink-300/80 px-7 py-3.5 font-display text-[0.95rem] font-bold text-ink-800 transition-colors hover:border-brand-500 hover:text-brand-700"
-                    >
-                      Skolyoz Tedavisi
-                      <ArrowDown className="size-4" />
-                    </a>
-                  </div>
+                    Randevu Oluştur
+                    <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                  </a>
+                  <a
+                    href="#skolyoz"
+                    className="inline-flex items-center gap-2 rounded-full border border-ink-700/50 bg-white/30 px-7 py-3.5 font-display text-[0.95rem] font-bold text-ink-800 transition-colors hover:border-brand-600 hover:text-brand-700"
+                  >
+                    Skolyoz Tedavisi
+                    <ArrowDown className="size-4" />
+                  </a>
                 </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Duraklar (beat 1–3) */}
-        {/*
-          Bir bölgeye gelindiğinde durak metni neredeyse tamamen siliniyor ve
-          hafifçe bulanıklaşıyor: bölge açıklaması onunla çakışmadan okunuyor,
-          alan derinlik hissiyle geri çekiliyor.
-        */}
-        <div
-          className="pointer-events-none absolute inset-0 flex items-end pb-24 transition-[opacity,filter] duration-500 lg:items-center lg:pb-0"
-          style={{ opacity: hovered ? 0.07 : 1, filter: hovered ? 'blur(3px)' : 'none' }}
-        >
-          <div className="section-shell w-full">
-            <div className="grid grid-cols-1 items-center gap-3 lg:grid-cols-12 lg:gap-6">
-              <AnimatePresence mode="wait">
-                {activeBeat && (
-                  <motion.div
-                    key={activeBeat.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.45 }}
-                    className="contents"
-                  >
-                    {activeBeat.items.map((item, i) => (
-                      <motion.div
-                        key={item.title}
-                        initial={{ opacity: 0, y: 28, filter: 'blur(8px)' }}
-                        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                        exit={{ opacity: 0, y: -22, filter: 'blur(8px)' }}
-                        transition={{ duration: 0.75, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] }}
-                        className={
-                          item.align === 'left'
-                            ? 'lg:col-span-3 lg:col-start-1 lg:-translate-y-[13vh]'
-                            : 'lg:col-span-3 lg:col-start-10 lg:translate-y-[14vh] lg:text-right'
-                        }
-                      >
-                        <div>
-                          <span className="font-display text-[clamp(1.6rem,7vw,3.4rem)] leading-none font-extrabold tracking-[-0.03em] gradient-text">
-                            {item.kicker}
-                          </span>
-                          <p className="mt-1.5 font-display text-xl font-extrabold tracking-[-0.02em] text-ink-900 sm:text-2xl lg:mt-3 lg:text-3xl">
-                            {item.title}
-                          </p>
-                          <p className="mt-2 text-[0.9rem] leading-relaxed text-ink-700 lg:mt-3 lg:text-[0.98rem]">
-                            {item.text}
-                          </p>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
+          </div>
+
+          {/* Alt ipucu */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-20 flex justify-center px-6 sm:bottom-6">
+            <span className="rounded-full bg-ink-950/45 px-4 py-2 text-center font-display text-[0.66rem] font-bold tracking-[0.2em] text-sand-50/85 uppercase backdrop-blur-sm">
+              {focused
+                ? 'Bölgelerin üzerine gelin · kaydırarak çıkın'
+                : 'Omurgaya tıklayın · bölgeleri tanıyın'}
+            </span>
           </div>
         </div>
 
-        {/* Alt bilgi çubuğu */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-24 flex justify-center sm:bottom-6">
-          <AnimatePresence mode="wait">
-            {beat === 0 ? (
-              <motion.span
-                key="cue"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="hidden flex-col items-center gap-2 font-display text-[0.68rem] font-bold tracking-[0.24em] text-ink-500 uppercase sm:flex"
-              >
-                Keşfetmek için kaydırın
-                <motion.span
-                  animate={{ y: [0, 7, 0] }}
-                  transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                  <ArrowDown className="size-4" />
-                </motion.span>
-              </motion.span>
-            ) : (
-              <motion.span
-                key="hint"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="hidden text-[0.76rem] font-medium tracking-[0.02em] text-ink-500 lg:block"
-              >
-                Omurganın bir bölgesine gelin — bölge vurgulansın, bilgisi açılsın
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Durak göstergesi */}
-        <div className="pointer-events-none absolute top-1/2 right-5 hidden -translate-y-1/2 flex-col gap-2.5 lg:flex">
-          {[0, 1, 2, 3].map((i) => (
-            <span
-              key={i}
-              className="h-6 w-[3px] rounded-full transition-all duration-500"
-              style={{
-                background: i === beat ? 'var(--color-ink-900)' : 'var(--color-ink-200)',
-                transform: i === beat ? 'scaleY(1.35)' : 'scaleY(1)',
-              }}
-            />
-          ))}
-        </div>
+        {/* Masanın altına iniş — aşağıdan yükselen siyah perde */}
+        <div
+          ref={veilRef}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 translate-y-full bg-[#0b0806] will-change-[opacity,transform]"
+        />
       </div>
     </section>
   )

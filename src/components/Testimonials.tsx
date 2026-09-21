@@ -43,12 +43,12 @@ export default function Testimonials() {
             <Star key={s} className="size-3.5" />
           ))}
         </div>
-        <blockquote className="mt-3 line-clamp-6 text-[0.86rem] leading-relaxed text-ink-700">
+        <blockquote className="mt-3 line-clamp-6 text-[0.86rem] leading-relaxed text-ivory-200">
           {item.quote}
         </blockquote>
-        <figcaption className="mt-4 border-t border-ink-200/50 pt-3">
-          <span className="block font-display text-[0.9rem] font-bold text-ink-900">{item.name}</span>
-          <span className="block text-[0.78rem] text-ink-500">{item.role}</span>
+        <figcaption className="mt-4 border-t border-ivory-100/18 pt-3">
+          <span className="block font-display text-[0.9rem] font-bold text-ivory-50">{item.name}</span>
+          <span className="block text-[0.78rem] text-ivory-300">{item.role}</span>
         </figcaption>
       </figure>
     ),
@@ -73,15 +73,15 @@ export default function Testimonials() {
             </Reveal>
           </div>
           <Reveal delay={0.1}>
-            <div className="flex items-center gap-4 border-l border-ink-200/60 pl-5">
-              <span className="font-display text-3xl font-extrabold text-ink-900">4.9</span>
+            <div className="flex items-center gap-4 border-l border-ivory-100/20 pl-5">
+              <span className="font-display text-3xl font-extrabold text-ivory-50">4.9</span>
               <span>
                 <span className="flex items-center gap-0.5 text-warm-500">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star key={i} className="size-3.5" />
                   ))}
                 </span>
-                <span className="mt-1 block text-[0.78rem] text-ink-500">120+ değerlendirme</span>
+                <span className="mt-1 block text-[0.78rem] text-ivory-300">120+ değerlendirme</span>
               </span>
             </div>
           </Reveal>

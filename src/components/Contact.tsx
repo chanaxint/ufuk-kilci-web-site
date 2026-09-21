@@ -4,7 +4,7 @@ import Reveal from './ui/Reveal'
 import { ArrowRight, Clock, Instagram, Mail, MapPin, Phone, WhatsApp } from './ui/icons'
 
 const inputClass =
-  'w-full rounded-2xl border border-ink-300/70 bg-transparent px-4 py-3.5 font-sans text-[0.95rem] text-ink-800 transition-colors duration-300 placeholder:text-ink-300 focus-visible:border-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600'
+  'w-full rounded-2xl border border-ivory-100/25 bg-transparent px-4 py-3.5 font-sans text-[0.95rem] text-ivory-100 transition-colors duration-300 placeholder:text-ivory-400/70 focus-visible:border-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600'
 
 export default function Contact() {
   const [form, setForm] = useState({
@@ -126,8 +126,8 @@ export default function Contact() {
             {/* Form */}
             <div className="lg:col-span-7 lg:pt-1">
               <Reveal>
-                <h3 className="font-display text-2xl font-extrabold text-ink-900">Randevu talebi</h3>
-                <p className="mt-2 text-[0.95rem] text-ink-500">
+                <h3 className="font-display text-2xl font-extrabold text-ivory-50">Randevu talebi</h3>
+                <p className="mt-2 text-[0.95rem] text-ivory-300">
                   Bilgilerinizi doldurun, talebiniz WhatsApp üzerinden hazır mesaj olarak iletilsin.
                 </p>
               </Reveal>
@@ -140,7 +140,7 @@ export default function Contact() {
                 }}
               >
                 <label className="flex flex-col gap-2 sm:col-span-1">
-                  <span className="font-display text-[0.78rem] font-bold tracking-[0.1em] text-ink-500 uppercase">
+                  <span className="font-display text-[0.78rem] font-bold tracking-[0.1em] text-ivory-300 uppercase">
                     Ad Soyad
                   </span>
                   <input
@@ -153,7 +153,7 @@ export default function Contact() {
                 </label>
 
                 <label className="flex flex-col gap-2 sm:col-span-1">
-                  <span className="font-display text-[0.78rem] font-bold tracking-[0.1em] text-ink-500 uppercase">
+                  <span className="font-display text-[0.78rem] font-bold tracking-[0.1em] text-ivory-300 uppercase">
                     Telefon
                   </span>
                   <input
@@ -167,7 +167,7 @@ export default function Contact() {
                 </label>
 
                 <label className="flex flex-col gap-2 sm:col-span-2">
-                  <span className="font-display text-[0.78rem] font-bold tracking-[0.1em] text-ink-500 uppercase">
+                  <span className="font-display text-[0.78rem] font-bold tracking-[0.1em] text-ivory-300 uppercase">
                     Şikâyet konusu
                   </span>
                   <select
@@ -182,7 +182,7 @@ export default function Contact() {
                 </label>
 
                 <label className="flex flex-col gap-2 sm:col-span-2">
-                  <span className="font-display text-[0.78rem] font-bold tracking-[0.1em] text-ink-500 uppercase">
+                  <span className="font-display text-[0.78rem] font-bold tracking-[0.1em] text-ivory-300 uppercase">
                     Kısaca anlatın
                   </span>
                   <textarea
@@ -197,30 +197,30 @@ export default function Contact() {
                 <div className="flex flex-wrap items-center gap-4 sm:col-span-2">
                   <button
                     type="submit"
-                    className="group inline-flex items-center gap-2 rounded-full bg-ink-900 px-7 py-3.5 font-display text-[0.95rem] font-bold text-sand-50 shadow-[0_18px_40px_-18px_rgb(58_42_28/0.85)] transition-colors duration-300 hover:bg-vital-600"
+                    className="group inline-flex items-center gap-2 rounded-full bg-ivory-50 px-7 py-3.5 font-display text-[0.95rem] font-bold text-ink-900 shadow-[0_18px_40px_-18px_rgb(10_6_3/0.9)] transition-colors duration-300 hover:bg-warm-100"
                   >
                     <WhatsApp className="size-4.5" />
                     WhatsApp ile gönder
                     <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
                   </button>
-                  <p className="text-[0.78rem] leading-snug text-ink-500">
+                  <p className="text-[0.78rem] leading-snug text-ivory-300">
                     Bilgileriniz yalnızca randevu planlaması için kullanılır.
                   </p>
                 </div>
               </form>
 
-              <div className="mt-9 grid gap-3 border-t border-ink-200/50 pt-7 sm:grid-cols-3">
+              <div className="mt-9 grid gap-3 border-t border-ivory-100/18 pt-7 sm:grid-cols-3">
                 {[
                   { title: 'Aynı gün dönüş', text: 'Mesai saatleri içinde yanıt' },
                   { title: 'Ücretsiz ön görüşme', text: '10 dakikalık telefon değerlendirmesi' },
                   { title: 'Kolay ulaşım', text: 'Metro ve otoparka yakın konum' },
                 ].map((item) => (
                   <div key={item.title}>
-                    <p className="flex items-center gap-2 font-display text-[0.9rem] font-bold text-ink-900">
+                    <p className="flex items-center gap-2 font-display text-[0.9rem] font-bold text-ivory-50">
                       <span className="size-1.5 rounded-full bg-vital-500" />
                       {item.title}
                     </p>
-                    <p className="mt-1.5 text-[0.78rem] leading-snug text-ink-500">{item.text}</p>
+                    <p className="mt-1.5 text-[0.78rem] leading-snug text-ivory-300">{item.text}</p>
                   </div>
                 ))}
               </div>

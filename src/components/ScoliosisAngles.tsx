@@ -54,11 +54,11 @@ export default function ScoliosisAngles() {
             <div className="relative mx-auto max-w-md px-1 pt-1 pb-2">
               {/* Görünüm değiştirici */}
               <div className="relative z-10 flex items-center justify-between gap-2 pt-1">
-                <span className="inline-flex items-center gap-1.5 font-display text-[0.62rem] font-bold tracking-[0.14em] text-ink-500 uppercase">
-                  <Rotate3D className="size-3.5 text-brand-600" />
+                <span className="inline-flex items-center gap-1.5 font-display text-[0.62rem] font-bold tracking-[0.14em] text-ivory-300 uppercase">
+                  <Rotate3D className="size-3.5 text-warm-300" />
                   Sürükleyin
                 </span>
-                <div className="flex rounded-full border border-ink-200/70 p-1">
+                <div className="flex rounded-full border border-ivory-100/22 p-1">
                   {([
                     ['front', 'Önden'],
                     ['top', 'Üstten'],
@@ -68,7 +68,7 @@ export default function ScoliosisAngles() {
                       type="button"
                       onClick={() => setView(key)}
                       className={`rounded-full px-3.5 py-1.5 font-display text-[0.72rem] font-bold transition-colors duration-300 ${
-                        view === key ? 'bg-ink-900 text-sand-50' : 'text-ink-600 hover:text-ink-900'
+                        view === key ? 'bg-ivory-50 text-ink-900' : 'text-ivory-300 hover:text-ivory-50'
                       }`}
                     >
                       {label}
@@ -81,7 +81,7 @@ export default function ScoliosisAngles() {
                 {inView && hasWebGL() && (
                   <SceneBoundary
                     fallback={
-                      <p className="flex h-full items-center justify-center px-6 text-center text-[0.85rem] text-ink-500">
+                      <p className="flex h-full items-center justify-center px-6 text-center text-[0.85rem] text-ivory-300">
                         3B görünüm bu tarayıcıda açılamadı; açı bilgisi yandaki
                         ölçekten okunabilir.
                       </p>
@@ -137,7 +137,7 @@ export default function ScoliosisAngles() {
                       onClick={() => setAngle(tick)}
                       aria-pressed={angle === tick}
                       className={`rounded-full px-2.5 py-1 font-display text-[0.78rem] font-bold tabular-nums transition-colors duration-300 ${
-                        angle === tick ? 'bg-ink-900 text-sand-50' : 'text-ink-500 hover:text-ink-800'
+                        angle === tick ? 'bg-ivory-50 text-ink-900' : 'text-ivory-300 hover:text-ivory-100'
                       }`}
                     >
                       {tick}°
@@ -163,7 +163,7 @@ export default function ScoliosisAngles() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-                className="mb-2 font-display text-xl font-extrabold text-ink-900 sm:text-2xl"
+                className="mb-2 font-display text-xl font-extrabold text-ivory-50 sm:text-2xl"
               >
                 {stage.label}
               </motion.span>
@@ -174,19 +174,19 @@ export default function ScoliosisAngles() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-6 max-w-xl text-[1.05rem] leading-relaxed text-ink-700"
+              className="mt-6 max-w-xl text-[1.05rem] leading-relaxed text-ivory-200"
             >
               {stage.text}
             </motion.p>
 
             {/* Evre listesi */}
-            <div className="mt-10 flex flex-col border-t border-ink-200/50">
+            <div className="mt-10 flex flex-col border-t border-ivory-100/18">
               {angleStages.map((item) => {
                 const active = item.label === stage.label
                 return (
                   <div
                     key={item.label}
-                    className={`flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-ink-200/50 py-4 pl-4 transition-all duration-500 ${
+                    className={`flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-ivory-100/18 py-4 pl-4 transition-all duration-500 ${
                       active ? 'border-l-2 border-l-ink-900' : 'border-l-2 border-l-transparent'
                     }`}
                   >
@@ -194,16 +194,16 @@ export default function ScoliosisAngles() {
                       className="size-2.5 shrink-0 rounded-full transition-transform duration-500"
                       style={{ background: item.color, transform: active ? 'scale(1.5)' : 'scale(1)' }}
                     />
-                    <span className="font-display text-[0.95rem] font-bold whitespace-nowrap text-ink-900">
+                    <span className="font-display text-[0.95rem] font-bold whitespace-nowrap text-ivory-50">
                       {item.range}
                     </span>
-                    <span className="text-[0.92rem] text-ink-600">{item.action}</span>
+                    <span className="text-[0.92rem] text-ivory-300">{item.action}</span>
                   </div>
                 )
               })}
             </div>
 
-            <p className="mt-7 text-[0.84rem] leading-relaxed text-ink-700">
+            <p className="mt-7 text-[0.84rem] leading-relaxed text-ivory-200">
               Cobb açısı yalnızca röntgen üzerinde ölçülür. Buradaki görsel, aralıkların ne anlama
               geldiğini anlatmak içindir; tanı ve tedavi kararı klinik değerlendirmeyle verilir.
             </p>

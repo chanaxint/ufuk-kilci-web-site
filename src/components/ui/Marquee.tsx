@@ -9,7 +9,7 @@ export default function Marquee({ items }: Props) {
         {row.map((item, i) => (
           <span
             key={`${item}-${i}`}
-            className="inline-flex shrink-0 items-center gap-2.5 px-3 py-2.5 font-display text-sm font-semibold text-ink-700"
+            className="inline-flex shrink-0 items-center gap-2.5 px-3 py-2.5 font-display text-sm font-semibold text-ivory-200"
           >
             <span className="size-1.5 rounded-full bg-vital-500" />
             {item}

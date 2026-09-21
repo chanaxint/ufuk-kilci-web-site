@@ -30,7 +30,7 @@ export default function MagneticButton({
   const styles =
     variant === 'solid'
       ? 'bg-ink-900 text-sand-50 shadow-[0_18px_40px_-18px_rgb(58_42_28/0.85)] hover:bg-brand-700'
-      : 'border border-ink-300/80 text-ink-800 hover:border-brand-500 hover:text-brand-700'
+      : 'border border-ivory-100/28 text-ivory-100 hover:border-warm-300 hover:text-warm-300'
 
   const handleMove = (e: React.PointerEvent) => {
     const el = ref.current

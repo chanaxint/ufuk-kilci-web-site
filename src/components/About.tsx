@@ -7,7 +7,7 @@ import { ArrowRight, Sparkle } from './ui/icons'
 
 /* Kart yüzeyi yok; bölümler yalnızca ince bir üst çizgiyle ayrılıyor */
 const tile =
-  'relative border-t border-ink-200/55 pt-6 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1'
+  'relative border-t border-ivory-100/18 pt-6 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1'
 
 export default function About() {
   return (
@@ -57,21 +57,21 @@ export default function About() {
               <span className="grid size-10 place-items-center rounded-2xl bg-brand-100 text-brand-700">
                 <Sparkle className="size-5" />
               </span>
-              <p className="mt-5 text-[1.02rem] leading-relaxed text-ink-700">
+              <p className="mt-5 text-[1.02rem] leading-relaxed text-ivory-200">
                 On iki yılı aşkın klinik deneyimimde bel ve boyun problemlerinden sporcu
                 yaralanmalarına, skolyozdan ameliyat sonrası rehabilitasyona kadar geniş bir
                 yelpazede çalıştım.
               </p>
-              <p className="mt-4 text-[0.95rem] leading-relaxed text-ink-600">
+              <p className="mt-4 text-[0.95rem] leading-relaxed text-ivory-300">
                 Manuel terapi ve osteopatik teknikleri ölçülebilir hedeflerle ilerleyen egzersiz
                 programlarıyla birleştiriyorum. Amacım seans sayısını uzatmak değil; bedeninizi
                 yönetebildiğiniz noktaya en kısa sürede ulaşmak.
               </p>
-              <div className="mt-6 flex flex-wrap gap-2 border-t border-ink-200/40 pt-5">
+              <div className="mt-6 flex flex-wrap gap-2 border-t border-ivory-100/14 pt-5">
                 {['Manuel Terapi', 'Osteopati', 'Schroth', 'Kuru İğneleme'].map((chip) => (
                   <span
                     key={chip}
-                    className="rounded-full border border-ink-200/70 px-3.5 py-1.5 font-display text-[0.76rem] font-semibold text-ink-600"
+                    className="rounded-full border border-ivory-100/22 px-3.5 py-1.5 font-display text-[0.76rem] font-semibold text-ivory-300"
                   >
                     {chip}
                   </span>
@@ -84,10 +84,10 @@ export default function About() {
           {stats.slice(0, 2).map((stat, i) => (
             <Reveal key={stat.label} delay={0.12 + i * 0.06}>
               <div className={`${tile} h-full`}>
-                <p className="font-display text-4xl font-extrabold tracking-[-0.03em] text-ink-900 sm:text-5xl">
+                <p className="font-display text-4xl font-extrabold tracking-[-0.03em] text-ivory-50 sm:text-5xl">
                   <CountUp value={stat.value} suffix={stat.suffix} />
                 </p>
-                <p className="mt-2 text-[0.88rem] leading-snug text-ink-500">{stat.label}</p>
+                <p className="mt-2 text-[0.88rem] leading-snug text-ivory-300">{stat.label}</p>
               </div>
             </Reveal>
           ))}

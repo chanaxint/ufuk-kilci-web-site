@@ -295,9 +295,10 @@ export default function SpineStage() {
            */
           const roll = clamp01((p - HOLD - HANDOFF) / (FLOOR - HOLD - HANDOFF))
           /*
-           * Zeminde önce sıcak bir ışık doluyor (masanın altından aydınlığa
-           * çıkmak gibi), sonra bütün sahne sayfanın kendi zeminine çözülüyor.
-           * Sonda hiçbir katman kalmıyor: devir dikişsiz oluyor.
+           * Videonun son karesi de, sayfanın arkaplanı da aynı ahşap zemin.
+           * Bu yüzden sonda beyaza patlamak yerine yalnızca sıcak bir ışık
+           * geçiyor ve sahne sayfanın kendi zeminine çözülüyor: iki zemin
+           * birbirine karışıyor, dikiş görünmüyor.
            */
           const bloom = ease(clamp01((p - FLOOR) / (BLOOM - FLOOR)))
           const dissolve = ease(clamp01((p - BLOOM) / (1 - BLOOM)))
@@ -544,7 +545,7 @@ export default function SpineStage() {
           className="pointer-events-none absolute inset-0 z-20 opacity-0 will-change-[opacity]"
           style={{
             background:
-              'radial-gradient(130% 95% at 50% 32%, rgb(252 248 241 / 0.96), rgb(238 230 216 / 0.86) 58%, rgb(214 203 184 / 0.72) 100%)',
+              'radial-gradient(130% 95% at 50% 30%, rgb(255 233 196 / 0.4), rgb(226 190 146 / 0.22) 55%, rgb(40 24 14 / 0.3) 100%)',
           }}
         />
 

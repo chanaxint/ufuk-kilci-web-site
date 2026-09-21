@@ -20,7 +20,7 @@ export default function Faq() {
               </h2>
             </Reveal>
             <Reveal delay={0.12}>
-              <p className="mt-5 text-[1rem] leading-relaxed text-ink-700">
+              <p className="mt-5 text-[1rem] leading-relaxed text-ivory-200">
                 Cevabını bulamadığınız bir soru varsa yazmanız yeterli; aynı gün içinde dönüş
                 yapıyorum.
               </p>
@@ -28,24 +28,24 @@ export default function Faq() {
           </div>
 
           <div className="lg:col-span-8">
-            <div className="flex flex-col border-t border-ink-200/50">
+            <div className="flex flex-col border-t border-ivory-100/18">
               {faqs.map((faq, i) => {
                 const active = open === i
                 return (
                   <Reveal key={faq.q} delay={i * 0.05}>
-                    <div className="overflow-hidden border-b border-ink-200/50">
+                    <div className="overflow-hidden border-b border-ivory-100/18">
                       <button
                         type="button"
                         onClick={() => setOpen(active ? null : i)}
                         aria-expanded={active}
                         className="flex w-full items-center justify-between gap-5 py-5 pr-1 text-left"
                       >
-                        <span className="font-display text-[1.05rem] font-bold text-ink-900 sm:text-[1.15rem]">
+                        <span className="font-display text-[1.05rem] font-bold text-ivory-50 sm:text-[1.15rem]">
                           {faq.q}
                         </span>
                         <span
                           className={`grid size-8 shrink-0 place-items-center rounded-full transition-all duration-500 ${
-                            active ? 'rotate-45 bg-ink-900 text-sand-50' : 'border border-ink-200/70 text-ink-600'
+                            active ? 'rotate-45 bg-ivory-50 text-ink-900' : 'border border-ivory-100/22 text-ivory-300'
                           }`}
                         >
                           <Plus className="size-4" />
@@ -59,7 +59,7 @@ export default function Faq() {
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                           >
-                            <p className="max-w-2xl pr-8 pb-6 text-[0.98rem] leading-relaxed text-ink-600">
+                            <p className="max-w-2xl pr-8 pb-6 text-[0.98rem] leading-relaxed text-ivory-300">
                               {faq.a}
                             </p>
                           </motion.div>

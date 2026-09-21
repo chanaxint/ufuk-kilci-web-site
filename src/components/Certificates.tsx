@@ -6,7 +6,7 @@ import { Close } from './ui/icons'
 
 type Credential = (typeof credentials)[number]
 
-/** Her çerçeveye farklı derinlik ve eğim vererek duvarda asılı hissi verilir. */
+/** Her çerçeveye farklı derinlik ve eğim vererek zemine dizilmiş hissi verilir. */
 const frameStyles = [
   { depth: 26, rotate: -1.1, width: 'w-[16rem] sm:w-[17rem] lg:w-[19rem]', offset: 'lg:mt-10' },
   { depth: 54, rotate: 0.8, width: 'w-[15rem] sm:w-[16rem] lg:w-[18rem]', offset: 'lg:mt-0' },
@@ -17,7 +17,7 @@ const frameStyles = [
 
 /**
  * Ahşap çerçeve, altın pervaz, paspartu ve pirinç künye.
- * Hem duvardaki küçük hâlde hem de tam ekran görünümde aynı bileşen çizilir.
+ * Hem zemindeki küçük hâlde hem de tam ekran görünümde aynı bileşen çizilir.
  */
 function CertificateFrame({ item, large = false }: { item: Credential; large?: boolean }) {
   return (
@@ -116,8 +116,16 @@ function WallCertificate({
         className="group relative block w-full cursor-pointer rounded-[3px] text-left transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 focus-visible:outline-2 focus-visible:outline-offset-8 focus-visible:outline-brand-600"
         style={{ transform: `rotate(${style.rotate}deg)` }}
       >
-        {/* Çivi */}
-        <span className="absolute -top-3 left-1/2 size-1.5 -translate-x-1/2 rounded-full bg-[#3a2f24] shadow-[0_1px_2px_rgba(0,0,0,0.6)]" />
+        {/*
+          Zemine dayanmış çerçeve: çivi yok, altında yere düşen temas
+          gölgesi var. Üzerine gelince çerçeve biraz kalkıyor, gölge de
+          onunla birlikte yayılıyor.
+        */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-3 left-1/2 h-5 w-[86%] -translate-x-1/2 rounded-[50%] blur-md transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-bottom-4 group-hover:w-[92%] group-hover:blur-lg"
+          style={{ background: 'radial-gradient(closest-side, rgb(10 6 3 / 0.7), transparent 78%)' }}
+        />
         <CertificateFrame item={item} />
       </button>
     </motion.div>
@@ -131,7 +139,7 @@ function WallCertificate({
  * gezen bir cam parlaması taşıyor. İmleç kenarlara yaklaştıkça eğim artıyor,
  * böylece tablo elde tutuluyormuş hissi veriyor.
  *
- * Gezinme düğmesi yok: boşluğa tıklayıp kapatılıyor, duvardan başka bir
+ * Gezinme düğmesi yok: boşluğa tıklayıp kapatılıyor, zeminden başka bir
  * çerçeveye tıklanarak diğer belgeler açılıyor.
  */
 function Lightbox({ index, onClose }: { index: number; onClose: () => void }) {
@@ -296,18 +304,18 @@ export default function Certificates() {
       <div className="section-shell">
         <div className="mx-auto max-w-2xl text-center">
           <Reveal>
-            <h2 className="title-lg">Duvardaki belgeler</h2>
+            <h2 className="title-lg">Yere dizilmiş belgeler</h2>
           </Reveal>
           <Reveal delay={0.12}>
             <p className="lead mt-6">
-              Her biri, kliniğe taşınan bir yöntemin karşılığı. Bir çerçeveye tıklayın; belge
-              tablosuyla birlikte büyüsün, imleçle eğilsin.
+              Her biri, kliniğe taşınan bir yöntemin karşılığı. Zemine dayanmış çerçevelerden
+              birine tıklayın; belge tablosuyla birlikte büyüsün, imleçle eğilsin.
             </p>
           </Reveal>
         </div>
       </div>
 
-      {/* Duvar */}
+      {/* Zemin dizilimi */}
       <Reveal delay={0.1}>
         <div
           ref={wall}

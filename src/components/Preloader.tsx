@@ -38,7 +38,7 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
           background: 'radial-gradient(48rem 34rem at 50% 38%, rgb(255 255 255 / 0.95), transparent 66%)',
         }}
       />
-      <div className="pointer-events-none absolute inset-0 grid-lines opacity-50" />
+      <div className="pointer-events-none absolute inset-0 grid-lines-dark opacity-50" />
 
       <div className="relative flex flex-col items-center px-6 text-center">
         <motion.span

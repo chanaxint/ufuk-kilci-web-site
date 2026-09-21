@@ -37,6 +37,13 @@
   --color-warm-300: #e3c88c;
   --color-warm-100: #f6ead2;
 
+  /* Fildişi — ahşap zeminin üzerine düşen yazı rengi */
+  --color-ivory-50: #fbf5ea;
+  --color-ivory-100: #f2e8d8;
+  --color-ivory-200: #ece1cf;
+  --color-ivory-300: #d6c6ad;
+  --color-ivory-400: #ab977c;
+
   /* Kum / kağıt — kart ve yüzeyler */
   --color-sand-50: #fdfbf7;
   --color-sand-100: #f6f0e6;
@@ -103,14 +110,14 @@
   }
 
   body {
-    @apply font-sans text-ink-700 antialiased;
+    @apply font-sans text-ivory-200 antialiased;
     /*
      * Tarayıcı, kaydırma çubuğunun oluğunu yalnızca kök zemin RENGİYLE
      * boyuyor (gradyan oraya taşmıyor). Şerit saydam olduğu için bu renk
      * doğrudan oluğa düşüyor; duvarın ortalama tonuna ayarlandı ki sağ
      * kenarda ayrı bir sütun görünmesin.
      */
-    background-color: #c6baa5;
+    background-color: #4c3325;
   }
 
   /* Lenis akıcı kaydırma devredeyken */
@@ -126,7 +133,7 @@
   }
 
   h1, h2, h3, h4, h5 {
-    @apply font-display text-ink-900;
+    @apply font-display text-ivory-50;
     text-wrap: balance;
   }
 
@@ -154,13 +161,13 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background-color: rgb(74 54 38 / 0.3);
+    background-color: rgb(251 245 234 / 0.28);
     background-clip: content-box;
     border: 3px solid transparent;
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background-color: rgb(74 54 38 / 0.5);
+    background-color: rgb(251 245 234 / 0.45);
   }
   /*
    * Firefox. Chromium'da scrollbar-color, ::-webkit kurallarını geçersiz
@@ -170,7 +177,7 @@
   @supports not selector(::-webkit-scrollbar) {
     html {
       scrollbar-width: thin;
-      scrollbar-color: rgb(74 54 38 / 0.3) transparent;
+      scrollbar-color: rgb(251 245 234 / 0.28) transparent;
     }
   }
 }
@@ -183,15 +190,19 @@
   }
 
   .title-lg {
-    @apply font-display text-3xl leading-[1.12] font-extrabold tracking-[-0.02em] text-ink-900 sm:text-4xl;
+    @apply font-display text-3xl leading-[1.12] font-extrabold tracking-[-0.02em] text-ivory-50 sm:text-4xl;
   }
 
   .lead {
-    @apply text-lg leading-relaxed text-ink-700 sm:text-[1.15rem];
+    @apply text-lg leading-relaxed text-ivory-200 sm:text-[1.15rem];
   }
 
+  /*
+   * Zeminin üzerine konmuş kâğıt yüzey. Ahşabın üstünde duran gerçek bir
+   * sayfa gibi: sıcak beyaz, ince kenar, altında yere düşen gölge.
+   */
   .card-surface {
-    @apply rounded-3xl border border-white/70 bg-white/80 shadow-soft backdrop-blur-sm;
+    @apply rounded-3xl border border-white/55 bg-sand-50/92 text-ink-700 shadow-[0_2px_6px_-2px_rgb(12_7_3/0.45),0_26px_60px_-28px_rgb(12_7_3/0.75)];
   }
 
   .section-shell {
@@ -207,20 +218,29 @@
     background: linear-gradient(
       to right,
       transparent,
-      rgb(74 54 38 / 0.16) 18%,
-      rgb(74 54 38 / 0.16) 82%,
+      rgb(251 245 234 / 0.22) 18%,
+      rgb(251 245 234 / 0.22) 82%,
       transparent
     );
   }
 
+  /* Ahşap zeminde okunan sıcak altın vurgu */
   .gradient-text {
-    @apply bg-gradient-to-br from-ink-800 via-brand-600 to-warm-500 bg-clip-text text-transparent;
+    @apply bg-gradient-to-br from-warm-100 via-warm-300 to-brand-400 bg-clip-text text-transparent;
+  }
+
+  /* Açık zeminli yüzeyler için (yükleme ekranı) koyu ızgara */
+  .grid-lines-dark {
+    background-image:
+      linear-gradient(to right, rgb(58 42 28 / 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(58 42 28 / 0.06) 1px, transparent 1px);
+    background-size: 64px 64px;
   }
 
   .grid-lines {
     background-image:
-      linear-gradient(to right, rgb(58 42 28 / 0.06) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(58 42 28 / 0.06) 1px, transparent 1px);
+      linear-gradient(to right, rgb(251 245 234 / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(251 245 234 / 0.05) 1px, transparent 1px);
     background-size: 64px 64px;
   }
 }

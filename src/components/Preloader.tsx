@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect } from 'react'
 import { motion } from 'motion/react'
 import { doctor } from '../lib/content'
 import MessageLoading from './ui/MessageLoading'
+import SceneBoundary from './ui/SceneBoundary'
 
 /*
  * Lottie motoru yükleme ekranının ilk karesini geciktirmesin diye ayrı bir
@@ -78,9 +79,15 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
             doğrudan yazının üstüne oturuyor.
           */}
           <div className="flex h-[3.6rem] w-24 items-center justify-center overflow-hidden sm:h-[4.2rem] sm:w-28">
-            <Suspense fallback={null}>
-              <LottieCat className="size-24 sm:size-28" />
-            </Suspense>
+            {/*
+              Tembel yüklenen parça inemezse (ağ kesik, adres engelli)
+              Suspense bunu yakalamıyor ve hata bütün ağacı söküyordu.
+            */}
+            <SceneBoundary>
+              <Suspense fallback={null}>
+                <LottieCat className="size-24 sm:size-28" />
+              </Suspense>
+            </SceneBoundary>
           </div>
           {/*
             LOADING zaten büyük harfle yazılı: `uppercase` Türkçe yerelde "i"

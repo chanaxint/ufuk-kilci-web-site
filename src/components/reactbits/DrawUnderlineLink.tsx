@@ -7,9 +7,11 @@
  *  - Çizgi rengi kırmızıdan (#E55050) espresso paletine çekildi.
  *  - Klavyeyle gezinenler için odak/odak-kaybı da çizgiyi tetikliyor ve
  *    azaltılmış hareket tercihinde çizgi animasyonsuz görünüyor.
- *  - Menü panelinin kademeli giriş animasyonuna bağlanabilsin diye yazı
- *    ayrı bir `.sm-panel-itemLabel` katmanında duruyor; alt çizgi kutusu o
- *    katmanın dışında, yoksa maskeye takılıp kırpılıyordu.
+ *  - Yazı ayrı bir katmanda duruyor; menü panelinde bu katman
+ *    `.sm-panel-itemLabel` sınıfını alıp kademeli giriş animasyonuna bağlanıyor.
+ *    Alt çizgi kutusu o katmanın dışında, yoksa maskeye takılıp kırpılıyordu.
+ *  - Ölçüler em cinsinden ayarlanabiliyor: aynı bileşen hem menüdeki iri
+ *    başlıklarda hem de başlıktaki küçük büyük-harf bağlantılarda kullanılıyor.
  */
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
@@ -66,6 +68,11 @@ type Props = {
   stroke?: string
   className?: string
   labelClassName?: string
+  /** Yazı ile çizgi arasındaki boşluk (em) */
+  gapEm?: number
+  /** Çizgi kutusunun yüksekliği (em) */
+  lineEm?: number
+  strokeWidth?: number
   onNavigate?: () => void
 }
 
@@ -75,6 +82,9 @@ export default function DrawUnderlineLink({
   stroke = '#8a5a33',
   className = '',
   labelClassName = '',
+  gapEm = 0.32,
+  lineEm = 0.34,
+  strokeWidth = 9,
   onNavigate,
 }: Props) {
   const pathRef = useRef<SVGPathElement>(null)
@@ -152,11 +162,12 @@ export default function DrawUnderlineLink({
       onMouseLeave={hide}
       onFocus={show}
       onBlur={hide}
-      className={`group relative inline-block pb-[0.32em] outline-none ${className}`}
+      className={`group relative inline-block outline-none ${className}`}
+      style={{ paddingBottom: `${gapEm}em` }}
     >
       <span className="block overflow-hidden">
         <span
-          className={`sm-panel-itemLabel inline-block [transform-origin:50%_100%] will-change-transform ${labelClassName}`}
+          className={`inline-block [transform-origin:50%_100%] will-change-transform ${labelClassName}`}
         >
           {text}
         </span>
@@ -164,7 +175,8 @@ export default function DrawUnderlineLink({
 
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 block h-[0.34em]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 block"
+        style={{ height: `${lineEm}em` }}
       >
         {variant && (
           <svg
@@ -178,7 +190,7 @@ export default function DrawUnderlineLink({
               ref={pathRef}
               d={variant.d}
               stroke={stroke}
-              strokeWidth="9"
+              strokeWidth={strokeWidth}
               strokeLinecap="round"
             />
           </svg>

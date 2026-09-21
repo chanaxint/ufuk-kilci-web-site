@@ -41,7 +41,7 @@ export default function Navbar() {
   }, [open])
 
   const sideLink =
-    'font-display text-[0.78rem] font-semibold tracking-[0.16em] whitespace-nowrap text-ink-600 uppercase transition-colors duration-300 hover:text-brand-700'
+    'font-display text-[0.78rem] font-semibold tracking-[0.16em] whitespace-nowrap text-ink-600 uppercase transition-colors duration-300 hover:text-brand-700 focus-visible:text-brand-700'
 
   return (
     <>
@@ -63,9 +63,16 @@ export default function Navbar() {
               className="pointer-events-none absolute -inset-x-32 -inset-y-9 -z-10 backdrop-blur-[8px] [-webkit-mask-image:radial-gradient(60%_64%_at_50%_50%,black_42%,transparent_88%)] [mask-image:radial-gradient(60%_64%_at_50%_50%,black_42%,transparent_88%)]"
             />
 
-            <a href="#hakkimda" className={`hidden lg:block ${sideLink}`}>
-              Hakkımda
-            </a>
+            <div className="hidden lg:block">
+              <DrawUnderlineLink
+                text="Hakkımda"
+                href="#hakkimda"
+                className={sideLink}
+                gapEm={0.55}
+                lineEm={0.6}
+                strokeWidth={11}
+              />
+            </div>
 
             <a href="#top" className="group relative flex flex-col items-center leading-none">
               <ShinyText
@@ -81,9 +88,16 @@ export default function Navbar() {
               </span>
             </a>
 
-            <a href="#iletisim" className={`hidden lg:block ${sideLink}`}>
-              İletişim
-            </a>
+            <div className="hidden lg:block">
+              <DrawUnderlineLink
+                text="İletişim"
+                href="#iletisim"
+                className={sideLink}
+                gapEm={0.55}
+                lineEm={0.6}
+                strokeWidth={11}
+              />
+            </div>
           </div>
 
           {/* İki çizgi; açıkken çarpıya dönüyor */}
@@ -129,6 +143,7 @@ export default function Navbar() {
                   text={l.label}
                   href={l.href}
                   stroke="#8a5a33"
+                  labelClassName="sm-panel-itemLabel"
                   className="font-display text-[clamp(1.45rem,6.5vw,2.05rem)] font-semibold tracking-[-0.02em] text-ink-900 transition-colors duration-300 hover:text-brand-700 focus-visible:text-brand-700"
                   /* Çizgi tamamlansın diye kapanış hafif gecikmeli */
                   onNavigate={() => window.setTimeout(() => setOpen(false), 420)}

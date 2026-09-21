@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import SpineParts from './SpineParts'
 import type { SpinePart } from '../../lib/spineGeometry'
 import type { SpineRegionId } from '../../lib/spine'
-import { desktopFocus, desktopRest, mobileFocus, mobileRest, type Pose } from './spinePose'
+import { desktopFocus, mobileFocus, restPose, type Pose } from './spinePose'
 
 /*
  * İki duruş var: omurga fotoğraftaki standın üzerinde dururken (rest) ve
@@ -37,14 +37,14 @@ function ScrollRig({
 }) {
   const rig = useRef<THREE.Group>(null)
   const spin = useRef<THREE.Group>(null)
-  const { pointer } = useThree()
+  const { pointer, size } = useThree()
 
   useFrame((_, delta) => {
     if (!rig.current || !spin.current) return
     const k = 1 - Math.pow(0.002, Math.min(delta, 0.1))
-    const target = isMobile
-      ? sample(mobileRest, mobileFocus, focus.current ?? 0)
-      : sample(desktopRest, desktopFocus, focus.current ?? 0)
+    /* Duruş fotoğrafa göre; yakın plan pencereden bağımsız */
+    const rest = restPose(size.width, size.height)
+    const target = sample(rest, isMobile ? mobileFocus : desktopFocus, focus.current ?? 0)
 
     rig.current.position.x += (target.x - rig.current.position.x) * k
     rig.current.position.y += (target.y - rig.current.position.y) * k

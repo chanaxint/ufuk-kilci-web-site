@@ -38,6 +38,18 @@ export default function SpineStage() {
   const focus = useRef(0)
   /** Omurgaya en son ne zaman tıklandı — boşluğa tıklamayı ayırt etmek için */
   const spineClickAt = useRef(0)
+  /*
+   * Sabit başlık iki ayrı durumda siliniyor: siyah perdeye girerken ve
+   * omurgaya yaklaşılırken (fotoğraf koyulaşınca mürekkep rengi yazılar
+   * okunmuyor). İkisinin büyüğü yazılıyor ki biri diğerini ezmesin.
+   */
+  const scrollDark = useRef(0)
+  const focusDark = useRef(0)
+
+  const applyDark = () => {
+    const v = Math.max(scrollDark.current, focusDark.current)
+    document.documentElement.style.setProperty('--stage-dark', v.toFixed(3))
+  }
 
   const [focused, setFocused] = useState(false)
   const [hovered, setHovered] = useState<SpineRegionId | null>(null)
@@ -96,9 +108,15 @@ export default function SpineStage() {
       const f = focus.current
       if (photoRef.current) {
         photoRef.current.style.transform = `scale(${1 + f * 0.32})`
-        photoRef.current.style.filter = `blur(${(f * 3.5).toFixed(2)}px) brightness(${1 - f * 0.16})`
+        /*
+         * Yakın planda çevre hem daha çok bulanıklaşıyor hem de koyulaşıyor:
+         * bölge yazıları fotoğrafın açık duvarı üzerinde okunmuyordu.
+         */
+        photoRef.current.style.filter = `blur(${(f * 5).toFixed(2)}px) brightness(${(1 - f * 0.58).toFixed(3)})`
       }
       if (heroRef.current) heroRef.current.style.opacity = String(1 - Math.min(1, f * 1.6))
+      focusDark.current = Math.min(1, f * 1.6)
+      applyDark()
 
       if (focus.current !== target) raf = requestAnimationFrame(step)
     }
@@ -165,7 +183,8 @@ export default function SpineStage() {
            * Sabit başlık ve mobil arama çubuğu koyu geçiş boyunca siliniyor:
            * mürekkep rengi yazılar siyah perdenin üzerinde okunmuyordu.
            */
-          document.documentElement.style.setProperty('--stage-dark', (down * (1 - up)).toFixed(3))
+          scrollDark.current = down * (1 - up)
+          applyDark()
         },
       })
     }, el)

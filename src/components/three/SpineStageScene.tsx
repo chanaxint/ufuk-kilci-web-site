@@ -13,6 +13,15 @@ import { desktopFocus, mobileFocus, restPose, type Pose } from './spinePose'
  * `focus` değeriyle (0→1) sürülüyor; scroll ile hiçbir ilgisi yok.
  * Sayılar ayrı bir dosyada duruyor, çünkü ayar paneli de onları kullanıyor.
  */
+/*
+ * Bölge yazılarının gölgesi. Renkler sahnenin sıcak paletinden çıkmıyor
+ * (fildişi/kum), okunurluğu ise renk değil bu katmanlı gölge taşıyor: yakın
+ * bir sert kenar, geniş bir hâle. Böylece yazı fotoğrafın en açık yerine
+ * denk gelse de ayakta kalıyor, ama ekrana bir kutu çakılmış gibi durmuyor.
+ */
+const LABEL_SHADOW =
+  '0 1px 2px rgb(18 12 7 / 0.92), 0 0 10px rgb(18 12 7 / 0.85), 0 0 28px rgb(18 12 7 / 0.6)'
+
 function sample(rest: Pose, focus: Pose, f: number) {
   const t = THREE.MathUtils.clamp(f, 0, 1)
   const e = t * t * (3 - 2 * t)
@@ -191,13 +200,23 @@ export default function SpineStageScene({
                               className="size-1.5 shrink-0 rounded-full"
                               style={{ background: part.region.color }}
                             />
-                            <span className="font-display text-[0.72rem] font-bold tracking-[0.16em] whitespace-nowrap text-ink-800 uppercase">
+                            {/*
+                              Yazılar koyulaşan fotoğrafın üzerinde duruyor;
+                              sıcak fildişi hem okunuyor hem de sahnenin
+                              paletinden çıkmıyor. Gölge, koyu kitapların
+                              üzerine denk geldiğinde de ayakta tutuyor.
+                            */}
+                            <span
+                              className="font-display text-[0.72rem] font-bold tracking-[0.16em] whitespace-nowrap uppercase"
+                              style={{ color: '#f6efe2', textShadow: LABEL_SHADOW }}
+                            >
                               {part.region.name}
                             </span>
                             <span
-                              className={`font-display text-[0.66rem] font-bold whitespace-nowrap text-ink-500 transition-all duration-500 ${
+                              className={`font-display text-[0.66rem] font-bold whitespace-nowrap transition-all duration-500 ${
                                 active ? 'max-w-32 opacity-100' : 'max-w-0 overflow-hidden opacity-0'
                               }`}
+                              style={{ color: '#d8c3a0', textShadow: LABEL_SHADOW }}
                             >
                               {part.region.code}
                             </span>
@@ -208,9 +227,10 @@ export default function SpineStageScene({
                             }`}
                           >
                             <p
-                              className={`overflow-hidden text-[0.8rem] leading-snug text-ink-600 ${
+                              className={`overflow-hidden text-[0.8rem] leading-snug ${
                                 right ? 'text-left' : 'text-right'
                               }`}
+                              style={{ color: '#e8ddca', textShadow: LABEL_SHADOW }}
                             >
                               {part.region.description}
                             </p>

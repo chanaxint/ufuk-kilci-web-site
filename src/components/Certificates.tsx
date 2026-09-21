@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { credentials, doctor } from '../lib/content'
 import Reveal from './ui/Reveal'
-import { ArrowRight, Close } from './ui/icons'
+import { Close } from './ui/icons'
 
 type Credential = (typeof credentials)[number]
 
@@ -124,24 +124,24 @@ function WallCertificate({
   )
 }
 
-/** Belgeyi çerçevesiyle birlikte tam ekran gösterir; oklarla ya da sürükleyerek gezilir. */
-function Lightbox({
-  index,
-  onClose,
-  onStep,
-}: {
-  index: number
-  onClose: () => void
-  onStep: (delta: number) => void
-}) {
+/**
+ * Belgeyi çerçevesiyle birlikte tam ekran gösterir.
+ *
+ * Gerçek bir 3B model yok; çerçeve imlecin konumuna göre eğiliyor ve üstünde
+ * gezen bir cam parlaması taşıyor. İmleç kenarlara yaklaştıkça eğim artıyor,
+ * böylece tablo elde tutuluyormuş hissi veriyor.
+ *
+ * Gezinme düğmesi yok: boşluğa tıklayıp kapatılıyor, duvardan başka bir
+ * çerçeveye tıklanarak diğer belgeler açılıyor.
+ */
+function Lightbox({ index, onClose }: { index: number; onClose: () => void }) {
   const item = credentials[index]
-  const dragX = useRef<number | null>(null)
+  const tilt = useRef<HTMLDivElement>(null)
+  const glare = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
-      else if (e.key === 'ArrowRight') onStep(1)
-      else if (e.key === 'ArrowLeft') onStep(-1)
     }
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
@@ -149,10 +149,43 @@ function Lightbox({
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = ''
     }
-  }, [onClose, onStep])
+  }, [onClose])
 
-  const arrow =
-    'pointer-events-auto grid size-12 place-items-center rounded-full border border-white/25 bg-white/10 text-sand-50 backdrop-blur-sm transition-colors hover:border-white/60 hover:bg-white/20'
+  /* İmlece bağlı eğim — React state'i olmadan, doğrudan DOM'a yazılır */
+  useEffect(() => {
+    if (window.matchMedia('(pointer: coarse)').matches) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    let frame = 0
+    const onMove = (e: PointerEvent) => {
+      if (frame) return
+      frame = requestAnimationFrame(() => {
+        frame = 0
+        const nx = e.clientX / window.innerWidth - 0.5
+        const ny = e.clientY / window.innerHeight - 0.5
+        if (tilt.current) {
+          tilt.current.style.transform = `rotateY(${nx * 26}deg) rotateX(${-ny * 17}deg) translateZ(0)`
+        }
+        if (glare.current) {
+          glare.current.style.setProperty('--gx', `${(nx + 0.5) * 100}%`)
+          glare.current.style.setProperty('--gy', `${(ny + 0.5) * 100}%`)
+          glare.current.style.opacity = '1'
+        }
+      })
+    }
+    const onLeave = () => {
+      if (tilt.current) tilt.current.style.transform = 'rotateY(0deg) rotateX(0deg)'
+      if (glare.current) glare.current.style.opacity = '0'
+    }
+
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerleave', onLeave)
+    return () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerleave', onLeave)
+      if (frame) cancelAnimationFrame(frame)
+    }
+  }, [])
 
   return (
     <motion.div
@@ -161,61 +194,60 @@ function Lightbox({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
       className="fixed inset-0 z-[80] flex items-center justify-center bg-ink-950/80 px-4 py-16 backdrop-blur-sm sm:px-16"
+      style={{ perspective: '1500px' }}
       role="dialog"
       aria-modal="true"
       aria-label={`${item.title} — ${item.org}`}
-      onPointerDown={(e) => {
-        dragX.current = e.clientX
-      }}
-      onPointerUp={(e) => {
-        const start = dragX.current
-        dragX.current = null
-        if (start === null) return
-        const dx = e.clientX - start
-        /* Yatay sürükleme belgeyi değiştirir; yerinde bırakmak (zemine tıklamak) kapatır */
-        if (Math.abs(dx) > 60) onStep(dx < 0 ? 1 : -1)
-        else if (e.target === e.currentTarget) onClose()
+      onClick={(e) => {
+        /* Boşluğa tıklamak kapatır; çerçevenin kendisi kapatmaz */
+        if (e.target === e.currentTarget) onClose()
       }}
     >
       <button
         type="button"
         onClick={onClose}
         aria-label="Kapat"
-        className={`absolute top-5 right-5 ${arrow}`}
+        className="pointer-events-auto absolute top-5 right-5 grid size-12 place-items-center rounded-full border border-white/25 bg-white/10 text-sand-50 backdrop-blur-sm transition-colors hover:border-white/60 hover:bg-white/20"
       >
         <Close className="size-5" />
       </button>
 
-      <div className="pointer-events-none absolute inset-x-3 flex items-center justify-between sm:inset-x-6">
-        <button type="button" onClick={() => onStep(-1)} aria-label="Önceki belge" className={arrow}>
-          <ArrowRight className="size-5 rotate-180" />
-        </button>
-        <button type="button" onClick={() => onStep(1)} aria-label="Sonraki belge" className={arrow}>
-          <ArrowRight className="size-5" />
-        </button>
-      </div>
-
-      <AnimatePresence mode="wait">
-        <motion.figure
-          key={item.title}
-          initial={{ opacity: 0, scale: 0.96, y: 14 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.98, y: -10 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="w-[min(42rem,100%)] select-none"
+      <motion.figure
+        initial={{ opacity: 0, scale: 0.96, y: 14 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.98, y: -10 }}
+        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+        className="w-[min(42rem,100%)] select-none"
+        style={{ transformStyle: 'preserve-3d' }}
+      >
+        <div
+          ref={tilt}
+          className="relative transition-transform duration-[450ms] ease-out will-change-transform"
+          style={{ transformStyle: 'preserve-3d' }}
         >
           <CertificateFrame item={item} large />
-          <figcaption className="mt-6 text-center">
-            <p className="font-display text-lg font-extrabold text-sand-50">{item.title}</p>
-            <p className="mt-1.5 text-[0.9rem] text-brand-200">
-              {item.org} · {item.year}
-            </p>
-            <p className="mt-4 font-display text-[0.62rem] font-bold tracking-[0.2em] text-sand-50/45 uppercase">
-              {index + 1} / {credentials.length}
-            </p>
-          </figcaption>
-        </motion.figure>
-      </AnimatePresence>
+          {/* İmleçle gezen cam parlaması */}
+          <span
+            ref={glare}
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500"
+            style={{
+              background:
+                'radial-gradient(22rem 22rem at var(--gx, 50%) var(--gy, 50%), rgb(255 255 255 / 0.28), transparent 62%)',
+            }}
+          />
+        </div>
+
+        <figcaption className="mt-7 text-center">
+          <p className="font-display text-lg font-extrabold text-sand-50">{item.title}</p>
+          <p className="mt-1.5 text-[0.9rem] text-brand-200">
+            {item.org} · {item.year}
+          </p>
+          <p className="mt-5 font-display text-[0.62rem] font-bold tracking-[0.2em] text-sand-50/40 uppercase">
+            Kapatmak için boşluğa tıklayın
+          </p>
+        </figcaption>
+      </motion.figure>
     </motion.div>
   )
 }
@@ -226,11 +258,6 @@ export default function Certificates() {
   const [open, setOpen] = useState<number | null>(null)
 
   const close = useCallback(() => setOpen(null), [])
-  const step = useCallback(
-    (delta: number) =>
-      setOpen((i) => (i === null ? i : (i + delta + credentials.length) % credentials.length)),
-    [],
-  )
 
   /* Fare hareketine bağlı paralaks — React state'i olmadan, doğrudan DOM'a yazılır */
   useEffect(() => {
@@ -274,7 +301,7 @@ export default function Certificates() {
           <Reveal delay={0.12}>
             <p className="lead mt-6">
               Her biri, kliniğe taşınan bir yöntemin karşılığı. Bir çerçeveye tıklayın; belge
-              tablosuyla birlikte büyüsün, oklarla diğerlerine geçin.
+              tablosuyla birlikte büyüsün, imleçle eğilsin.
             </p>
           </Reveal>
         </div>
@@ -315,7 +342,7 @@ export default function Certificates() {
 
       <AnimatePresence>
         {open !== null && (
-          <Lightbox key="lightbox" index={open} onClose={close} onStep={step} />
+          <Lightbox key="lightbox" index={open} onClose={close} />
         )}
       </AnimatePresence>
     </section>

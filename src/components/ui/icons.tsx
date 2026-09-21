@@ -61,12 +61,3 @@ export const Instagram = (p: P) => (
 )
 
 /* Anatomik düzlem simgeleri */
-export const PlaneFrontal = (p: P) => (
-  <svg {...base} {...p}><path d="M12 4v16" /><path d="M5 12h-2M21 12h-2" /><path d="M6 9 3 12l3 3M18 9l3 3-3 3" /></svg>
-)
-export const PlaneSagittal = (p: P) => (
-  <svg {...base} {...p}><path d="M10 4c3 2 3 5 0 8s-3 6 0 8" /><path d="M17 8l3 4-3 4" /></svg>
-)
-export const PlaneTransverse = (p: P) => (
-  <svg {...base} {...p}><ellipse cx="12" cy="12" rx="8" ry="4" /><path d="M15.5 8.4 18 7l.6 2.7" /><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" /></svg>
-)

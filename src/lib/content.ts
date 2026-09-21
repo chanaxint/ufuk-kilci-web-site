@@ -151,21 +151,6 @@ export const credentials = [
   },
 ]
 
-export const philosophy = [
-  {
-    title: 'Önce dinlerim',
-    text: 'Ağrının hikâyesi, çoğu zaman görüntüleme raporundan daha fazlasını anlatır.',
-  },
-  {
-    title: 'Zinciri bütün okurum',
-    text: 'Boyundaki şikâyetin kaynağı kalçada olabilir; bölgeyi değil bütünü değerlendiririm.',
-  },
-  {
-    title: 'Ölçerek ilerlerim',
-    text: 'Her seansta test edilen objektif veriler tedavi planını günceller.',
-  },
-]
-
 export const workingHours = [
   { day: 'Pazartesi – Cuma', hours: '09:00 – 19:00' },
   { day: 'Cumartesi', hours: '10:00 – 15:00' },

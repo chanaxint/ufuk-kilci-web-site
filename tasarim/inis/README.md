@@ -1,4 +1,36 @@
-# Giriş inişi videosu
+# Giriş videoları
+
+Sitenin girişinde iki ayrı kaydırmaya kilitli video var:
+
+1. **`public/video/klinige-giris.*`** — kliniğe giriş (koridor → kapı → oda →
+   masa, 8 sn). Yükleme ekranı kapanınca ilk görünen sahne.
+2. **`public/video/masa-alti-inis.*`** — masanın altına iniş (17,8 sn).
+   Aşağıda anlatılan video.
+
+## Kliniğe giriş videosu
+
+Kullanıcının verdiği 3840×2160 / 30 fps klipten üretildi. Son karesi giriş
+fotoğrafının (`public/images/klinik-masa.jpg`) aynısı; ölçülen fark ölçek
+1,00 ve 8 piksel yatay kayma, kayma kodlarken düzeltildi:
+
+```bash
+ffmpeg -i <ham-4k>.mp4 \
+ -vf "fps=30,scale=1288:724:flags=lanczos,crop=1280:714:8:5,setsar=1" \
+ -c:v libx264 -preset slow -crf 26 -g 12 -pix_fmt yuv420p \
+ -movflags +faststart -an public/video/klinige-giris.mp4 -y
+
+ffmpeg -i public/video/klinige-giris.mp4 -vf scale=854:476 -c:v libx264 \
+ -preset slow -crf 29 -g 12 -pix_fmt yuv420p -movflags +faststart -an \
+ public/video/klinige-giris-mobil.mp4 -y
+
+ffmpeg -i public/video/klinige-giris.mp4 -c:v libvpx-vp9 -crf 37 -b:v 0 \
+ -g 12 -row-mt 1 -deadline good -cpu-used 3 -pix_fmt yuv420p -an \
+ public/video/klinige-giris.webm -y
+```
+
+Ses şeridi atıldı (`-an`): video oynamıyor, karesi kaydırmaya kilitli.
+
+# Masanın altına iniş videosu
 
 Sitenin girişindeki kamera inişi (`public/video/masa-alti-inis.*`) iki yapay
 zekâ klibinden birleştirildi:

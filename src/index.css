@@ -103,6 +103,12 @@
 @layer base {
   :root {
     color-scheme: light;
+    /*
+     * 0: koyu zemin (ahşap döşeme, loş koridor) → fildişi yazı
+     * 1: açık giriş fotoğrafı ekranda → mürekkep yazı
+     * Değeri giriş sahnesi (SpineStage) kaydırmaya göre yazıyor.
+     */
+    --stage-photo: 0;
   }
 
   html {
@@ -222,6 +228,19 @@
       rgb(251 245 234 / 0.22) 82%,
       transparent
     );
+  }
+
+  /*
+   * Sabit başlık, hem açık giriş fotoğrafının hem de koyu ahşap zeminin
+   * üstünden geçiyor. Renk `--stage-photo` ile iki uç arasında karışıyor:
+   * fotoğrafın üstünde mürekkep, zeminde fildişi.
+   */
+  .nav-fg {
+    color: color-mix(in srgb, #241a12 calc(var(--stage-photo) * 100%), #f2e8d8);
+  }
+
+  .nav-fg-soft {
+    color: color-mix(in srgb, #4a3626 calc(var(--stage-photo) * 100%), #d6c6ad);
   }
 
   /* Ahşap zeminde okunan sıcak altın vurgu */

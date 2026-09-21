@@ -4,7 +4,8 @@
 > başlayan herkes (ya da Claude) önce bunu okur; böylece hiçbir şey baştan
 > anlatılmak zorunda kalmaz. **Bir iş bitirildiğinde bu dosya da güncellenir.**
 >
-> Son güncelleme: `79b6f9a` — "Beyaz ekran yerine hatanın kendisi görünüyor"
+> Son güncelleme: kliniğe giriş videosu eklendi (yükleme ekranından sonraki
+> ilk sahne) ve başlık rengi zemine göre değişiyor.
 
 ---
 
@@ -78,7 +79,9 @@ Aralarda `SectionRule` (ince ayırıcı çizgi).
 
 ## 4. Giriş sahnesi (`SpineStage.tsx`) — en karmaşık kısım
 
-Akış: **klinik masası fotoğrafı + standın üstünde 3B omurga** → omurgaya
+Akış: **kliniğe giriş videosu** (koridor → kapı → oda → masa, kaydırmaya
+kilitli) → videonun son karesi giriş fotoğrafının aynısı olduğu için
+fotoğrafa çözülüyor → **yazılar ve 3B omurga beliriyor** → omurgaya
 tıklayınca **kamera yaklaşıyor** (çevre görünür kalıyor, bölge adları açılıyor)
 → boşluğa tıklayınca ya da kaydırınca geri → kaydırmaya devam edilince
 **kaydırmaya kilitli iniş videosu**: masa üstünden masanın altına, oradan zemine
@@ -120,7 +123,17 @@ kesilip omurganın üstüne bindirildi.
 - **Dar ekranda kapalı** (`hidden lg:block`): mobilde metni okutan açık perde
   fotoğrafı yıkıyor, perdenin üstünde kalan demir yıkanmadığı için sırıtıyordu.
 
-### 4.3 İniş videosu
+### 4.3 Kliniğe giriş videosu
+
+Kullanıcının verdiği 4K klipten üretildi (8 sn, 30 fps). Son karesi giriş
+fotoğrafının aynısı; ölçüldü: ölçek 1,00, 8 piksel yatay kayma — kayma
+kodlarken düzeltildi (`crop=1280:714:8:5`). Çıktılar: `klinige-giris.mp4`
+(720p, 1,0 MB) · `-mobil.mp4` (0,43 MB) · `.webm` (0,86 MB). Ses atıldı.
+
+Video oynamıyor, karesi kaydırmaya kilitli. Sonunda sönerken altında zaten
+giriş fotoğrafı duruyor, ardından yazılar ve omurga beliriyor.
+
+### 4.4 İniş videosu
 
 Kullanıcının verdiği **iki yapay zekâ klibi** birleştirildi (ffmpeg ile, yerel):
 
@@ -144,18 +157,22 @@ akıcı tutuyor. İndirme ilk kare ekrana oturduktan 1,4 sn sonra başlıyor
 Videonun ilk karesi giriş fotoğrafının **birebir aynısı** (1280×714'e kırpıldı,
 fotoğrafın 1,7921 oranına oturtuldu) → devir görünmüyor.
 
-### 4.4 Kaydırma sabitleri
+### 4.5 Kaydırma sabitleri
 
 ```ts
-HOLD = 0.16      // buraya kadar sahne olduğu gibi duruyor
-HANDOFF = 0.045  // fotoğraftan videoya devir (video ilk karesinde bekliyor)
-FLOOR = 0.86     // kamera zemine vardı
-BLOOM = 0.91     // sıcak ışık dolup sahne sayfanın zeminine çözülüyor
+WALK = 0.20      // kliniğe giriş videosu burada bitiyor
+CROSS = 0.24     // giriş videosu sönüp yerini fotoğrafa bırakıyor
+REVEAL_A = 0.225 // yazılar ve omurga belirmeye başlıyor
+REVEAL_B = 0.30  // tamamen geldiler
+HOLD = 0.38      // buraya kadar sahne olduğu gibi duruyor
+HANDOFF = 0.035  // fotoğraftan iniş videosuna devir
+FLOOR = 0.88     // kamera zemine vardı
+BLOOM = 0.93     // sıcak ışık dolup sahne sayfanın zeminine çözülüyor
 ```
 
-Bölüm boyu `h-[340vh] lg:h-[420vh]`.
+Bölüm boyu `h-[480vh] lg:h-[580vh]`.
 
-### 4.5 Omurganın ve yazıların çıkışı
+### 4.6 Omurganın ve yazıların çıkışı
 
 `STAND_RISE` tablosu **ölçülerek** çıkarıldı: videodaki stand bölgesi kare kare
 izlenip masa üstünün kadrajda ne kadar yükseldiği bulundu. Omurga tam o hızla
@@ -188,6 +205,13 @@ Zemin koyu olduğu için tipografi çevrildi — `@theme` içinde **fildişi öl
 
 `body` fildişi, başlıklar fildişi, `.rule` ve `.grid-lines` açık, kaydırma
 çubuğu açık, `.gradient-text` sıcak altın, gövde zemini `#4c3325`.
+
+**Sabit başlık zemine göre renk değiştiriyor.** `--stage-photo` (0→1) giriş
+sahnesi tarafından yazılıyor: 1 iken açık giriş fotoğrafı ekranda, başlık
+mürekkep; 0 iken ahşap zemin ya da loş koridor, başlık fildişi. Renkler
+`.nav-fg` / `.nav-fg-soft` sınıflarında `color-mix` ile karışıyor; wordmark
+(ShinyText) aynı ifadeyi gradyanında kullanıyor. Giriş paragrafı her zaman
+fotoğrafın üstünde olduğu için `.lead` yerine doğrudan mürekkep yazıyor.
 
 **Koyu yazısını koruyan yüzeyler** (buralara fildişi uygulanmayacak):
 yükleme ekranı (açık zemin, `.grid-lines-dark` kullanıyor), hamburger menü

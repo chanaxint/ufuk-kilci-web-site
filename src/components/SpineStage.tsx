@@ -19,7 +19,20 @@ const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
 const ease = (t: number) => t * t * (3 - 2 * t)
 
 /* Kaydırma inişinin kilometre taşları (bölümün ilerlemesi üzerinden) */
-const HOLD = 0.16 // buraya kadar sahne olduğu gibi duruyor
+/*
+ * Bölümün zaman çizelgesi (bölüm ilerlemesi 0→1).
+ *
+ * Yükleme ekranı kapanınca ilk görünen şey kliniğe giriş videosu: koridor,
+ * kapı, oda ve masa. O da kaydırmaya kilitli — siz kaydırdıkça yürünüyor.
+ * Videonun son karesi giriş fotoğrafının aynısı olduğu için video sönerken
+ * ekranda fotoğraf kalıyor; hemen ardından yazılar ve omurga beliriyor.
+ * Sonrası eskisi gibi: duruş, ardından masanın altına inen ikinci video.
+ */
+const WALK = 0.2 // kliniğe giriş videosu burada bitiyor
+const CROSS = 0.24 // giriş videosu sönüp yerini fotoğrafa bırakıyor
+const REVEAL_A = 0.225 // yazılar ve omurga belirmeye başlıyor
+const REVEAL_B = 0.3 // tamamen geldiler
+const HOLD = 0.38 // buraya kadar sahne olduğu gibi duruyor
 /*
  * Omurganın ve giriş yazılarının çıkışı.
  *
@@ -65,9 +78,16 @@ function cameraRise(t: number) {
   return v1 + ((v1 - v0) / (t1 - t0)) * (t - t1)
 }
 
-const HANDOFF = 0.045 // fotoğraftan videoya devir bu aralıkta tamamlanıyor
-const FLOOR = 0.86 // burada kamera zemine varmış oluyor
-const BLOOM = 0.91 // ışık doluyor, sonra sahne sayfaya çözülüyor
+const HANDOFF = 0.035 // fotoğraftan iniş videosuna devir
+const FLOOR = 0.88 // burada kamera zemine varmış oluyor
+const BLOOM = 0.93 // ışık doluyor, sonra sahne sayfaya çözülüyor
+
+/*
+ * Kliniğe giriş videosunda ilk saniyeler loş koridor, sonu aydınlık oda.
+ * Sabit başlık bu yüzden sonda mürekkebe dönüyor (`--stage-photo`).
+ */
+const WALK_LIGHT_FROM = 3.5
+const WALK_LIGHT_TO = 5.5
 
 /**
  * Giriş sahnesi.
@@ -103,6 +123,11 @@ export default function SpineStage() {
   const rodScroll = useRef(1)
   const videoRef = useRef<HTMLVideoElement>(null)
   const videoWrapRef = useRef<HTMLDivElement>(null)
+  /** Kliniğe giriş videosu — yükleme ekranından sonraki ilk sahne */
+  const walkRef = useRef<HTMLVideoElement>(null)
+  const walkWrapRef = useRef<HTMLDivElement>(null)
+  const walkDuration = useRef(0)
+  const walkSeek = useRef(-1)
   const washRef = useRef<HTMLDivElement>(null)
   /** Videonun süresi yüklenince buraya yazılıyor */
   const duration = useRef(0)
@@ -219,12 +244,18 @@ export default function SpineStage() {
    */
   useEffect(() => {
     const v = videoRef.current
+    const w = walkRef.current
     if (!v) return
     const onMeta = () => {
       duration.current = v.duration || 0
     }
+    const onWalkMeta = () => {
+      walkDuration.current = w?.duration || 0
+    }
     if (v.readyState >= 1) onMeta()
+    if (w && w.readyState >= 1) onWalkMeta()
     v.addEventListener('loadedmetadata', onMeta)
+    w?.addEventListener('loadedmetadata', onWalkMeta)
 
     /*
      * Video giriş fotoğrafıyla yarışmasın: ilk kare ekrana oturduktan sonra
@@ -242,6 +273,9 @@ export default function SpineStage() {
       v.play()
         .then(() => v.pause())
         .catch(() => {})
+      w?.play()
+        .then(() => w.pause())
+        .catch(() => {})
     }
     window.addEventListener('touchstart', prime, { once: true, passive: true })
     window.addEventListener('pointerdown', prime, { once: true })
@@ -250,6 +284,7 @@ export default function SpineStage() {
     return () => {
       window.clearTimeout(warm)
       v.removeEventListener('loadedmetadata', onMeta)
+      w?.removeEventListener('loadedmetadata', onWalkMeta)
       window.removeEventListener('touchstart', prime)
       window.removeEventListener('pointerdown', prime)
       window.removeEventListener('wheel', prime)
@@ -303,7 +338,30 @@ export default function SpineStage() {
         end: 'bottom bottom',
         onUpdate: (self) => {
           const p = self.progress
-          /* Fotoğraftan videoya devir */
+
+          /*
+           * Kliniğe giriş: video kaydırmaya kilitli, sonunda fotoğrafa
+           * çözülüyor. Kare yerine kare geçtiği için hiçbir şey sıçramıyor.
+           */
+          const walk = clamp01(p / WALK)
+          const walkOut = ease(clamp01((p - WALK) / (CROSS - WALK)))
+          const reveal = ease(clamp01((p - REVEAL_A) / (REVEAL_B - REVEAL_A)))
+
+          const wv = walkRef.current
+          if (wv && walkDuration.current > 0) {
+            const wt = walk * walkDuration.current
+            if (Math.abs(wt - walkSeek.current) > 1 / 48) {
+              walkSeek.current = wt
+              try {
+                wv.currentTime = wt
+              } catch {
+                /* tarayıcı henüz hazır değilse sessizce geç */
+              }
+            }
+          }
+          if (walkWrapRef.current) walkWrapRef.current.style.opacity = (1 - walkOut).toFixed(3)
+
+          /* Fotoğraftan iniş videosuna devir */
           const hand = clamp01((p - HOLD) / HANDOFF)
           /*
            * Videonun kendi ilerlemesi. Devir bitmeden başlamıyor: geçiş
@@ -329,7 +387,7 @@ export default function SpineStage() {
            * sönüyor — omurga ve yazılar sahnede kalıyor.
            */
           if (photoRef.current) photoRef.current.style.opacity = String(1 - hand)
-          rodScroll.current = 1 - hand
+          rodScroll.current = reveal * (1 - hand)
           applyRod()
 
           /*
@@ -342,12 +400,13 @@ export default function SpineStage() {
           const rise = cameraRise(vt)
           if (followRef.current) {
             followRef.current.style.transform = `translate3d(0, ${(rise * 100).toFixed(2)}vh, 0)`
+            /* Önce belirme, sonra inişte silinme: ikisi çarpılıyor */
             followRef.current.style.opacity = (
-              1 - ease(clamp01((vt - FADE_FROM) / (FADE_TO - FADE_FROM)))
+              reveal * (1 - ease(clamp01((vt - FADE_FROM) / (FADE_TO - FADE_FROM))))
             ).toFixed(3)
           }
           /* "Omurgaya tıklayın" ipucu iniş başlar başlamaz çekiliyor */
-          if (hintRef.current) hintRef.current.style.opacity = String(1 - hand)
+          if (hintRef.current) hintRef.current.style.opacity = (reveal * (1 - hand)).toFixed(3)
           if (videoWrapRef.current)
             videoWrapRef.current.style.opacity = (hand * (1 - dissolve)).toFixed(3)
           if (washRef.current) washRef.current.style.opacity = (bloom * (1 - dissolve)).toFixed(3)
@@ -373,8 +432,24 @@ export default function SpineStage() {
           scrollDark.current = clamp01(hand * 1.2) * (1 - Math.max(bloom, dissolve))
           applyDark()
 
-          /* Omurga silindikten sonra WebGL döngüsü boşuna dönmesin */
-          const live = vt < FADE_TO + 0.2
+          /*
+           * Başlık rengi: açık giriş fotoğrafının üzerinde mürekkep, ahşap
+           * zeminde ve loş koridorda fildişi. Yürüyüşün sonunda oda
+           * aydınlandığı için geçiş orada başlıyor.
+           */
+          const walkLight = ease(
+            clamp01(
+              (walk * (walkDuration.current || 8) - WALK_LIGHT_FROM) /
+                (WALK_LIGHT_TO - WALK_LIGHT_FROM),
+            ),
+          )
+          document.documentElement.style.setProperty(
+            '--stage-photo',
+            (walkLight * (1 - hand)).toFixed(3),
+          )
+
+          /* Yürüyüş bitmeden ve omurga silindikten sonra boşuna dönmesin */
+          const live = reveal > 0.01 && vt < FADE_TO + 0.2
           if (live !== sceneLive.current) {
             sceneLive.current = live
             setSceneLive(live)
@@ -386,7 +461,7 @@ export default function SpineStage() {
   }, [])
 
   return (
-    <section id="top" ref={stageRef} className="relative h-[340vh] lg:h-[420vh]">
+    <section id="top" ref={stageRef} className="relative h-[480vh] lg:h-[580vh]">
       <div ref={stickyRef} className="sticky top-0 h-[100svh] overflow-hidden">
         {/*
           Yığın sırası: en altta video, üstünde giriş fotoğrafı (sönerek
@@ -432,7 +507,10 @@ export default function SpineStage() {
             ritimde yükselip kadrajdan çıkıyor. Giriş yazıları da aynı
             kapta, aynı hareketle gidiyor.
           */}
-          <div ref={followRef} className="absolute inset-0 will-change-[opacity,transform]">
+          <div
+            ref={followRef}
+            className="absolute inset-0 opacity-0 will-change-[opacity,transform]"
+          >
           {/* 3B omurga — standın üzerinde */}
           <div className="absolute inset-0">
             {mounted && (
@@ -481,7 +559,12 @@ export default function SpineStage() {
                   />
                 </h1>
 
-                <p className="lead mt-6 hidden max-w-lg sm:block">
+                {/*
+                  Bu metin her zaman açık giriş fotoğrafının üzerinde; site
+                  geneli ahşap zemine geçince `.lead` fildişi oldu, burada
+                  mürekkep kalması gerekiyor.
+                */}
+                <p className="mt-6 hidden max-w-lg text-lg leading-relaxed text-ink-700 sm:block sm:text-[1.15rem]">
                   Ağrıyı susturmak yetmez; sebebini bulmak gerekir. Omurga, duruş ve hareket
                   bütününü tek bir zincir olarak değerlendiren bütüncül bir tedavi yaklaşımı.
                 </p>
@@ -580,6 +663,39 @@ export default function SpineStage() {
               media="(max-width: 640px)"
             />
             <source src="/video/masa-alti-inis.webm" type="video/webm" />
+          </video>
+        </div>
+
+        {/*
+          Kliniğe giriş. Yükleme ekranı kapanınca ilk görünen sahne bu:
+          koridor, kapı, oda ve masa — kaydırmaya kilitli. Son karesi giriş
+          fotoğrafının aynısı (aynı kırpma, ölçülen 8 piksellik kayma
+          düzeltilmiş), bu yüzden video sönerken ekranda fotoğraf kalıyor.
+        */}
+        <div
+          ref={walkWrapRef}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-30 will-change-[opacity]"
+        >
+          <video
+            ref={walkRef}
+            muted
+            playsInline
+            preload="auto"
+            disablePictureInPicture
+            className="size-full object-cover object-[70%_center]"
+          >
+            <source
+              src="/video/klinige-giris.mp4"
+              type='video/mp4; codecs="avc1.4d401f"'
+              media="(min-width: 641px)"
+            />
+            <source
+              src="/video/klinige-giris-mobil.mp4"
+              type='video/mp4; codecs="avc1.4d401e"'
+              media="(max-width: 640px)"
+            />
+            <source src="/video/klinige-giris.webm" type="video/webm" />
           </video>
         </div>
 

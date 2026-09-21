@@ -41,7 +41,7 @@ export default function Navbar() {
   }, [open])
 
   const sideLink =
-    'font-display text-[0.78rem] font-semibold tracking-[0.16em] whitespace-nowrap text-ivory-300 uppercase transition-colors duration-300 hover:text-warm-300 focus-visible:text-warm-300'
+    'font-display text-[0.78rem] font-semibold tracking-[0.16em] whitespace-nowrap nav-fg-soft uppercase transition-colors duration-300 hover:text-warm-300 focus-visible:text-warm-300'
 
   return (
     <>
@@ -82,12 +82,12 @@ export default function Navbar() {
               <ShinyText
                 text={doctor.name}
                 speed={5}
-                color="#f2e8d8"
-                shineColor="#ffd9a0"
+                color="color-mix(in srgb, #241a12 calc(var(--stage-photo) * 100%), #f2e8d8)"
+                shineColor="color-mix(in srgb, #8a5a33 calc(var(--stage-photo) * 100%), #ffd9a0)"
                 spread={90}
                 className="font-wordmark text-[1.55rem] leading-none font-normal tracking-[0.004em] whitespace-nowrap sm:text-[1.85rem]"
               />
-              <span className="mt-1.5 font-display text-[0.56rem] font-semibold tracking-[0.3em] whitespace-nowrap text-ivory-300 uppercase sm:text-[0.62rem]">
+              <span className="mt-1.5 font-display text-[0.56rem] font-semibold tracking-[0.3em] whitespace-nowrap nav-fg-soft uppercase sm:text-[0.62rem]">
                 {doctor.titles}
               </span>
             </a>
@@ -112,7 +112,7 @@ export default function Navbar() {
             aria-expanded={open}
             aria-controls="staggered-menu-panel"
             onClick={() => setOpen((v) => !v)}
-            className="pointer-events-auto absolute right-5 z-[60] grid size-11 place-items-center rounded-full text-ivory-100 transition-colors duration-300 hover:text-warm-300 sm:right-8"
+            className="pointer-events-auto absolute right-5 z-[60] grid size-11 place-items-center rounded-full nav-fg transition-colors duration-300 hover:text-warm-300 sm:right-8"
           >
             <span className="relative block h-3.5 w-7">
               <span

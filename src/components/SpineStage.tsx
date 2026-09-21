@@ -92,6 +92,15 @@ export default function SpineStage() {
   /** Kamerayla birlikte yukarı çıkan katman: omurga + giriş yazıları */
   const followRef = useRef<HTMLDivElement>(null)
   const hintRef = useRef<HTMLDivElement>(null)
+  /*
+   * Standın iki alt kolu, fotoğraftan kesilip omurganın üstüne bindirilen
+   * saydam katman. Pelvisin alt iki çıkıntısı böylece demirin arkasında
+   * kalıyor. Yalnızca duruş hâlinde görünüyor: yakın plana geçilince de,
+   * iniş başlayınca da siliniyor.
+   */
+  const rodRef = useRef<HTMLDivElement>(null)
+  const rodFocus = useRef(1)
+  const rodScroll = useRef(1)
   const videoRef = useRef<HTMLVideoElement>(null)
   const videoWrapRef = useRef<HTMLDivElement>(null)
   const washRef = useRef<HTMLDivElement>(null)
@@ -110,6 +119,10 @@ export default function SpineStage() {
    */
   const scrollDark = useRef(0)
   const focusDark = useRef(0)
+
+  const applyRod = () => {
+    if (rodRef.current) rodRef.current.style.opacity = (rodFocus.current * rodScroll.current).toFixed(3)
+  }
 
   const applyDark = () => {
     const v = Math.max(scrollDark.current, focusDark.current)
@@ -182,6 +195,12 @@ export default function SpineStage() {
          * bölge yazıları fotoğrafın açık duvarı üzerinde okunmuyordu.
          */
         photoRef.current.style.filter = `blur(${(f * 5).toFixed(2)}px) brightness(${(1 - f * 0.58).toFixed(3)})`
+      }
+      if (rodRef.current) {
+        /* Demir fotoğrafla birlikte hareket ediyor ama yakın planda kalmıyor */
+        rodRef.current.style.transform = `scale(${1 + f * 0.32})`
+        rodFocus.current = 1 - Math.min(1, f * 2.6)
+        applyRod()
       }
       if (heroRef.current) heroRef.current.style.opacity = String(1 - Math.min(1, f * 1.6))
       focusDark.current = Math.min(1, f * 1.6)
@@ -310,6 +329,8 @@ export default function SpineStage() {
            * sönüyor — omurga ve yazılar sahnede kalıyor.
            */
           if (photoRef.current) photoRef.current.style.opacity = String(1 - hand)
+          rodScroll.current = 1 - hand
+          applyRod()
 
           /*
            * Omurga ve giriş yazıları kaybolmuyor: kamera indikçe, masa
@@ -497,6 +518,30 @@ export default function SpineStage() {
             </span>
           </div>
           </div>
+
+          {/*
+            Standın kolları — omurganın üstünde. Fotoğrafla birebir aynı
+            çerçeveleme (aynı oran, aynı çıpa), bu yüzden her pencere
+            boyutunda tam fotoğraftaki demirin üstüne oturuyor (ölçüldü:
+            omurga gizlendiğinde kare fotoğrafla aynı kalıyor).
+
+            Yalnızca geniş ekranda: dar ekranda metni okutan açık perde
+            fotoğrafı yıkıyor, perdenin üstünde kalan demir ise yıkanmadığı
+            için sırıtıyordu. Orada zaten pelvis de solgun, kazanç yok.
+          */}
+          <div
+            ref={rodRef}
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-10 hidden lg:block"
+            style={{ transformOrigin: '68% 46%' }}
+          >
+            <img
+              src="/images/stand-kollari.png"
+              alt=""
+              className="size-full object-cover object-[70%_center]"
+            />
+          </div>
+
         </div>
 
         {/*

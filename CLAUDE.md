@@ -1,5 +1,12 @@
 # Ufuk Kilci — çalışma kuralları
 
+## Önce bunu oku
+
+Yeni bir oturuma başlıyorsan ilk iş **`.claude/PROJE-DURUMU.md`** dosyasını
+oku: projenin ne olduğu, nasıl kurulduğu, giriş sahnesinin mekaniği, elle
+ayarlanmış sayılar, bilinen tuzaklar ve açık işler orada duruyor. Bir iş
+bitirdiğinde o dosyayı da güncelle — sohbetler arası hafıza orası.
+
 ## Her işin sonunda (kullanıcı isteği, kalıcı kural)
 
 Bir iş bittiğinde ve site tamamen açılabilir durumdayken **her seferinde**:

@@ -36,6 +36,8 @@ export default function SpineStage() {
   const veilRef = useRef<HTMLDivElement>(null)
   /** 0: standın üzerinde, 1: kamera yaklaşmış */
   const focus = useRef(0)
+  /** Omurgaya en son ne zaman tıklandı — boşluğa tıklamayı ayırt etmek için */
+  const spineClickAt = useRef(0)
 
   const [focused, setFocused] = useState(false)
   const [hovered, setHovered] = useState<SpineRegionId | null>(null)
@@ -104,22 +106,33 @@ export default function SpineStage() {
     return () => cancelAnimationFrame(raf)
   }, [focused])
 
-  /* Odaktayken sayfa kilitli; ilk kaydırma hareketi odağı bırakıyor */
+  /*
+   * Odaktayken sayfa kilitli. Kaydırma, Esc ya da boşluğa tıklama odağı
+   * bırakıp aynı sahneye döndürüyor; omurganın kendisine tıklamak saymıyor.
+   */
   useEffect(() => {
     if (!focused) return
     setScrollLocked(true)
-    const release = () => setFocused(false)
+    const release = () => {
+      setFocused(false)
+      setHovered(null)
+    }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') release()
+    }
+    const onClickAway = () => {
+      if (performance.now() - spineClickAt.current > 150) release()
     }
     window.addEventListener('wheel', release, { passive: true })
     window.addEventListener('touchmove', release, { passive: true })
     window.addEventListener('keydown', onKey)
+    window.addEventListener('click', onClickAway)
     return () => {
       setScrollLocked(false)
       window.removeEventListener('wheel', release)
       window.removeEventListener('touchmove', release)
       window.removeEventListener('keydown', onKey)
+      window.removeEventListener('click', onClickAway)
     }
   }, [focused])
 
@@ -207,7 +220,10 @@ export default function SpineStage() {
                     labelsVisible={focused}
                     hovered={hovered}
                     onHover={setHovered}
-                    onSelect={() => setFocused(true)}
+                    onSelect={() => {
+                      spineClickAt.current = performance.now()
+                      setFocused(true)
+                    }}
                     isMobile={isMobile}
                   />
                 </Suspense>
@@ -270,7 +286,7 @@ export default function SpineStage() {
           <div className="pointer-events-none absolute inset-x-0 bottom-20 flex justify-center px-6 sm:bottom-6">
             <span className="rounded-full bg-ink-950/45 px-4 py-2 text-center font-display text-[0.66rem] font-bold tracking-[0.2em] text-sand-50/85 uppercase backdrop-blur-sm">
               {focused
-                ? 'Bölgelerin üzerine gelin · kaydırarak çıkın'
+                ? 'Bölgelerin üzerine gelin · boşluğa tıklayın ya da kaydırın'
                 : 'Omurgaya tıklayın · bölgeleri tanıyın'}
             </span>
           </div>

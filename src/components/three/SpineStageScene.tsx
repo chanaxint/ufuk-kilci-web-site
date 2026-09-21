@@ -138,6 +138,7 @@ export default function SpineStageScene({
             onHover={onHover}
             onParts={handleParts}
             onSelect={onSelect}
+            interactive={labelsVisible}
           />
 
           {/* Etiketler modelle birlikte dönmez; omurganın iki yanında sabit durur */}

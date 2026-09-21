@@ -13,6 +13,12 @@ type Props = {
   onParts: (parts: SpinePart[]) => void
   /** Omurgaya tıklandı — kamera modele yaklaşır */
   onSelect?: () => void
+  /**
+   * Bölge vurgusu açık mı. Kapalıyken imleç parçaları ayırmaz ve
+   * renklendirmez: omurga standın üzerinde bütün hâlde durur, yalnızca
+   * tıklanabilir olduğu imleçten belli olur.
+   */
+  interactive?: boolean
 }
 
 /**
@@ -30,7 +36,13 @@ const SHIFT_NEIGHBOUR = 0.03
 /** Modelin taban rengi — kemik fildişi */
 const BONE = '#e4d3b4'
 
-export default function SpineParts({ hovered, onHover, onParts, onSelect }: Props) {
+export default function SpineParts({
+  hovered,
+  onHover,
+  onParts,
+  onSelect,
+  interactive = true,
+}: Props) {
   const { scene } = useGLTF(MODEL_URL)
 
   const parts = useMemo(() => {
@@ -120,12 +132,12 @@ export default function SpineParts({ hovered, onHover, onParts, onSelect }: Prop
             }}
             onPointerOver={(e) => {
               e.stopPropagation()
-              onHover(part.region.id)
+              if (interactive) onHover(part.region.id)
               document.body.style.cursor = 'pointer'
             }}
             onPointerOut={(e) => {
               e.stopPropagation()
-              onHover(null)
+              if (interactive) onHover(null)
               document.body.style.cursor = 'auto'
             }}
           >

@@ -82,8 +82,11 @@ Aralarda `SectionRule` (ince ayırıcı çizgi).
   dereceler. Duraklar evre sınırlarıyla aynı (0/10/25/40/50) ve sürüklerken
   de yalnızca onlara oturuyor. 3B model bölüm ekrana girmeden ~900 px önce
   yüklenmeye başlıyor.
-- **Certificates**: çerçeveler zemine dayalı; tıklayınca tam ekran, imleçle eğiliyor,
-  ok tuşu yok — boşluğa tıklayıp kapanıyor.
+- **Certificates**: çerçeveler zemine rastgele bırakılmış gibi dağınık
+  (`WIDE_SPOTS` / `NARROW_SPOTS`: her biri kendi noktası, açısı, yatıklığı
+  ve ölçeğiyle, üst üste binerek). Belge kâğıdı yıllanmış: sıcak perde,
+  kenar koyuluğu ve zeminle aynı tane. Tıklayınca tam ekran, imleçle
+  eğiliyor, ok tuşu yok — boşluğa tıklayıp kapanıyor.
 
 ---
 

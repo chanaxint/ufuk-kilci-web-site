@@ -6,13 +6,39 @@ import { Close } from './ui/icons'
 
 type Credential = (typeof credentials)[number]
 
-/** Her çerçeveye farklı derinlik ve eğim vererek zemine dizilmiş hissi verilir. */
-const frameStyles = [
-  { depth: 26, rotate: -1.1, width: 'w-[16rem] sm:w-[17rem] lg:w-[19rem]', offset: 'lg:mt-10' },
-  { depth: 54, rotate: 0.8, width: 'w-[15rem] sm:w-[16rem] lg:w-[18rem]', offset: 'lg:mt-0' },
-  { depth: 12, rotate: -0.6, width: 'w-[16rem] sm:w-[17.5rem] lg:w-[19.5rem]', offset: 'lg:mt-16' },
-  { depth: 42, rotate: 1.2, width: 'w-[15rem] sm:w-[16.5rem] lg:w-[18.5rem]', offset: 'lg:mt-4' },
-  { depth: 20, rotate: -0.9, width: 'w-[15rem] sm:w-[16rem] lg:w-[18rem]', offset: 'lg:mt-2' },
+/*
+ * Çerçeveler zemine tek tek bırakılmış gibi duruyor: dizilmiş değil,
+ * dağınık. Her biri kendi noktasında, kendi açısında ve biraz farklı
+ * büyüklükte; birbirlerinin üzerine hafifçe biniyorlar. Sayılar sabit —
+ * rastgelelik yalnızca bakışta, her açılışta aynı yerde duruyorlar.
+ *
+ * x/y sahnenin yüzdesi (sol üst köşe), rotate derece, lean ise kâğıdın
+ * yere yatıklığı (perspektif içinde rotateX).
+ */
+type FrameSpot = {
+  x: number
+  y: number
+  rotate: number
+  lean: number
+  depth: number
+  scale: number
+  z: number
+}
+
+const WIDE_SPOTS: FrameSpot[] = [
+  { x: 3, y: 12, rotate: -9.5, lean: 7, depth: 24, scale: 1, z: 2 },
+  { x: 27, y: 2, rotate: 5.5, lean: 5, depth: 48, scale: 0.94, z: 4 },
+  { x: 50, y: 20, rotate: -3, lean: 8, depth: 14, scale: 1.04, z: 3 },
+  { x: 73, y: 5, rotate: 11, lean: 6, depth: 40, scale: 0.9, z: 1 },
+  { x: 33, y: 44, rotate: -6.5, lean: 9, depth: 20, scale: 0.98, z: 5 },
+]
+
+const NARROW_SPOTS: FrameSpot[] = [
+  { x: 4, y: 1, rotate: -7, lean: 6, depth: 24, scale: 1, z: 2 },
+  { x: 26, y: 20, rotate: 6, lean: 5, depth: 48, scale: 0.95, z: 4 },
+  { x: 2, y: 40, rotate: -4, lean: 8, depth: 14, scale: 1.02, z: 3 },
+  { x: 24, y: 59, rotate: 9, lean: 6, depth: 40, scale: 0.92, z: 1 },
+  { x: 6, y: 78, rotate: -8, lean: 9, depth: 20, scale: 0.97, z: 5 },
 ]
 
 /**
@@ -56,6 +82,25 @@ function CertificateFrame({ item, large = false }: { item: Credential; large?: b
               }`}
             />
 
+            {/*
+              Yıllanma: belge kâğıdı bembeyaz parlamıyor. Sıcak bir perde,
+              kenarlara doğru koyulaşma ve zeminle aynı tane — çerçeve
+              odanın ışığına ve ahşabın rengine oturuyor.
+            */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 mix-blend-multiply"
+              style={{
+                background:
+                  'radial-gradient(120% 100% at 30% 20%, rgb(255 246 226 / 0.2), rgb(198 168 118 / 0.3) 62%, rgb(150 118 74 / 0.45) 100%)',
+              }}
+            />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 opacity-[0.4] mix-blend-multiply"
+              style={{ backgroundImage: 'url(/images/doku.png)', backgroundRepeat: 'repeat' }}
+            />
+
             {/* Cam parlaması */}
             <span
               className={`pointer-events-none absolute inset-0 transition-opacity duration-700 ${
@@ -92,29 +137,35 @@ function WallCertificate({
   item,
   index,
   onOpen,
+  spot,
 }: {
   item: Credential
   index: number
   onOpen: (index: number) => void
+  spot: FrameSpot
 }) {
-  const style = frameStyles[index % frameStyles.length]
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 42 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-12% 0px' }}
       transition={{ duration: 0.9, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-      className={`${style.width} ${style.offset} shrink-0`}
-      style={{ transform: `translateZ(${style.depth}px)`, transformStyle: 'preserve-3d' }}
-      data-depth={style.depth}
+      className="absolute w-[13.5rem] sm:w-[15.5rem] lg:w-[18rem]"
+      style={{
+        left: `${spot.x}%`,
+        top: `${spot.y}%`,
+        zIndex: spot.z,
+        transform: `translateZ(${spot.depth}px) scale(${spot.scale})`,
+        transformStyle: 'preserve-3d',
+      }}
+      data-depth={spot.depth}
     >
       <button
         type="button"
         onClick={() => onOpen(index)}
         aria-label={`${item.title} belgesini büyüt`}
         className="group relative block w-full cursor-pointer rounded-[3px] text-left transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 focus-visible:outline-2 focus-visible:outline-offset-8 focus-visible:outline-brand-600"
-        style={{ transform: `rotate(${style.rotate}deg)` }}
+        style={{ transform: `rotate(${spot.rotate}deg) rotateX(${spot.lean}deg)` }}
       >
         {/*
           Zemine dayanmış çerçeve: çivi yok, altında yere düşen temas
@@ -264,6 +315,16 @@ export default function Certificates() {
   const wall = useRef<HTMLDivElement>(null)
   const plane = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState<number | null>(null)
+  /* Dar ekranda dağılım tek sütuna yakın: çerçeveler kenardan taşmasın */
+  const [narrow, setNarrow] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1023px)')
+    const apply = () => setNarrow(mq.matches)
+    apply()
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
+  }, [])
 
   const close = useCallback(() => setOpen(null), [])
 
@@ -304,11 +365,11 @@ export default function Certificates() {
       <div className="section-shell">
         <div className="mx-auto max-w-2xl text-center">
           <Reveal>
-            <h2 className="title-lg">Yere dizilmiş belgeler</h2>
+            <h2 className="title-lg">Yere bırakılmış belgeler</h2>
           </Reveal>
           <Reveal delay={0.12}>
             <p className="lead mt-6">
-              Her biri, kliniğe taşınan bir yöntemin karşılığı. Zemine dayanmış çerçevelerden
+              Her biri, kliniğe taşınan bir yöntemin karşılığı. Zemine bırakılmış çerçevelerden
               birine tıklayın; belge tablosuyla birlikte büyüsün, imleçle eğilsin.
             </p>
           </Reveal>
@@ -325,11 +386,17 @@ export default function Certificates() {
           {/* Çerçeveler */}
           <div
             ref={plane}
-            className="relative mx-auto flex w-full max-w-[86rem] flex-wrap items-start justify-center gap-4 px-5 py-14 transition-transform duration-500 ease-out sm:gap-7 sm:px-6 sm:py-20 lg:gap-9 lg:py-24"
+            className="relative mx-auto h-[52rem] w-full max-w-[86rem] px-5 transition-transform duration-500 ease-out sm:h-[48rem] sm:px-6 lg:h-[34rem]"
             style={{ transformStyle: 'preserve-3d' }}
           >
             {credentials.map((item, i) => (
-              <WallCertificate key={item.title} item={item} index={i} onOpen={setOpen} />
+              <WallCertificate
+                key={item.title}
+                item={item}
+                index={i}
+                onOpen={setOpen}
+                spot={(narrow ? NARROW_SPOTS : WIDE_SPOTS)[i % WIDE_SPOTS.length]}
+              />
             ))}
           </div>
 

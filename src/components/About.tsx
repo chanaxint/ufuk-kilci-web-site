@@ -92,22 +92,24 @@ export default function About() {
             </Reveal>
           ))}
 
-          {/* Çağrı — artık ızgaranın tamamına yayılan bir şerit */}
+          {/*
+            Çağrı şeridi. Sade tek renk: eskiden kahveye açılan bir gradyan
+            ve ızgara dokusu vardı, ahşap zeminin üstünde kalabalık duruyordu.
+          */}
           <Reveal delay={0.24} className="sm:col-span-2 lg:col-span-4">
             <a
               href="#iletisim"
-              className="group relative flex h-full flex-col gap-6 overflow-hidden rounded-3xl bg-gradient-to-br from-ink-900 via-ink-800 to-brand-700 px-7 py-8 shadow-lift transition-transform duration-500 hover:-translate-y-1 sm:flex-row sm:items-center sm:justify-between sm:px-9"
+              className="group relative flex h-full flex-col gap-6 overflow-hidden rounded-3xl border border-ivory-100/12 bg-[#1b130c]/92 px-7 py-8 shadow-[0_2px_8px_-4px_rgb(10_6_3/0.6),0_28px_60px_-30px_rgb(10_6_3/0.9)] transition-colors duration-500 hover:bg-[#241a11]/95 sm:flex-row sm:items-center sm:justify-between sm:px-9"
             >
-              <div className="pointer-events-none absolute inset-0 grid-lines opacity-20" />
               <span className="relative">
-                <span className="block font-display text-[0.68rem] font-bold tracking-[0.2em] text-brand-200 uppercase">
+                <span className="block font-display text-[0.68rem] font-bold tracking-[0.2em] text-ivory-300 uppercase">
                   Randevu
                 </span>
-                <span className="mt-2 block font-display text-xl leading-tight font-extrabold text-sand-50 sm:text-2xl">
+                <span className="mt-2 block font-display text-xl leading-tight font-extrabold text-ivory-50 sm:text-2xl">
                   Birlikte çalışalım
                 </span>
               </span>
-              <span className="relative inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-sand-50 text-ink-900 transition-transform duration-500 group-hover:translate-x-1">
+              <span className="relative inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-ivory-50 text-ink-900 transition-transform duration-500 group-hover:translate-x-1">
                 <ArrowRight className="size-4" />
               </span>
             </a>

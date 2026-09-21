@@ -8,6 +8,7 @@ import ShinyText from './reactbits/ShinyText'
 import type { SpineRegionId } from '../lib/spine'
 import { ArrowDown, ArrowRight } from './ui/icons'
 import SceneBoundary from './ui/SceneBoundary'
+import PoseTuner from './ui/PoseTuner'
 import { hasWebGL } from '../lib/webgl'
 
 const SpineStageScene = lazy(() => import('./three/SpineStageScene'))
@@ -41,6 +42,12 @@ export default function SpineStage() {
   const [mounted, setMounted] = useState(false)
   const [onScreen, setOnScreen] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
+  /* Adrese ?ayar=1 eklenince omurgayı yerine oturtan panel açılır */
+  const [tuning, setTuning] = useState(false)
+
+  useEffect(() => {
+    setTuning(new URLSearchParams(window.location.search).has('ayar'))
+  }, [])
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 1024)
@@ -268,6 +275,8 @@ export default function SpineStage() {
             </span>
           </div>
         </div>
+
+        {tuning && <PoseTuner isMobile={isMobile} focused={focused} />}
 
         {/* Masanın altına iniş — aşağıdan yükselen siyah perde */}
         <div

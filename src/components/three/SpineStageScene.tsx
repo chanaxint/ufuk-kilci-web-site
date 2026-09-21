@@ -5,20 +5,14 @@ import * as THREE from 'three'
 import SpineParts from './SpineParts'
 import type { SpinePart } from '../../lib/spineGeometry'
 import type { SpineRegionId } from '../../lib/spine'
-
-type Pose = { x: number; y: number; z: number; scale: number; rotY: number }
+import { desktopFocus, desktopRest, mobileFocus, mobileRest, type Pose } from './spinePose'
 
 /*
  * İki duruş var: omurga fotoğraftaki standın üzerinde dururken (rest) ve
  * üzerine tıklandığında kameranın yaklaştığı hâl (focus). Aradaki geçiş
  * `focus` değeriyle (0→1) sürülüyor; scroll ile hiçbir ilgisi yok.
+ * Sayılar ayrı bir dosyada duruyor, çünkü ayar paneli de onları kullanıyor.
  */
-const desktopRest: Pose = { x: 1.92, y: 0.16, z: 0, scale: 0.43, rotY: -0.12 }
-const desktopFocus: Pose = { x: 0.06, y: -0.02, z: 0.9, scale: 0.8, rotY: 0.3 }
-
-const mobileRest: Pose = { x: 0.46, y: 0.16, z: 0, scale: 0.4, rotY: -0.12 }
-const mobileFocus: Pose = { x: 0.0, y: -0.02, z: 0.9, scale: 0.72, rotY: 0.3 }
-
 function sample(rest: Pose, focus: Pose, f: number) {
   const t = THREE.MathUtils.clamp(f, 0, 1)
   const e = t * t * (3 - 2 * t)

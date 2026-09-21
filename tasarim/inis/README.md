@@ -7,8 +7,19 @@ zekâ klibinden birleştirildi:
    altına iner.
 2. **Camera tilting down at desk** (8 sn) — masanın altından zemine iner.
 
-Aralarındaki bağlantı neredeyse birebir örtüşüyor; 0,6 sn'lik bir geçişle
-birleştirildi. Toplam 17,4 sn.
+Aralarındaki bağlantı geometrik olarak neredeyse birebir örtüşüyor
+(ölçüldü: ölçek 1,0075, kayma 0 piksel). Toplam 17,8 sn.
+
+**Birleşmedeki tutarsızlık ve çözümü.** Birinci klip son ~1,4 saniyesinde
+kamerayı geri çekiyor: iniş bir an duruyor, geri gidiyor, sonra ikinci klip
+devam ediyor. Uzun bir çapraz geçiş bunu üst üste iki hareketli görüntü
+olarak gösterdiği için hayalet yapıyordu. Çözüm:
+
+- Birinci klibin son 1,4 saniyesine kademeli bir karşı-zoom (1,000 → 1,042)
+  uygulanıp geri çekilme iptal edildi.
+- İkinci klip aynı zoomla başlayıp ilk 1,6 saniyede 1,000'e dönüyor: kalan
+  fark, kameranın zaten indiği bir anda yavaşça dağıtılıyor.
+- Çapraz geçiş 0,6 sn'den 0,15 sn'ye indirildi.
 
 Birinci klibin ilk karesi giriş fotoğrafının (`public/images/klinik-masa.jpg`)
 aynısı. Ölçüldü: aynı ölçekte, kaymasız (SSIM 0,875 — fark yalnızca yapay
@@ -31,9 +42,9 @@ klipleri tekrar yükleyip:
 
 ```bash
 ffmpeg -i <1-books>.mp4 -i <2-tilt>.mp4 -filter_complex "\
-[0:v]fps=24,scale=1280:720,crop=1280:714:0:3,setsar=1[a];\
-[1:v]fps=24,scale=1280:720,crop=1280:714:0:3,setsar=1[b];\
-[a][b]xfade=transition=fade:duration=0.6:offset=9.4,format=yuv420p[v]" \
+[0:v]fps=24,scale=2560:1440,crop=2560:1428:0:6,setsar=1,zoompan=z='if(lte(on,206),1,1+0.042*(on-206)/33)':x='(iw-iw/zoom)/2':y='(ih-ih/zoom)/2':d=1:s=1280x714:fps=24[a];\
+[1:v]fps=24,scale=2560:1440,crop=2560:1428:0:6,setsar=1,zoompan=z='if(lte(on,38),1.042-0.042*on/38,1)':x='(iw-iw/zoom)/2':y='(ih-ih/zoom)/2':d=1:s=1280x714:fps=24[b];\
+[a][b]xfade=transition=fade:duration=0.15:offset=9.85,format=yuv420p[v]" \
  -map "[v]" -an -c:v libx264 -preset slow -crf 27 -g 12 \
  -movflags +faststart public/video/masa-alti-inis.mp4 -y
 
@@ -50,6 +61,15 @@ ffmpeg -i public/video/masa-alti-inis.mp4 -c:v libvpx-vp9 -crf 38 -b:v 0 \
 
 `-g 12` (yarım saniyede bir anahtar kare) kaydırmayla ileri geri sarmayı
 akıcı tutuyor: video oynamıyor, karesi kaydırmaya kilitli.
+
+## Omurga ve yazıların çıkışı
+
+`SpineStage.tsx` içindeki `STAND_RISE` tablosu uydurma değil: videodaki
+stand bölgesi kare kare izlenip masa üstündeki eşyaların kadrajda ne kadar
+yükseldiği ölçüldü. Omurga tam bu hızla yükseliyor, yani standın üstünden
+havalanmıyor. Gerçekte stand kadrajdan çıkmıyor, kamera masa düzleminin
+altına inerken masanın ön kenarı önünü kapatıyor; bu maskelenemediği için
+omurga ve giriş yazıları tam o aralıkta (≈2,4–4,2 sn) yavaşça siliniyor.
 
 ## Buradaki kareler
 

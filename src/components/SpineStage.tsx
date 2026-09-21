@@ -20,6 +20,51 @@ const ease = (t: number) => t * t * (3 - 2 * t)
 
 /* Kaydırma inişinin kilometre taşları (bölümün ilerlemesi üzerinden) */
 const HOLD = 0.16 // buraya kadar sahne olduğu gibi duruyor
+/*
+ * Omurganın ve giriş yazılarının çıkışı.
+ *
+ * Sayılar uydurma değil: videodaki stand bölgesi kare kare izlendi ve
+ * masanın üstündeki eşyaların kadrajda ne kadar yükseldiği ölçüldü
+ * ([video saniyesi, kare yüksekliğinin kesri]). Omurga tam bu hızla
+ * yükseliyor, yani standın üstünden havalanmıyor.
+ *
+ * Gerçekte stand kadrajdan çıkmıyor; kamera masa düzleminin altına
+ * indikçe masanın ön kenarı önünü kapatıyor. Bunu maskeleyemediğimiz için
+ * omurga ve yazılar tam o aralıkta (≈2,4–4,2 sn) yavaşça siliniyor:
+ * "bir anda yok olmak" yerine kamerayla birlikte masanın altında kalmış
+ * gibi görünüyor.
+ */
+const STAND_RISE: [number, number][] = [
+  [0, 0],
+  [1.0, -0.003],
+  [1.5, -0.02],
+  [2.0, -0.05],
+  [2.5, -0.09],
+  [3.0, -0.14],
+  [3.5, -0.199],
+  [4.0, -0.244],
+  [4.5, -0.277],
+  [5.0, -0.311],
+  [5.4, -0.345],
+]
+const FADE_FROM = 2.4
+const FADE_TO = 4.2
+
+function cameraRise(t: number) {
+  const k = STAND_RISE
+  if (t <= 0) return 0
+  for (let i = 1; i < k.length; i++) {
+    if (t <= k[i][0]) {
+      const [t0, v0] = k[i - 1]
+      const [t1, v1] = k[i]
+      return v0 + ((v1 - v0) * (t - t0)) / (t1 - t0)
+    }
+  }
+  const [t0, v0] = k[k.length - 2]
+  const [t1, v1] = k[k.length - 1]
+  return v1 + ((v1 - v0) / (t1 - t0)) * (t - t1)
+}
+
 const HANDOFF = 0.045 // fotoğraftan videoya devir bu aralıkta tamamlanıyor
 const FLOOR = 0.86 // burada kamera zemine varmış oluyor
 const BLOOM = 0.91 // ışık doluyor, sonra sahne sayfaya çözülüyor
@@ -44,6 +89,9 @@ export default function SpineStage() {
   const sceneRef = useRef<HTMLDivElement>(null)
   const photoRef = useRef<HTMLDivElement>(null)
   const heroRef = useRef<HTMLDivElement>(null)
+  /** Kamerayla birlikte yukarı çıkan katman: omurga + giriş yazıları */
+  const followRef = useRef<HTMLDivElement>(null)
+  const hintRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const videoWrapRef = useRef<HTMLDivElement>(null)
   const washRef = useRef<HTMLDivElement>(null)
@@ -257,9 +305,27 @@ export default function SpineStage() {
           /*
            * Devir sırasında fotoğraf kıpırdamıyor: video ilk karesinde
            * duruyor ve o kare fotoğrafın aynısı, en ufak kayma bile iki
-           * görüntüyü üst üste düşürüp hayalet yapıyor.
+           * görüntüyü üst üste düşürüp hayalet yapıyor. Yalnızca fotoğraf
+           * sönüyor — omurga ve yazılar sahnede kalıyor.
            */
-          if (sceneRef.current) sceneRef.current.style.opacity = String(1 - hand)
+          if (photoRef.current) photoRef.current.style.opacity = String(1 - hand)
+
+          /*
+           * Omurga ve giriş yazıları kaybolmuyor: kamera indikçe, masa
+           * üstüyle aynı ritimde yukarı çıkıp kadrajdan çıkıyorlar.
+           * Ölçülen eğri video saniyesiyle okunuyor, böylece hareket
+           * videodaki kamerayla aynı anda başlıyor ve hızlanıyor.
+           */
+          const vt = roll * (duration.current || 0)
+          const rise = cameraRise(vt)
+          if (followRef.current) {
+            followRef.current.style.transform = `translate3d(0, ${(rise * 100).toFixed(2)}vh, 0)`
+            followRef.current.style.opacity = (
+              1 - ease(clamp01((vt - FADE_FROM) / (FADE_TO - FADE_FROM)))
+            ).toFixed(3)
+          }
+          /* "Omurgaya tıklayın" ipucu iniş başlar başlamaz çekiliyor */
+          if (hintRef.current) hintRef.current.style.opacity = String(1 - hand)
           if (videoWrapRef.current)
             videoWrapRef.current.style.opacity = (hand * (1 - dissolve)).toFixed(3)
           if (washRef.current) washRef.current.style.opacity = (bloom * (1 - dissolve)).toFixed(3)
@@ -285,8 +351,8 @@ export default function SpineStage() {
           scrollDark.current = clamp01(hand * 1.2) * (1 - Math.max(bloom, dissolve))
           applyDark()
 
-          /* İniş başladığında WebGL döngüsü boşuna dönmesin */
-          const live = p < HOLD + 0.12
+          /* Omurga silindikten sonra WebGL döngüsü boşuna dönmesin */
+          const live = vt < FADE_TO + 0.2
           if (live !== sceneLive.current) {
             sceneLive.current = live
             setSceneLive(live)
@@ -300,7 +366,11 @@ export default function SpineStage() {
   return (
     <section id="top" ref={stageRef} className="relative h-[340vh] lg:h-[420vh]">
       <div ref={stickyRef} className="sticky top-0 h-[100svh] overflow-hidden">
-        <div ref={sceneRef} className="absolute inset-0 will-change-[opacity,transform]">
+        {/*
+          Yığın sırası: en altta video, üstünde giriş fotoğrafı (sönerek
+          videoyu açıyor), en üstte kamerayla yükselen omurga ve yazılar.
+        */}
+        <div ref={sceneRef} className="absolute inset-0 z-10">
           {/* Klinik masası */}
           <div
             ref={photoRef}
@@ -334,6 +404,13 @@ export default function SpineStage() {
             />
           </div>
 
+          {/*
+            Kamerayla birlikte yukarı çıkan katman. Omurga masanın üstünde
+            durduğu için iniş başlayınca kaybolmuyor: masa üstüyle aynı
+            ritimde yükselip kadrajdan çıkıyor. Giriş yazıları da aynı
+            kapta, aynı hareketle gidiyor.
+          */}
+          <div ref={followRef} className="absolute inset-0 will-change-[opacity,transform]">
           {/* 3B omurga — standın üzerinde */}
           <div className="absolute inset-0">
             {mounted && (
@@ -408,12 +485,16 @@ export default function SpineStage() {
           </div>
 
           {/* Alt ipucu */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-20 flex justify-center px-6 sm:bottom-6">
+          <div
+            ref={hintRef}
+            className="pointer-events-none absolute inset-x-0 bottom-20 flex justify-center px-6 sm:bottom-6"
+          >
             <span className="rounded-full bg-ink-950/45 px-4 py-2 text-center font-display text-[0.66rem] font-bold tracking-[0.2em] text-sand-50/85 uppercase backdrop-blur-sm">
               {focused
                 ? 'Bölgelerin üzerine gelin · boşluğa tıklayın ya da kaydırın'
                 : 'Omurgaya tıklayın · bölgeleri tanıyın'}
             </span>
+          </div>
           </div>
         </div>
 
@@ -424,7 +505,7 @@ export default function SpineStage() {
         <div
           ref={videoWrapRef}
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-0 will-change-[opacity]"
+          className="pointer-events-none absolute inset-0 z-0 opacity-0 will-change-[opacity]"
         >
           <video
             ref={videoRef}
@@ -460,7 +541,7 @@ export default function SpineStage() {
         <div
           ref={washRef}
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-0 will-change-[opacity]"
+          className="pointer-events-none absolute inset-0 z-20 opacity-0 will-change-[opacity]"
           style={{
             background:
               'radial-gradient(130% 95% at 50% 32%, rgb(252 248 241 / 0.96), rgb(238 230 216 / 0.86) 58%, rgb(214 203 184 / 0.72) 100%)',

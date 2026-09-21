@@ -115,7 +115,7 @@ export default function SpineStageScene({
       gl={{ antialias: true, alpha: true }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping
-        gl.toneMappingExposure = 1.08
+        gl.toneMappingExposure = 0.96
       }}
       style={{ touchAction: 'pan-y' }}
     >

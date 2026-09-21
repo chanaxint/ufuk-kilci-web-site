@@ -27,6 +27,9 @@ type Props = {
 const SHIFT_ACTIVE = 0.075
 const SHIFT_NEIGHBOUR = 0.03
 
+/** Modelin taban rengi — kemik fildişi */
+const BONE = '#e4d3b4'
+
 export default function SpineParts({ hovered, onHover, onParts, onSelect }: Props) {
   const { scene } = useGLTF(MODEL_URL)
 
@@ -47,14 +50,19 @@ export default function SpineParts({ hovered, onHover, onParts, onSelect }: Prop
     () =>
       parts.map(
         () =>
+          /*
+           * Kemik yüzeyi: saf beyaz değil, sıcak fildişi. Parlak vernik
+           * katmanı da kısıldı; yüksek clearcoat modeli plastik beyaz
+           * gösteriyordu.
+           */
           new THREE.MeshPhysicalMaterial({
-            color: '#efe6d8',
-            roughness: 0.42,
-            metalness: 0.04,
-            clearcoat: 0.55,
-            clearcoatRoughness: 0.32,
-            sheen: 0.4,
-            sheenColor: new THREE.Color('#ffffff'),
+            color: BONE,
+            roughness: 0.58,
+            metalness: 0.02,
+            clearcoat: 0.16,
+            clearcoatRoughness: 0.5,
+            sheen: 0.22,
+            sheenColor: new THREE.Color('#f0e2c8'),
             emissive: new THREE.Color('#000000'),
           }),
       ),
@@ -64,7 +72,7 @@ export default function SpineParts({ hovered, onHover, onParts, onSelect }: Prop
   useEffect(() => () => materials.forEach((m) => m.dispose()), [materials])
 
   const targetPos = useRef(parts.map(() => new THREE.Vector3()))
-  const baseColor = useMemo(() => new THREE.Color('#efe6d8'), [])
+  const baseColor = useMemo(() => new THREE.Color(BONE), [])
   const tintColor = useMemo(() => new THREE.Color(), [])
 
   useFrame((_, delta) => {

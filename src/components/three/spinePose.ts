@@ -20,7 +20,7 @@ const IMAGE = { w: 2000, h: 1116, posX: 0.7, posY: 0.5 }
  * `x`,`y`: leğen kemiğinin oturduğu nokta. `span`: omurganın fotoğraf
  * yüksekliğine oranı. Ayar paneli (`?ayar=1`) doğrudan bunları değiştirir.
  */
-export const stand = { x: 0.723, y: 0.8 }
+export const stand = { x: 0.7087, y: 0.772 }
 export const spine = { span: 0.498, rotY: -0.52 }
 
 /** Üzerine tıklanınca kameranın yaklaştığı hâl — pencereden bağımsız */

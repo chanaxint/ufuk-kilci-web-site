@@ -1,33 +1,9 @@
-import { useState } from 'react'
-import { complaintOptions, doctor, workingHours } from '../lib/content'
+import { doctor, workingHours } from '../lib/content'
 import Reveal from './ui/Reveal'
-import { ArrowRight, Clock, Instagram, Mail, MapPin, Phone, WhatsApp } from './ui/icons'
-
-const inputClass =
-  'w-full rounded-2xl border border-ivory-100/25 bg-transparent px-4 py-3.5 font-sans text-[0.95rem] text-ivory-100 transition-colors duration-300 placeholder:text-ivory-400/70 focus-visible:border-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600'
+import { Clock, Instagram, Mail, MapPin, Phone, WhatsApp } from './ui/icons'
+import LetterForm from './ui/LetterForm'
 
 export default function Contact() {
-  const [form, setForm] = useState({
-    name: '',
-    phone: '',
-    topic: complaintOptions[0],
-    message: '',
-  })
-
-  const waHref = () => {
-    const text = [
-      `Merhaba ${doctor.name},`,
-      '',
-      `Ad Soyad: ${form.name || '-'}`,
-      `Telefon: ${form.phone || '-'}`,
-      `Konu: ${form.topic}`,
-      form.message ? `Mesaj: ${form.message}` : '',
-    ]
-      .filter(Boolean)
-      .join('\n')
-    return `${doctor.whatsapp}?text=${encodeURIComponent(text)}`
-  }
-
   const contactCards = [
     { icon: Phone, label: 'Telefon', value: doctor.phone, href: `tel:${doctor.phone.replace(/\s/g, '')}` },
     { icon: Mail, label: 'E-posta', value: doctor.email, href: `mailto:${doctor.email}` },
@@ -120,91 +96,11 @@ export default function Contact() {
               </div>
             </div>
 
-            {/* Form */}
+            {/* Randevu mektubu — eski form tasarımının yerine */}
             <div className="lg:col-span-7 lg:pt-1">
               <Reveal>
-                <h3 className="font-display text-2xl font-extrabold text-ivory-50">Randevu talebi</h3>
-                <p className="mt-2 text-[0.95rem] text-ivory-300">
-                  Bilgilerinizi doldurun, talebiniz WhatsApp üzerinden hazır mesaj olarak iletilsin.
-                </p>
+                <LetterForm />
               </Reveal>
-
-              <form
-                className="mt-8 grid gap-4 sm:grid-cols-2"
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  window.open(waHref(), '_blank', 'noopener,noreferrer')
-                }}
-              >
-                <label className="flex flex-col gap-2 sm:col-span-1">
-                  <span className="font-display text-[0.78rem] font-bold tracking-[0.1em] text-ivory-300 uppercase">
-                    Ad Soyad
-                  </span>
-                  <input
-                    required
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    placeholder="Adınız ve soyadınız"
-                    className={inputClass}
-                  />
-                </label>
-
-                <label className="flex flex-col gap-2 sm:col-span-1">
-                  <span className="font-display text-[0.78rem] font-bold tracking-[0.1em] text-ivory-300 uppercase">
-                    Telefon
-                  </span>
-                  <input
-                    required
-                    type="tel"
-                    value={form.phone}
-                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    placeholder="05__ ___ __ __"
-                    className={inputClass}
-                  />
-                </label>
-
-                <label className="flex flex-col gap-2 sm:col-span-2">
-                  <span className="font-display text-[0.78rem] font-bold tracking-[0.1em] text-ivory-300 uppercase">
-                    Şikâyet konusu
-                  </span>
-                  <select
-                    value={form.topic}
-                    onChange={(e) => setForm({ ...form, topic: e.target.value })}
-                    className={inputClass}
-                  >
-                    {complaintOptions.map((option) => (
-                      <option key={option}>{option}</option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="flex flex-col gap-2 sm:col-span-2">
-                  <span className="font-display text-[0.78rem] font-bold tracking-[0.1em] text-ivory-300 uppercase">
-                    Kısaca anlatın
-                  </span>
-                  <textarea
-                    rows={4}
-                    value={form.message}
-                    onChange={(e) => setForm({ ...form, message: e.target.value })}
-                    placeholder="Şikâyetiniz ne zaman başladı, hangi hareketlerde artıyor?"
-                    className={`${inputClass} resize-none`}
-                  />
-                </label>
-
-                <div className="flex flex-wrap items-center gap-4 sm:col-span-2">
-                  <button
-                    type="submit"
-                    className="group inline-flex items-center gap-2 rounded-full bg-ivory-50 px-7 py-3.5 font-display text-[0.95rem] font-bold text-ink-900 shadow-[0_18px_40px_-18px_rgb(10_6_3/0.9)] transition-colors duration-300 hover:bg-warm-100"
-                  >
-                    <WhatsApp className="size-4.5" />
-                    WhatsApp ile gönder
-                    <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-                  </button>
-                  <p className="text-[0.78rem] leading-snug text-ivory-300">
-                    Bilgileriniz yalnızca randevu planlaması için kullanılır.
-                  </p>
-                </div>
-              </form>
 
               <div className="mt-9 grid gap-3 border-t border-ivory-100/18 pt-7 sm:grid-cols-3">
                 {[

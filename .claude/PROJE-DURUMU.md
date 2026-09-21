@@ -318,6 +318,20 @@ kaydırma/sticky ofsetleri, paket boyutları, SSIM.
 5. İstenirse doktor sitesine içerik eklemeleri: öncesi/sonrası vakalar, seans
    akışı, blog, Google yorumları, klinik fotoğrafları + harita.
 
+### Randevu formu — mektup ve zarf
+
+`ui/LetterForm.tsx`: form gerçek bir kâğıt (satırlı alanlar, mürekkep yazı).
+Gönderince kullanıcı **siteden çıkmıyor**; kâğıt önce alttan sonra üstten
+katlanıp zarfa giriyor, kapak kapanıyor, mühür basılıyor. Kâğıt ve zarf aynı
+ızgara hücresinde duruyor (sıralı giriş-çıkış beklenirse mektup görünmeden
+sönüyordu).
+
+Gönderim `lib/appointment.ts` üzerinden: `VITE_APPOINTMENT_ENDPOINT` tanımlıysa
+oraya POST ediliyor ve "iletildi" deniyor; tanımlı değilse "hazırlandı" deyip
+WhatsApp bağlantısı gösteriliyor — yalan söylemiyor. **Tarayıcı tek başına
+WhatsApp mesajı gönderemez** (anahtar tarayıcıya konulamaz); seçenekler
+`docs/randevu-gonderimi.md` içinde.
+
 ---
 
 ## 9. Dosya haritası (kısa)

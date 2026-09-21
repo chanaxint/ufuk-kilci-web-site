@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect } from 'react'
 import { motion } from 'motion/react'
 import { doctor } from '../lib/content'
+import MessageLoading from './ui/MessageLoading'
 
 /*
  * Lottie motoru yükleme ekranının ilk karesini geciktirmesin diye ayrı bir
@@ -68,20 +69,26 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-8 flex flex-col items-center"
+          className="mt-6 flex flex-col items-center"
         >
-          {/* Kutu her hâlükârda yer tutar: kedi geç gelse de yazı yerinden oynamaz */}
-          <div className="flex size-20 items-center justify-center sm:size-24">
+          {/*
+            Kutu her hâlükârda yer tutar: kedi geç gelse de yazı yerinden
+            oynamaz. Kutu kareden alçak ve taşanı kırpıyor — Lottie karesinin
+            alt/üst boşluğu böyle kesiliyor, kedi hem büyük kalıyor hem de
+            doğrudan yazının üstüne oturuyor.
+          */}
+          <div className="flex h-[3.6rem] w-24 items-center justify-center overflow-hidden sm:h-[4.2rem] sm:w-28">
             <Suspense fallback={null}>
-              <LottieCat className="size-full" />
+              <LottieCat className="size-24 sm:size-28" />
             </Suspense>
           </div>
           {/*
-            Zaten büyük harfle yazılı: `uppercase` Türkçe yerelde "i" harfini
-            "İ" yapıp LOADİNG üretiyordu.
+            LOADING zaten büyük harfle yazılı: `uppercase` Türkçe yerelde "i"
+            harfini "İ" yapıp LOADİNG üretiyordu.
           */}
-          <span className="mt-1 font-display text-[0.68rem] font-bold tracking-[0.34em] text-ink-500">
+          <span className="mt-1 flex items-center gap-1.5 font-display text-[0.68rem] font-bold tracking-[0.34em] text-ink-500">
             LOADING
+            <MessageLoading className="-ml-0.5 size-3.5" />
           </span>
         </motion.div>
       </div>

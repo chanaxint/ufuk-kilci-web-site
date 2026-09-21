@@ -16,6 +16,12 @@ const SpineStageScene = lazy(() => import('./three/SpineStageScene'))
 gsap.registerPlugin(ScrollTrigger)
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
+const ease = (t: number) => t * t * (3 - 2 * t)
+
+/* Kaydırma inişinin kilometre taşları (bölümün ilerlemesi üzerinden) */
+const HOLD = 0.16 // buraya kadar sahne olduğu gibi duruyor
+const FLOOR = 0.86 // burada kamera zemine varmış oluyor
+const BLOOM = 0.91 // ışık doluyor, sonra sahne sayfaya çözülüyor
 
 /**
  * Giriş sahnesi.
@@ -24,8 +30,12 @@ const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
  * üzerinde. Omurga scroll ile gelmiyor: başından beri orada. Üzerine
  * tıklanınca kamera yaklaşıyor (çevre görünürken), bölge adları açılıyor;
  * bir sonraki kaydırma hareketi odağı bırakıp sahneyi geri veriyor.
- * Kaydırmaya devam edilince sahne yukarı kayıp kararıyor — masanın altına
- * inilmiş gibi — ve site oradan açılıyor.
+ *
+ * Kaydırmaya devam edilince fotoğraf, ilk karesi onunla birebir aynı olan
+ * iniş videosuna devrediyor. Video oynamıyor: karesi kaydırmaya kilitli,
+ * yani kamera ancak siz kaydırdıkça masanın kenarından aşağı iniyor,
+ * masanın altına giriyor ve zemine varıyor. Zeminde ışık perdesi açılıp
+ * siteyi devralıyor.
  */
 export default function SpineStage() {
   const stageRef = useRef<HTMLDivElement>(null)
@@ -33,7 +43,13 @@ export default function SpineStage() {
   const sceneRef = useRef<HTMLDivElement>(null)
   const photoRef = useRef<HTMLDivElement>(null)
   const heroRef = useRef<HTMLDivElement>(null)
-  const veilRef = useRef<HTMLDivElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const videoWrapRef = useRef<HTMLDivElement>(null)
+  const washRef = useRef<HTMLDivElement>(null)
+  /** Videonun süresi yüklenince buraya yazılıyor */
+  const duration = useRef(0)
+  /** Son yazılan currentTime — gereksiz seek isteklerini eliyor */
+  const lastSeek = useRef(-1)
   /** 0: standın üzerinde, 1: kamera yaklaşmış */
   const focus = useRef(0)
   /** Omurgaya en son ne zaman tıklandı — boşluğa tıklamayı ayırt etmek için */
@@ -50,6 +66,10 @@ export default function SpineStage() {
     const v = Math.max(scrollDark.current, focusDark.current)
     document.documentElement.style.setProperty('--stage-dark', v.toFixed(3))
   }
+
+  /* İniş başlayınca WebGL döngüsü duruyor; sahne zaten görünmüyor */
+  const sceneLive = useRef(true)
+  const [isSceneLive, setSceneLive] = useState(true)
 
   const [focused, setFocused] = useState(false)
   const [hovered, setHovered] = useState<SpineRegionId | null>(null)
@@ -125,6 +145,50 @@ export default function SpineStage() {
   }, [focused])
 
   /*
+   * Video kurulumu. Süre öğrenilince kaydırma onu sürebiliyor. iOS Safari
+   * ilk kullanıcı hareketine kadar kareyi çözmediği için videoyu bir kez
+   * oynatıp hemen duruyoruz; bu, sessiz ve satır içi videoda görünmez.
+   */
+  useEffect(() => {
+    const v = videoRef.current
+    if (!v) return
+    const onMeta = () => {
+      duration.current = v.duration || 0
+    }
+    if (v.readyState >= 1) onMeta()
+    v.addEventListener('loadedmetadata', onMeta)
+
+    /*
+     * Video giriş fotoğrafıyla yarışmasın: ilk kare ekrana oturduktan sonra
+     * indirmeye başlıyor. Kaydırma oraya varana kadar fazlasıyla vakit var.
+     */
+    const warm = window.setTimeout(() => {
+      v.preload = 'auto'
+      v.load()
+    }, 1400)
+
+    let primed = false
+    const prime = () => {
+      if (primed) return
+      primed = true
+      v.play()
+        .then(() => v.pause())
+        .catch(() => {})
+    }
+    window.addEventListener('touchstart', prime, { once: true, passive: true })
+    window.addEventListener('pointerdown', prime, { once: true })
+    window.addEventListener('wheel', prime, { once: true, passive: true })
+
+    return () => {
+      window.clearTimeout(warm)
+      v.removeEventListener('loadedmetadata', onMeta)
+      window.removeEventListener('touchstart', prime)
+      window.removeEventListener('pointerdown', prime)
+      window.removeEventListener('wheel', prime)
+    }
+  }, [])
+
+  /*
    * Odaktayken sayfa kilitli. Kaydırma, Esc ya da boşluğa tıklama odağı
    * bırakıp aynı sahneye döndürüyor; omurganın kendisine tıklamak saymıyor.
    */
@@ -155,9 +219,11 @@ export default function SpineStage() {
   }, [focused])
 
   /*
-   * Kaydırma: sahne önce olduğu gibi duruyor, sonra yukarı kayıp sönüyor ve
-   * siyah perde aşağıdan yükselip ekranı kaplıyor; son bölümde perde açılınca
-   * sitenin sıvalı zemini görünüyor.
+   * Kaydırma inişi. Sahne bir süre olduğu gibi duruyor; sonra giriş
+   * fotoğrafı, ilk karesi onunla birebir aynı olan videoya devrediyor ve
+   * video kaydırmaya kilitleniyor: kamera masanın kenarından aşağı inip
+   * masanın altına giriyor, oradan zemine varıyor. Son bölümde sıcak bir
+   * ışık perdesi açılıp sayfayı devralıyor.
    */
   useEffect(() => {
     const el = stageRef.current
@@ -169,22 +235,54 @@ export default function SpineStage() {
         end: 'bottom bottom',
         onUpdate: (self) => {
           const p = self.progress
-          const down = clamp01((p - 0.45) / 0.35)
-          const up = clamp01((p - 0.8) / 0.2)
-          if (sceneRef.current) {
-            sceneRef.current.style.opacity = String(1 - down)
-            sceneRef.current.style.transform = `translate3d(0, ${(-down * 16).toFixed(2)}vh, 0)`
-          }
-          if (veilRef.current) {
-            veilRef.current.style.transform = `translate3d(0, ${((1 - down) * 100).toFixed(2)}%, 0)`
-            veilRef.current.style.opacity = String(1 - up)
-          }
+          /* Fotoğraftan videoya devir */
+          const hand = clamp01((p - HOLD) / 0.09)
+          /* Videonun kendi ilerlemesi */
+          const roll = ease(clamp01((p - HOLD) / (FLOOR - HOLD)))
           /*
-           * Sabit başlık ve mobil arama çubuğu koyu geçiş boyunca siliniyor:
-           * mürekkep rengi yazılar siyah perdenin üzerinde okunmuyordu.
+           * Zeminde önce sıcak bir ışık doluyor (masanın altından aydınlığa
+           * çıkmak gibi), sonra bütün sahne sayfanın kendi zeminine çözülüyor.
+           * Sonda hiçbir katman kalmıyor: devir dikişsiz oluyor.
            */
-          scrollDark.current = down * (1 - up)
+          const bloom = ease(clamp01((p - FLOOR) / (BLOOM - FLOOR)))
+          const dissolve = ease(clamp01((p - BLOOM) / (1 - BLOOM)))
+
+          if (sceneRef.current) {
+            sceneRef.current.style.opacity = String(1 - hand)
+            /* Fotoğraf da videoyla aynı yöne, biraz daha yavaş kayıyor */
+            sceneRef.current.style.transform = `translate3d(0, ${(-hand * 6).toFixed(2)}vh, 0)`
+          }
+          if (videoWrapRef.current)
+            videoWrapRef.current.style.opacity = (hand * (1 - dissolve)).toFixed(3)
+          if (washRef.current) washRef.current.style.opacity = (bloom * (1 - dissolve)).toFixed(3)
+
+          const v = videoRef.current
+          if (v && duration.current > 0) {
+            const t = roll * duration.current
+            /* Yarım kareden küçük farklar için seek istemiyoruz */
+            if (Math.abs(t - lastSeek.current) > 1 / 48) {
+              lastSeek.current = t
+              try {
+                v.currentTime = t
+              } catch {
+                /* tarayıcı henüz hazır değilse sessizce geç */
+              }
+            }
+          }
+
+          /*
+           * Sabit başlık ve mobil arama çubuğu koyu inişte siliniyor;
+           * zeminde perde açılırken geri geliyor.
+           */
+          scrollDark.current = clamp01(hand * 1.2) * (1 - Math.max(bloom, dissolve))
           applyDark()
+
+          /* İniş başladığında WebGL döngüsü boşuna dönmesin */
+          const live = p < HOLD + 0.12
+          if (live !== sceneLive.current) {
+            sceneLive.current = live
+            setSceneLive(live)
+          }
         },
       })
     }, el)
@@ -192,7 +290,7 @@ export default function SpineStage() {
   }, [])
 
   return (
-    <section id="top" ref={stageRef} className="relative h-[220vh]">
+    <section id="top" ref={stageRef} className="relative h-[340vh] lg:h-[420vh]">
       <div ref={stickyRef} className="sticky top-0 h-[100svh] overflow-hidden">
         <div ref={sceneRef} className="absolute inset-0 will-change-[opacity,transform]">
           {/* Klinik masası */}
@@ -235,7 +333,7 @@ export default function SpineStage() {
                 <Suspense fallback={null}>
                   <SpineStageScene
                     focus={focus}
-                    active={onScreen}
+                    active={onScreen && isSceneLive}
                     labelsVisible={focused}
                     hovered={hovered}
                     onHover={setHovered}
@@ -311,14 +409,42 @@ export default function SpineStage() {
           </div>
         </div>
 
-        {tuning && <PoseTuner isMobile={isMobile} focused={focused} />}
-
-        {/* Masanın altına iniş — aşağıdan yükselen siyah perde */}
+        {/*
+          İniş videosu. İlk karesi giriş fotoğrafının aynısı olduğu için
+          devir görünmüyor; oradan sonra kamera kaydırmayla aşağı iniyor.
+        */}
         <div
-          ref={veilRef}
+          ref={videoWrapRef}
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 translate-y-full bg-[#0b0806] will-change-[opacity,transform]"
+          className="pointer-events-none absolute inset-0 opacity-0 will-change-[opacity]"
+        >
+          <video
+            ref={videoRef}
+            poster="/images/klinik-masa.jpg"
+            muted
+            playsInline
+            preload="none"
+            disablePictureInPicture
+            className="size-full object-cover"
+          >
+            {/* H.264 her yerde donanımla çözülüyor; VP9 yalnızca yedek */}
+            <source src="/video/masa-alti-inis.mp4" type='video/mp4; codecs="avc1.4d401f"' />
+            <source src="/video/masa-alti-inis.webm" type="video/webm" />
+          </video>
+        </div>
+
+        {/* Zeminde dolan ışık — sonra sahneyle birlikte çözülüyor */}
+        <div
+          ref={washRef}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-0 will-change-[opacity]"
+          style={{
+            background:
+              'radial-gradient(130% 95% at 50% 32%, rgb(252 248 241 / 0.96), rgb(238 230 216 / 0.86) 58%, rgb(214 203 184 / 0.72) 100%)',
+          }}
         />
+
+        {tuning && <PoseTuner isMobile={isMobile} focused={focused} />}
       </div>
     </section>
   )

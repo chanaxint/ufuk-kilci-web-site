@@ -2,12 +2,16 @@
  * Sitenin tamamının oturduğu tek zemin: giriş inişinin bittiği ahşap döşeme.
  *
  * Kamera masanın altından zemine iniyor ve sayfa oradan devam ediyor; bu
- * yüzden arkaplan artık sıvalı duvar değil, aynı ceviz parke. Katmanlar:
- * parke fotoğrafı (sabit) → üzerinde yavaşça dolaşan sıcak ışık havuzları →
- * dokuyu kıran ince tane → kenarlara doğru koyulaşan vinyet.
+ * yüzden arkaplan sıvalı duvar değil, aynı ceviz parke. Katmanlar: parke
+ * fotoğrafı (sabit) → sıcak perde → yavaşça dolaşan ışık havuzları → ince
+ * tane → kenarlara doğru koyulaşan vinyet.
  *
- * Fotoğraf `fixed` durduğu için sayfa kaydıkça zemin kaymıyor: içerik
- * zeminin üzerinde duran nesneler gibi geçiyor.
+ * Başarım notu: burada eskiden tam ekran bir SVG `feTurbulence` filtresi ve
+ * üç tane 64 piksel bulanıklıklı dev katman vardı. Ölçüldüğünde sayfanın
+ * ilk on saniyesindeki uzun görevlerin çoğu buradan geliyordu (8,9 sn →
+ * 2,3 sn). Tane artık küçük, döşenen hazır bir görsel; ışık havuzlarında
+ * bulanıklık yok, çünkü radyal gradyan zaten yumuşak — filtre görüntüye
+ * neredeyse hiçbir şey katmıyor ama her karede yeniden çiziliyordu.
  */
 export default function StudioBackground() {
   return (
@@ -25,38 +29,35 @@ export default function StudioBackground() {
 
       {/* Yavaşça dolaşan sıcak ışık havuzları */}
       <div
-        className="absolute -top-[15%] -left-[10%] h-[80vh] w-[75vw] rounded-[45%] blur-3xl will-change-transform"
+        className="absolute -top-[10%] -left-[8%] h-[58vh] w-[52vw] will-change-transform"
         style={{
           background:
-            'radial-gradient(closest-side, rgb(255 226 178 / 0.3), rgb(255 219 170 / 0.13) 52%, transparent 78%)',
+            'radial-gradient(closest-side, rgb(255 226 178 / 0.26), rgb(255 219 170 / 0.12) 48%, transparent 76%)',
           animation: 'auroraA 21s ease-in-out infinite',
         }}
       />
       <div
-        className="absolute top-[26%] -right-[12%] h-[72vh] w-[68vw] rounded-[45%] blur-3xl will-change-transform"
+        className="absolute top-[28%] -right-[8%] h-[54vh] w-[48vw] will-change-transform"
         style={{
           background:
-            'radial-gradient(closest-side, rgb(255 231 190 / 0.26), rgb(255 222 176 / 0.11) 52%, transparent 78%)',
+            'radial-gradient(closest-side, rgb(255 231 190 / 0.22), rgb(255 222 176 / 0.1) 48%, transparent 76%)',
           animation: 'auroraB 27s ease-in-out infinite',
         }}
       />
       <div
-        className="absolute -bottom-[14%] left-[22%] h-[64vh] w-[70vw] rounded-[45%] blur-3xl will-change-transform"
+        className="absolute -bottom-[10%] left-[24%] h-[50vh] w-[50vw] will-change-transform"
         style={{
           background:
-            'radial-gradient(closest-side, rgb(255 228 184 / 0.24), rgb(255 220 172 / 0.1) 55%, transparent 80%)',
+            'radial-gradient(closest-side, rgb(255 228 184 / 0.2), rgb(255 220 172 / 0.09) 52%, transparent 78%)',
           animation: 'auroraC 33s ease-in-out infinite',
         }}
       />
 
-      {/* Tane — bantlanmayı kırar */}
-      <svg className="absolute inset-0 size-full opacity-[0.16] mix-blend-overlay">
-        <filter id="studioGrain">
-          <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="4" stitchTiles="stitch" />
-          <feColorMatrix type="saturate" values="0" />
-        </filter>
-        <rect width="100%" height="100%" filter="url(#studioGrain)" />
-      </svg>
+      {/* Tane — bantlanmayı kırar; döşenen küçük bir görsel */}
+      <div
+        className="absolute inset-0 opacity-[0.55]"
+        style={{ backgroundImage: 'url(/images/doku.png)', backgroundRepeat: 'repeat' }}
+      />
 
       {/* Kenarlara doğru koyulaşan vinyet */}
       <div

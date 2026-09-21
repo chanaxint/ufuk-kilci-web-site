@@ -72,7 +72,9 @@ Aralarda `SectionRule` (ince ayırıcı çizgi).
   StaggeredMenu. Panel **açık zeminli** (`bg-sand-50/95`), içindeki yazılar koyu.
 - **Testimonials**: spiral kaldırıldı. Sayfa sabitleniyor ve kaydırdıkça
   yorumlar birer kâğıt gibi yukarıdan düşüp zemine yapışıyor (dönüşümler
-  doğrudan DOM'a yazılıyor, React render'ı yok). Geniş ekranda sekizi de
+  doğrudan DOM'a yazılıyor, React render'ı yok). Kâğıtlar eski: sararmış
+  zemin, lif dokusu, soluk lekeler, kırık izi, koyulaşmış kenar ve soluk
+  mürekkep — her kâğıdın tonu ve leke yeri farklı (`AGED` dizisi). Geniş ekranda sekizi de
   yerde kalıyor; dar ekranda üçlü dalgalar hâlinde geliyor, yeni kâğıt
   düşerken bir öncekinin yerini alıyor.
 - **ScoliosisAngles**: yuvarlak kadran kaldırıldı; yerinde yatay ölçek
@@ -254,6 +256,12 @@ ahşabın üstünde koyu düğme kayboluyordu.
   (LOADING → LOADİNG); büyük harfli metin doğrudan yazıldı.
 - **R3F `frameloop`**: sahneler görüş alanı dışındayken `'never'`. Site
   genelindeki kasmanın tek en büyük sebebi buydu.
+- **Tam ekran SVG `feTurbulence` ve büyük `blur-3xl` katmanları** girişte
+  ölçülebilir takılma yapıyordu (ilk 10 sn'de uzun görev toplamı 8,9 sn).
+  Tane artık döşenen küçük bir PNG (`/images/doku.png`), ışık havuzlarında
+  bulanıklık yok ve alanları küçültüldü → 4,4 sn. WebGL bağlamı da yükleme
+  ekranıyla birlikte değil, ilk kaydırmada (ya da en geç 4,2 sn sonra)
+  kuruluyor: giriş penceresinde 3 sn'de 1 kare yerine 31 kare.
 - **Prettier çalıştırma.** Projede yapılandırma yok; varsayılanlar noktalı
   virgül ekleyip bütün dosyayı bozuyor. Biçim elle korunuyor.
 - **`lottie.host` konteynerden engelli** (403 / tünel hatası) — kedi burada

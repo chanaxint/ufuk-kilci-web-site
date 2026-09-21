@@ -184,11 +184,30 @@ export default function SpineStage() {
     return () => window.removeEventListener('resize', check)
   }, [])
 
-  /* WebGL bağlamını ilk karede değil, bileşen bağlandıktan hemen sonra kur */
+  /*
+   * WebGL bağlamı yükleme ekranıyla ve kliniğe giriş videosuyla aynı anda
+   * kurulmuyor: bağlam oluşturma, GLB çözme ve shader derlemesi ölçülebilir
+   * bir takılma yaratıyordu. Omurga zaten yürüyüş bitmeden görünmüyor, bu
+   * yüzden sahne ancak kaydırma başlayınca (ya da en geç birkaç saniye
+   * sonra) kuruluyor; kullanıcı oraya varana kadar hazır oluyor.
+   */
   useEffect(() => {
     if (!hasWebGL()) return
-    const id = window.setTimeout(() => setMounted(true), 60)
-    return () => window.clearTimeout(id)
+    let done = false
+    const start = () => {
+      if (done) return
+      done = true
+      setMounted(true)
+    }
+    const onScroll = () => {
+      if (window.scrollY > 40) start()
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    const id = window.setTimeout(start, 4200)
+    return () => {
+      window.clearTimeout(id)
+      window.removeEventListener('scroll', onScroll)
+    }
   }, [])
 
   /* Sahne görüş alanından çıkınca WebGL render döngüsü duruyor */

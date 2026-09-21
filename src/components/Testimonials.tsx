@@ -10,6 +10,22 @@ import { Star } from './ui/icons'
  */
 type Spot = { x: number; y: number; r: number }
 
+/*
+ * Kâğıtlar birbirinin kopyası olmasın: her biri biraz farklı sararmış,
+ * lekeleri başka yerde. Sayılar sabit — her açılışta aynı kâğıt aynı
+ * görünüyor, rastgelelik yalnızca bakışta.
+ */
+const AGED = [
+  { tone: '#ecdfc4', stain: '18% 22%', stain2: '82% 78%', crease: 118 },
+  { tone: '#efe3cb', stain: '76% 18%', stain2: '22% 82%', crease: 64 },
+  { tone: '#e8dabd', stain: '30% 78%', stain2: '70% 26%', crease: 141 },
+  { tone: '#f0e5cf', stain: '84% 62%', stain2: '14% 30%', crease: 97 },
+  { tone: '#e9dcc0', stain: '24% 34%', stain2: '78% 70%', crease: 126 },
+  { tone: '#eee2c8', stain: '68% 80%', stain2: '28% 18%', crease: 72 },
+  { tone: '#e7d9ba', stain: '46% 20%', stain2: '60% 84%', crease: 134 },
+  { tone: '#f1e6d1', stain: '20% 68%', stain2: '80% 24%', crease: 88 },
+]
+
 /* Üst sıra sabit başlığın altından başlıyor (≈%11), en alt kâğıt ekranda kalıyor */
 const WIDE: Spot[] = [
   { x: 4, y: 12, r: -6 },
@@ -95,7 +111,10 @@ export default function Testimonials() {
         /* Gölge yere yaklaştıkça toplanıyor */
         const spread = 10 + (1 - t) * 44
         const drop = 8 + (1 - t) * 40
-        node.style.boxShadow = `0 ${drop.toFixed(0)}px ${spread.toFixed(0)}px -${(spread * 0.55).toFixed(0)}px rgb(12 7 3 / ${(0.85 - (1 - t) * 0.3).toFixed(2)})`
+        /* Dışarıda yere düşen gölge, içeride yıllanmış kenar koyuluğu */
+        node.style.boxShadow =
+          `0 ${drop.toFixed(0)}px ${spread.toFixed(0)}px -${(spread * 0.55).toFixed(0)}px rgb(12 7 3 / ${(0.85 - (1 - t) * 0.3).toFixed(2)}),` +
+          ' inset 0 0 26px rgb(126 96 52 / 0.22)'
       })
     }
 
@@ -157,6 +176,7 @@ export default function Testimonials() {
           <div className="relative mx-auto h-full w-full max-w-[86rem] px-4 sm:px-8">
             {testimonials.map((item, i) => {
               const spot = spots[i % spots.length]
+              const aged = AGED[i % AGED.length]
               return (
                 <figure
                   key={item.name}
@@ -169,35 +189,47 @@ export default function Testimonials() {
                     top: `${spot.y}%`,
                     transformOrigin: '50% 40%',
                     opacity: 0,
-                    background:
-                      'linear-gradient(158deg, #fbf6ea 0%, #f4ecdc 54%, #ece2cf 100%)',
+                    /*
+                      Eski kâğıt: sararmış zemin, üzerinde iki soluk leke ve
+                      odanın soldan gelen ışığına uyan hafif bir eğim.
+                    */
+                    background: `radial-gradient(60% 50% at ${aged.stain}, rgb(196 160 104 / 0.16), transparent 70%),
+                      radial-gradient(52% 44% at ${aged.stain2}, rgb(176 138 86 / 0.13), transparent 72%),
+                      linear-gradient(152deg, rgb(255 252 244 / 0.55) 0%, transparent 38%),
+                      ${aged.tone}`,
                   }}
-                  className="absolute w-[15.5rem] rounded-[3px] px-5 py-4 will-change-[transform,opacity] sm:w-[18rem] lg:w-[19.5rem]"
+                  className="absolute w-[15.5rem] overflow-hidden rounded-[2px] px-5 py-4 will-change-[transform,opacity] sm:w-[18rem] lg:w-[19.5rem]"
                 >
-                  {/* Kâğıdın üst kenarındaki hafif kıvrım ışığı */}
+                  {/* Kâğıt lifi — zeminle aynı tane, çarpımla dokuya işliyor */}
                   <span
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-x-0 top-0 h-6 rounded-t-[3px]"
+                    className="pointer-events-none absolute inset-0 opacity-[0.45] mix-blend-multiply"
+                    style={{ backgroundImage: 'url(/images/doku.png)', backgroundRepeat: 'repeat' }}
+                  />
+                  {/* Yıllarca katlı durmuş gibi soluk bir kırık izi */}
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0"
                     style={{
-                      background: 'linear-gradient(180deg, rgb(255 255 255 / 0.65), transparent)',
+                      background: `linear-gradient(${aged.crease}deg, transparent 46%, rgb(120 92 52 / 0.1) 49.5%, rgb(255 250 236 / 0.4) 50.5%, transparent 54%)`,
                     }}
                   />
 
-                  <div className="flex items-center gap-0.5 text-warm-500">
+                  <div className="relative flex items-center gap-0.5 text-[#96691f]">
                     {Array.from({ length: 5 }).map((_, s) => (
                       <Star key={s} className="size-3.5" />
                     ))}
                   </div>
 
-                  <blockquote className="mt-2.5 text-[0.88rem] leading-relaxed text-ink-700">
+                  <blockquote className="relative mt-2.5 text-[0.88rem] leading-relaxed text-[#453524]">
                     {item.quote}
                   </blockquote>
 
-                  <figcaption className="mt-3.5 flex items-baseline gap-2 border-t border-ink-700/15 pt-2.5">
-                    <span className="font-wordmark text-[1.15rem] leading-none text-ink-900">
+                  <figcaption className="relative mt-3.5 flex items-baseline gap-2 border-t border-[#6b5334]/25 pt-2.5">
+                    <span className="font-wordmark text-[1.15rem] leading-none text-[#31241a]">
                       {item.name}
                     </span>
-                    <span className="text-[0.74rem] text-ink-500">{item.role}</span>
+                    <span className="text-[0.74rem] text-[#6f5a3f]">{item.role}</span>
                   </figcaption>
                 </figure>
               )

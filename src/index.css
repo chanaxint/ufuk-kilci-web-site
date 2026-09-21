@@ -134,9 +134,14 @@
   .lenis.lenis-smooth {
     scroll-behavior: auto !important;
   }
-  .lenis.lenis-stopped {
-    overflow: hidden;
-  }
+  /*
+   * Lenis'in önerdiği `.lenis-stopped { overflow: hidden }` kuralı burada
+   * yok. Omurgaya tıklanınca sayfa kilitleniyor (lenis.stop()) ve bu kural
+   * html'e overflow:hidden yazıyordu; ScrollTrigger o anda bölümü yeniden
+   * ölçüp ilerlemeyi sıfırlıyor, sahne bir anda başa/sona sıçrıyordu.
+   * Kilidi Lenis'in kendisi zaten tutuyor; ilk tekerlek hareketi de odaktan
+   * çıkarıyor.
+   */
 
   h1, h2, h3, h4, h5 {
     @apply font-display text-ivory-50;

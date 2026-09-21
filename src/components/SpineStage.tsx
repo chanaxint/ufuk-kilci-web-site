@@ -138,6 +138,13 @@ export default function SpineStage() {
   /** Omurgaya en son ne zaman tıklandı — boşluğa tıklamayı ayırt etmek için */
   const spineClickAt = useRef(0)
   /*
+   * Odaktayken sayfa kilitli; bu sırada gelen kaydırma güncellemeleri
+   * dinlenmiyor. Kilit anında tarayıcı bir yeniden ölçüm yaparsa
+   * (ScrollTrigger tazelenirse) sahne bir anda bölümün başına/sonuna
+   * sıçrıyordu — bu bayrak onu kesiyor.
+   */
+  const focusedRef = useRef(false)
+  /*
    * Sabit başlık iki ayrı durumda siliniyor: siyah perdeye girerken ve
    * omurgaya yaklaşılırken (fotoğraf koyulaşınca mürekkep rengi yazılar
    * okunmuyor). İkisinin büyüğü yazılıyor ki biri diğerini ezmesin.
@@ -267,15 +274,27 @@ export default function SpineStage() {
     }, 1400)
 
     let primed = false
+    /*
+     * iOS Safari ilk kullanıcı hareketine kadar kareyi çözmüyor; videoyu bir
+     * kez oynatıp hemen duruyoruz. Kare konumu geri yazılıyor: sonuna gelmiş
+     * bir videoda `play()` onu başa sarıyor ve yürüyüş sahnesi kapıya
+     * dönüyordu.
+     */
+    const primeOne = (el: HTMLVideoElement | null) => {
+      if (!el) return
+      const at = el.currentTime
+      el.play()
+        .then(() => {
+          el.pause()
+          if (Math.abs(el.currentTime - at) > 0.01) el.currentTime = at
+        })
+        .catch(() => {})
+    }
     const prime = () => {
       if (primed) return
       primed = true
-      v.play()
-        .then(() => v.pause())
-        .catch(() => {})
-      w?.play()
-        .then(() => w.pause())
-        .catch(() => {})
+      primeOne(v)
+      primeOne(w)
     }
     window.addEventListener('touchstart', prime, { once: true, passive: true })
     window.addEventListener('pointerdown', prime, { once: true })
@@ -296,6 +315,7 @@ export default function SpineStage() {
    * bırakıp aynı sahneye döndürüyor; omurganın kendisine tıklamak saymıyor.
    */
   useEffect(() => {
+    focusedRef.current = focused
     if (!focused) return
     setScrollLocked(true)
     const release = () => {
@@ -337,6 +357,7 @@ export default function SpineStage() {
         start: 'top top',
         end: 'bottom bottom',
         onUpdate: (self) => {
+          if (focusedRef.current) return
           const p = self.progress
 
           /*

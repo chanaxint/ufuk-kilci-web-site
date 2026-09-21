@@ -231,6 +231,14 @@ ahşabın üstünde koyu düğme kayboluyordu.
 - **`backdrop-filter`**, üst öğede `mask-image` **veya** `isolation: isolate`
   varsa çalışmıyor (arkaplan kökü boşalıyor).
 - **`position: sticky`**, üst öğede `overflow: hidden` varsa kırılıyor.
+- **Kaydırmayı kilitlerken köke `overflow: hidden` yazmak** ScrollTrigger'ı
+  yeniden ölçmeye zorluyor ve sabitlenmiş bölümün ilerlemesi sıçrıyor
+  (omurgaya tıklayınca sahne bir anda bölümün sonuna atlıyordu). Lenis'in
+  önerdiği `.lenis-stopped { overflow: hidden }` kuralı bu yüzden yok;
+  `lenis.stop()` tekerleği zaten `preventDefault` ile tutuyor. Ayrıca
+  odaktayken `onUpdate` tamamen yok sayılıyor (`focusedRef`).
+- **Sonuna gelmiş bir videoda `play()`** onu başa sarıyor. iOS için yapılan
+  "bir kez oynat-durdur" hazırlığı bu yüzden kare konumunu geri yazıyor.
 - Chromium'da **`scrollbar-color`** verilince `::-webkit-scrollbar` kuralları
   yok sayılıyor ve ok düğmeli yerel çubuk geri geliyor → `@supports not
   selector(::-webkit-scrollbar)` ile sarıldı.

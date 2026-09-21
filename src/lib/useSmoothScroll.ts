@@ -12,13 +12,16 @@ gsap.registerPlugin(ScrollTrigger)
 let current: Lenis | null = null
 
 export function setScrollLocked(locked: boolean) {
-  if (locked) {
-    current?.stop()
-    document.body.style.overflow = 'hidden'
-  } else {
-    current?.start()
-    document.body.style.overflow = ''
-  }
+  /*
+   * Yalnızca Lenis durduruluyor. Eskiden buraya `body.overflow = 'hidden'`
+   * de yazılıyordu; o satır tarayıcıyı yeniden ölçüme zorlayıp
+   * ScrollTrigger'ın bölüm ilerlemesini sıçratıyordu: omurgaya tıklayınca
+   * sahne bir anda bölümün başına/sonuna atlıyor, videolar başa sarıyordu.
+   * Lenis durduğunda tekerlek ve dokunuş zaten ona gitmiyor; odaktan çıkış
+   * da ilk tekerlek hareketinde oluyor.
+   */
+  if (locked) current?.stop()
+  else current?.start()
 }
 
 /**

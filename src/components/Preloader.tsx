@@ -1,25 +1,20 @@
-import { useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import { motion } from 'motion/react'
 import { doctor } from '../lib/content'
+
+/*
+ * Lottie motoru yükleme ekranının ilk karesini geciktirmesin diye ayrı bir
+ * parçada: yazı hemen çıkıyor, kedi motoru gelince beliriyor.
+ */
+const LottieCat = lazy(() => import('./ui/LottieCat'))
 
 const letters = (word: string) => Array.from(word)
 
 export default function Preloader({ onDone }: { onDone: () => void }) {
-  const [progress, setProgress] = useState(0)
-
+  /* Dolan çubuk kalktı; ekran sabit bir süre durup kendini kapatıyor */
   useEffect(() => {
-    let raf = 0
-    const start = performance.now()
-    const duration = 2100
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / duration)
-      const eased = 1 - Math.pow(1 - t, 3)
-      setProgress(Math.round(eased * 100))
-      if (t < 1) raf = requestAnimationFrame(tick)
-      else setTimeout(onDone, 520)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
+    const id = window.setTimeout(onDone, 2400)
+    return () => window.clearTimeout(id)
   }, [onDone])
 
   return (
@@ -68,19 +63,27 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
           ))}
         </h1>
 
-        {/* İlerleme çizgisi */}
-        <div className="mt-9 flex w-[min(22rem,80vw)] flex-col gap-3">
-          <div className="h-[3px] w-full overflow-hidden rounded-full bg-ink-900/10">
-            <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-brand-600 via-brand-500 to-vital-500"
-              style={{ width: `${progress}%` }}
-            />
+        {/* Kedi ve yükleme yazısı */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-8 flex flex-col items-center"
+        >
+          {/* Kutu her hâlükârda yer tutar: kedi geç gelse de yazı yerinden oynamaz */}
+          <div className="flex size-20 items-center justify-center sm:size-24">
+            <Suspense fallback={null}>
+              <LottieCat className="size-full" />
+            </Suspense>
           </div>
-          <div className="flex items-center justify-between font-display text-[0.68rem] font-bold tracking-[0.22em] text-ink-500 uppercase">
-            <span>Omurga sağlığı merkezi</span>
-            <span className="tabular-nums text-ink-800">{progress}%</span>
-          </div>
-        </div>
+          {/*
+            Zaten büyük harfle yazılı: `uppercase` Türkçe yerelde "i" harfini
+            "İ" yapıp LOADİNG üretiyordu.
+          */}
+          <span className="mt-1 font-display text-[0.68rem] font-bold tracking-[0.34em] text-ink-500">
+            LOADING
+          </span>
+        </motion.div>
       </div>
     </motion.div>
   )

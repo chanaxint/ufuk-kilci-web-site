@@ -347,11 +347,30 @@ sağda doldurulup zarfa giren mektup. Koyu gradyanlı panel ve "Randevu &
 İletişim" rozeti kaldırıldı; About'taki "Birlikte çalışalım" çağrı şeridi de
 kaldırıldı (kullanıcı isteği).
 
+Randevu kâğıdı hafifçe yaşlandırıldı (`AGE`): iki soluk leke, bir kırık izi ve
+kenarlara doğru sararma. Yorum kâğıtlarının yarısı kadar soluk tutuldu —
+kullanıcı "çok değil" dedi.
+
 Şikâyet konusu listesi tarayıcının beyaz zemin + mavi seçim çubuğuyla açılıyordu;
 `index.css` içindeki `.paper-select` ile seçenekler kâğıt tonuna çekildi
 (`color-scheme: light`, `option` zemini `#f3ead6`, seçili satırda mavi vurguyu
 bastırmak için `box-shadow: … inset`). Okun kendisi de `appearance-none` +
 `ChevronDown` ile kâğıda uygun.
+
+### Alt bilgi zemine oturdu
+
+`Footer.tsx` eskiden `bg-ink-950` ile tam genişlikte koyu kahve bir bloktu;
+sayfanın geri kalanı ahşap zeminin üstündeyken alt bilgi ayrı bir kutu gibi
+duruyordu. Artık zemin sonuna kadar görünüyor: bölümü `.rule` çizgisi ayırıyor,
+en alta doğru `rgb(26 16 9 / 0.55)` yumuşak bir perde iniyor. "UK" rozeti
+kaldırıldı (kullanıcı isteği). Küçük etiketler ahşabın açık damarlarında
+4,5'in altına düştüğü için ivory-400 → ivory-300 yapıldı (ölçüm: en açık
+damarda 3,03 → 5,11).
+
+### Hakkımda başlığı
+
+Bölüm artık diğerleriyle aynı düzende: `<h2 class="title-lg">Hakkımda</h2>` +
+altında `lead` cümlesi ("Tedaviye her zaman aynı soruyla başlarım: …").
 
 ---
 

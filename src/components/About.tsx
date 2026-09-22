@@ -15,10 +15,13 @@ export default function About() {
       <div className="section-shell">
         <div className="max-w-2xl">
           <Reveal>
-            <h2 className="title-lg">
+            <h2 className="title-lg">Hakkımda</h2>
+          </Reveal>
+          <Reveal delay={0.12}>
+            <p className="lead mt-6">
               Tedaviye her zaman aynı soruyla başlarım:{' '}
               <span className="gradient-text">bu ağrı neden burada?</span>
-            </h2>
+            </p>
           </Reveal>
         </div>
 

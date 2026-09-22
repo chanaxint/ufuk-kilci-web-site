@@ -8,7 +8,7 @@ import {
   type AppointmentForm as Form,
 } from '../../lib/appointment'
 import { ArrowRight, ChevronDown, Send } from './icons'
-import { GRAIN, PAPER, RULED } from '../../lib/paper'
+import { AGE, GRAIN, PAPER, RULED } from '../../lib/paper'
 
 const fieldRow =
   'w-full border-0 border-b border-[#6b5334]/35 bg-transparent px-1 pt-1 pb-1.5 font-sans text-[0.98rem] text-[#3b2c1d] outline-none transition-colors duration-300 placeholder:text-[#9a866a] focus:border-[#6b4a2c]'
@@ -120,6 +120,8 @@ export default function LetterForm() {
             style={{ background: PAPER }}
           >
             <span aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.4] mix-blend-multiply" style={GRAIN} />
+            {/* Yılların izi — yazının okunurluğuna dokunmayacak kadar soluk */}
+            <span aria-hidden className="pointer-events-none absolute inset-0" style={{ background: AGE }} />
 
             <div className="relative px-6 py-7 sm:px-9 sm:py-9">
               <p className="font-wordmark text-[1.5rem] leading-none text-[#31241a]">
@@ -248,6 +250,7 @@ export default function LetterForm() {
                         {summary}
                       </div>
                       <span aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.4] mix-blend-multiply" style={GRAIN} />
+                      <span aria-hidden className="pointer-events-none absolute inset-0" style={{ background: AGE }} />
                     </div>
                     {/* Arka yüz: boş kâğıt */}
                     <div

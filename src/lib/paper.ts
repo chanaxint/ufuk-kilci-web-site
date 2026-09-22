@@ -20,6 +20,16 @@ export const GRAIN = {
 export const RULED =
   'repeating-linear-gradient(to bottom, transparent 0px, transparent 27px, rgb(107 83 52 / 0.18) 27px, rgb(107 83 52 / 0.18) 28px)'
 
+/**
+ * Hafif yaşlanma. Sayfa yıllardır dosyada duruyormuş gibi dursun ama
+ * okunurluğu bozmasın diye lekeler yorum kâğıtlarının yarısı kadar soluk:
+ * iki çay lekesi, bir kere katlanmış kırık izi, kenarlara doğru sararma.
+ */
+export const AGE = `radial-gradient(58% 48% at 16% 20%, rgb(196 160 104 / 0.09), transparent 70%),
+  radial-gradient(50% 42% at 84% 80%, rgb(176 138 86 / 0.075), transparent 72%),
+  linear-gradient(112deg, transparent 46.5%, rgb(120 92 52 / 0.055) 49.6%, rgb(255 250 236 / 0.3) 50.6%, transparent 54%),
+  radial-gradient(124% 92% at 50% 44%, transparent 56%, rgb(140 105 58 / 0.15) 100%)`
+
 /** Kâğıda basılmış mürekkep tonları */
 export const INK = {
   title: '#31241a',

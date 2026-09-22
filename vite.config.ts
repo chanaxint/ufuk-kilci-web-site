@@ -5,6 +5,17 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   assetsInclude: ['**/*.glb'],
+  server: {
+    /**
+     * Geliştirme sunucusu geçici bir tünelle (localtunnel/cloudflared) dışarı
+     * açıldığında istek `xxxxx.loca.lt` gibi bilinmeyen bir `Host` başlığıyla
+     * geliyor; Vite bunu varsayılan olarak DNS rebinding koruması yüzünden
+     * reddediyor. `.loca.lt` alt alan adı her tünelde rastgele değiştiği için
+     * tek tek değil, uzantının tamamına izin veriliyor. Yalnızca yerel
+     * geliştirmeyi etkiler, yayın derlemesiyle ilgisi yok.
+     */
+    allowedHosts: ['.loca.lt'],
+  },
   css: {
     /**
      * Tailwind v4 burada @tailwindcss/vite eklentisiyle çalışıyor; ayrıca bir

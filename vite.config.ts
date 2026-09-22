@@ -16,6 +16,19 @@ export default defineConfig({
      */
     allowedHosts: ['.loca.lt'],
   },
+  /*
+   * Tünelden gösterirken `npm run dev` yerine `npm run preview` kullanılması
+   * öneriliyor: geliştirme sunucusu her dosyayı ayrı ayrı, anlık düzenleme
+   * için optimize edilmiş yüzlerce istekle gönderiyor — bu, yerelde anında
+   * ama yavaş bir tünel üzerinden çok sayıda gidiş-dönüş demek ve sayfa
+   * "beyaz ekranda" uzun süre takılı kalabiliyor. `preview`, gerçek yayın
+   * derlemesini (birkaç dosya) sunduğu için tünelde çok daha hızlı açılıyor.
+   * `preview` sunucusu ayrı bir ayar bloğu kullandığı için host izni burada
+   * tekrar tanımlanıyor.
+   */
+  preview: {
+    allowedHosts: ['.loca.lt'],
+  },
   css: {
     /**
      * Tailwind v4 burada @tailwindcss/vite eklentisiyle çalışıyor; ayrıca bir

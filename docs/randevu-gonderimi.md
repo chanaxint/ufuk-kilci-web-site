@@ -30,12 +30,19 @@ talepler e-posta olarak düşer. Telefonda WhatsApp bildirimi yerine e-posta
 bildirimi alırsınız.
 
 1. web3forms.com üzerinden e-posta adresinizle anahtar alın.
-2. `.env` dosyasına yazın:
+2. `.env` dosyasına iki satır yazın — **kod değişikliği gerekmiyor**:
    ```bash
    VITE_APPOINTMENT_ENDPOINT="https://api.web3forms.com/submit"
+   VITE_APPOINTMENT_KEY="doktorun-aldığı-anahtar"
    ```
-3. Bana haber verin; gönderilen gövdeye `access_key` alanını eklemem
-   gerekiyor (servis onu istiyor).
+3. `npm run build` ile yeniden yayına alın. Form artık "talebiniz iletildi"
+   diyecek ve talepler doktorun e-postasına düşecek.
+
+**Anahtar kimin olmalı?** Doktorun. Forma ad, telefon ve şikâyet yazılıyor;
+bu sağlıkla ilgili kişisel veri ve KVKK açısından veri sorumlusu klinik
+olmalı. Ayrıca anahtar hangi e-posta adresine bağlıysa talepler oraya
+düşer — başkasının hesabıyla kurulursa hasta bilgileri yanlış gelen kutuda
+birikir ve o hesap kapandığında form sessizce ölür.
 
 **Artısı:** on dakikada biter, bedava. **Eksisi:** WhatsApp'a değil,
 e-postaya düşer.

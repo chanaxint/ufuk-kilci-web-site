@@ -22,6 +22,14 @@ export type AppointmentForm = {
  */
 export const ENDPOINT = (import.meta.env.VITE_APPOINTMENT_ENDPOINT ?? '').trim()
 
+/**
+ * Form servisleri (Web3Forms gibi) gövdede bir `access_key` istiyor. Anahtar
+ * gizli değil — formda zaten görünür; önemli olan hangi e-posta adresine
+ * bağlı olduğu, o da doktorun hesabı olacak. Burada duruyor ki anahtar
+ * geldiğinde kod değil, yalnızca `.env` değişsin.
+ */
+export const ACCESS_KEY = (import.meta.env.VITE_APPOINTMENT_KEY ?? '').trim()
+
 export const hasEndpoint = ENDPOINT.length > 0
 
 /** Hem WhatsApp bağlantısında hem de uç noktaya giden gövdede aynı metin */
@@ -52,6 +60,9 @@ export async function sendAppointment(form: AppointmentForm): Promise<boolean> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      ...(ACCESS_KEY ? { access_key: ACCESS_KEY } : {}),
+      subject: `Randevu talebi — ${form.name || 'isimsiz'}`,
+      from_name: 'Ufuk Kilci web sitesi',
       ...form,
       text: appointmentText(form),
       kaynak: 'ufukkilci.com randevu formu',

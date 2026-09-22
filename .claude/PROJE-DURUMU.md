@@ -332,6 +332,27 @@ WhatsApp bağlantısı gösteriliyor — yalan söylemiyor. **Tarayıcı tek ba�
 WhatsApp mesajı gönderemez** (anahtar tarayıcıya konulamaz); seçenekler
 `docs/randevu-gonderimi.md` içinde.
 
+Doktor form servisi anahtarını aldığında **kod değişmeyecek**: `.env` içine iki
+satır yeter — `VITE_APPOINTMENT_ENDPOINT` ve `VITE_APPOINTMENT_KEY`. Anahtar
+doktorun kendi e-posta hesabıyla alınmalı (KVKK: veri sorumlusu klinik; ayrıca
+talepler anahtarın bağlı olduğu kutuya düşer). Kullanıcının kararı: *"şuan böyle
+kalsın, doktor anahtarı aldığı zaman ekleriz."*
+
+### İletişim ve randevu bölümü iki kâğıt sayfa
+
+`Contact.tsx` ve `LetterForm.tsx` ortak dokudan çıkıyor: `lib/paper.ts`
+(`PAPER`, `GRAIN`, `RULED`, `INK`). Solda kliniğin künyesi yazılı kâğıt
+(hafif `rotate(-0.5deg)`, sararan kenar, çalışma saatlerinde noktalı çizelge),
+sağda doldurulup zarfa giren mektup. Koyu gradyanlı panel ve "Randevu &
+İletişim" rozeti kaldırıldı; About'taki "Birlikte çalışalım" çağrı şeridi de
+kaldırıldı (kullanıcı isteği).
+
+Şikâyet konusu listesi tarayıcının beyaz zemin + mavi seçim çubuğuyla açılıyordu;
+`index.css` içindeki `.paper-select` ile seçenekler kâğıt tonuna çekildi
+(`color-scheme: light`, `option` zemini `#f3ead6`, seçili satırda mavi vurguyu
+bastırmak için `box-shadow: … inset`). Okun kendisi de `appearance-none` +
+`ChevronDown` ile kâğıda uygun.
+
 ---
 
 ## 9. Dosya haritası (kısa)

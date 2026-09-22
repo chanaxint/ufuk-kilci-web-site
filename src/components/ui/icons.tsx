@@ -17,6 +17,9 @@ export const ArrowRight = (p: P) => (
 export const ArrowDown = (p: P) => (
   <svg {...base} {...p}><path d="M12 4v15M6 13l6 6 6-6" /></svg>
 )
+export const ChevronDown = (p: P) => (
+  <svg {...base} {...p}><path d="m6 9 6 6 6-6" /></svg>
+)
 export const Phone = (p: P) => (
   <svg {...base} {...p}><path d="M6.5 3h3l1.5 4-2 1.5a12 12 0 0 0 5.5 5.5L16 12l4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4 6.2 2 2 0 0 1 6 4z" /></svg>
 )

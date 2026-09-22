@@ -7,18 +7,8 @@ import {
   whatsappHref,
   type AppointmentForm as Form,
 } from '../../lib/appointment'
-import { ArrowRight, Send } from './icons'
-
-/* Kâğıdın ve zarfın ortak sıcak tonu */
-const PAPER = `radial-gradient(70% 55% at 18% 10%, rgb(255 251 240 / 0.9), transparent 66%),
-  radial-gradient(55% 45% at 86% 88%, rgb(198 168 118 / 0.16), transparent 72%),
-  linear-gradient(168deg, #f7efdd 0%, #f1e7d2 55%, #e9dcc3 100%)`
-
-const GRAIN = { backgroundImage: 'url(/images/doku.png)', backgroundRepeat: 'repeat' as const }
-
-/** Kâğıdın üzerindeki çizgili alan — deftere yazar gibi */
-const RULED =
-  'repeating-linear-gradient(to bottom, transparent 0px, transparent 27px, rgb(107 83 52 / 0.18) 27px, rgb(107 83 52 / 0.18) 28px)'
+import { ArrowRight, ChevronDown, Send } from './icons'
+import { GRAIN, PAPER, RULED } from '../../lib/paper'
 
 const fieldRow =
   'w-full border-0 border-b border-[#6b5334]/35 bg-transparent px-1 pt-1 pb-1.5 font-sans text-[0.98rem] text-[#3b2c1d] outline-none transition-colors duration-300 placeholder:text-[#9a866a] focus:border-[#6b4a2c]'
@@ -166,15 +156,21 @@ export default function LetterForm() {
 
                 <label className="flex flex-col gap-1.5 sm:col-span-2">
                   <span className={labelRow}>Şikâyet konusu</span>
-                  <select
-                    value={form.topic}
-                    onChange={(e) => setForm({ ...form, topic: e.target.value })}
-                    className={fieldRow}
-                  >
-                    {complaintOptions.map((option) => (
-                      <option key={option}>{option}</option>
-                    ))}
-                  </select>
+                  <span className="relative block">
+                    <select
+                      value={form.topic}
+                      onChange={(e) => setForm({ ...form, topic: e.target.value })}
+                      className={`${fieldRow} paper-select cursor-pointer appearance-none pr-7`}
+                    >
+                      {complaintOptions.map((option) => (
+                        <option key={option}>{option}</option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      aria-hidden
+                      className="pointer-events-none absolute top-1/2 right-1 size-4 -translate-y-1/2 text-[#7a6446]"
+                    />
+                  </span>
                 </label>
 
                 <label className="flex flex-col gap-2 sm:col-span-2">

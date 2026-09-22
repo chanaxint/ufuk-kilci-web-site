@@ -253,6 +253,28 @@
     @apply bg-gradient-to-br from-warm-100 via-warm-300 to-brand-400 bg-clip-text text-transparent;
   }
 
+  /*
+   * Kâğıt üzerindeki açılır liste. Tarayıcının kendi listesi beyaz zemin ve
+   * mavi seçim çubuğuyla açılıyordu; kâğıdın üstünde yabancı duruyordu.
+   * Seçenekler artık kâğıdın tonunda, seçili satır da mavi yerine kahve —
+   * mavi vurguyu bastırmanın tek yolu iç gölgeyi satırın üstüne yaymak.
+   */
+  .paper-select {
+    color-scheme: light;
+    accent-color: #6b4a2c;
+  }
+
+  .paper-select option {
+    background-color: #f3ead6;
+    color: #3b2c1d;
+  }
+
+  .paper-select option:checked,
+  .paper-select option:hover {
+    box-shadow: 0 0 10px 100px #e0cfae inset;
+    color: #2a1d12;
+  }
+
   /* Açık zeminli yüzeyler için (yükleme ekranı) koyu ızgara */
   .grid-lines-dark {
     background-image:

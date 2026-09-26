@@ -187,6 +187,29 @@ BLOOM = 0.93     // sıcak ışık dolup sahne sayfanın zeminine çözülüyor
 
 Bölüm boyu `h-[480vh] lg:h-[580vh]`.
 
+### 4.5b Giriş noktası: yenileme ve logo
+
+Kapıdan başlayan yürüyüş yalnızca **sekmedeki ilk girişte** oynuyor.
+`SpineStage` içindeki görünmez `#giris` çapası, bölümün kaydırma aralığında
+`HERO = (REVEAL_B + HOLD) / 2 = 0.34` noktasında duruyor: omurga ve yazılar tam
+görünür, iniş başlamamış (masanın üstü).
+
+- İlerleme `REVEAL_B`'yi geçince `sessionStorage['uk-giris-goruldu'] = '1'`
+  (`lib/entry.ts`). Sekme kapanınca silinir; yeni gelen yine kapıdan girer.
+- `history.scrollRestoration = 'manual'` ve `ScrollTrigger.clearScrollMemory`
+  (`useSmoothScroll.ts`, modül düzeyi): tarayıcı artık kaldığınız yere dönmüyor.
+- `App`: yükleme ekranı kalkınca bayrak varsa `jumpTo(heroY())` — animasyonsuz,
+  Lenis'in iç hedefi de güncelleniyor.
+- Ortadaki "Ufuk Kilci" yazısı `href="#giris"`; Lenis çapa işleyicisi bu çapada
+  −24 px payı uygulamıyor. Azaltılmış harekette tarayıcının kendi çapa atlaması
+  aynı noktaya iniyor. "İçeriğe geç" bağlantısı hâlâ `#top`.
+- `SpineStageScene` → `ScrollRig` ilk karede modeli doğrudan hedef duruşa
+  koyuyor. Eskiden sıfır noktasından yumuşayarak geliyordu; sahne omurga zaten
+  görünürken kurulunca (yenilemeden sonra) model ekranın ortasından standa
+  süzülüyordu.
+- Ölçüm (1440 ve 390 genişlik): ilk giriş `scrollY 0`; iletişimden yenileme ve
+  logoya tıklama `ilerleme 0.34`; yeni sekme yine `0`.
+
 ### 4.6 Omurganın ve yazıların çıkışı
 
 `STAND_RISE` tablosu **ölçülerek** çıkarıldı: videodaki stand bölgesi kare kare

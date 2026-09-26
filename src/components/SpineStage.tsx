@@ -4,6 +4,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { doctor } from '../lib/content'
 import { setScrollLocked } from '../lib/useSmoothScroll'
+import { HERO_ANCHOR, markIntroSeen } from '../lib/entry'
 import ShinyText from './reactbits/ShinyText'
 import type { SpineRegionId } from '../lib/spine'
 import { ArrowDown, ArrowRight } from './ui/icons'
@@ -33,6 +34,12 @@ const CROSS = 0.24 // giriş videosu sönüp yerini fotoğrafa bırakıyor
 const REVEAL_A = 0.225 // yazılar ve omurga belirmeye başlıyor
 const REVEAL_B = 0.3 // tamamen geldiler
 const HOLD = 0.38 // buraya kadar sahne olduğu gibi duruyor
+/*
+ * Ana sayfanın girişi: omurga ve yazılar tam belirmiş, iniş henüz
+ * başlamamış — REVEAL_B ile HOLD arasındaki duruşun ortası. Yenilemede ve
+ * "Ufuk Kilci" yazısına tıklanınca buraya geliniyor.
+ */
+const HERO = (REVEAL_B + HOLD) / 2
 /*
  * Omurganın ve giriş yazılarının çıkışı.
  *
@@ -168,6 +175,7 @@ export default function SpineStage() {
   const [focused, setFocused] = useState(false)
   const [hovered, setHovered] = useState<SpineRegionId | null>(null)
   const [mounted, setMounted] = useState(false)
+  const heroSeen = useRef(false)
   const [onScreen, setOnScreen] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
   /* Adrese ?ayar=1 eklenince omurgayı yerine oturtan panel açılır */
@@ -378,6 +386,11 @@ export default function SpineStage() {
         onUpdate: (self) => {
           if (focusedRef.current) return
           const p = self.progress
+          /* Yürüyüş izlendi: bundan sonra yenileme kapıya değil buraya döner */
+          if (p >= REVEAL_B && !heroSeen.current) {
+            heroSeen.current = true
+            markIntroSeen()
+          }
 
           /*
            * Kliniğe giriş: video kaydırmaya kilitli, sonunda fotoğrafa
@@ -502,6 +515,17 @@ export default function SpineStage() {
 
   return (
     <section id="top" ref={stageRef} className="relative h-[480vh] lg:h-[580vh]">
+      {/*
+        Giriş çapası. Bölümün kaydırma aralığı (yükseklik − ekran) içinde
+        HERO oranına denk gelen noktada duruyor; tarayıcının kendi çapa
+        atlaması da (azaltılmış hareket) aynı sahneye iniyor.
+      */}
+      <span
+        id={HERO_ANCHOR}
+        aria-hidden
+        className="pointer-events-none absolute left-0 h-px w-px"
+        style={{ top: `calc((100% - 100vh) * ${HERO})` }}
+      />
       <div ref={stickyRef} className="sticky top-0 h-[100svh] overflow-hidden">
         {/*
           Yığın sırası: en altta video, üstünde giriş fotoğrafı (sönerek

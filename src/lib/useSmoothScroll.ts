@@ -2,8 +2,18 @@ import { useEffect } from 'react'
 import Lenis from 'lenis'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { HERO_ANCHOR } from './entry'
 
 gsap.registerPlugin(ScrollTrigger)
+
+/*
+ * Tarayıcı yenilemede kaldığınız yere geri dönüyordu. Artık kaydırma konumu
+ * sitenin kendisinde: ilk girişte kapıdan, yürüyüş izlendikten sonra
+ * masanın üstündeki giriş sahnesinden başlanıyor (bkz. `App`, `lib/entry`).
+ * ScrollTrigger'ın kendi kaydırma hafızası da aynı nedenle kapatılıyor.
+ */
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+ScrollTrigger.clearScrollMemory('manual')
 
 /*
  * Etkin Lenis örneği. Giriş sahnesinde omurgaya odaklanıldığında sayfa
@@ -22,6 +32,17 @@ export function setScrollLocked(locked: boolean) {
    */
   if (locked) current?.stop()
   else current?.start()
+}
+
+/**
+ * Sayfayı bir konuma anında taşır (animasyonsuz). Lenis açıksa onun iç
+ * hedefi de güncelleniyor, yoksa bir sonraki tekerlek hareketinde eski
+ * yere geri çekerdi. Ardından ScrollTrigger sahneyi o konuma göre kuruyor.
+ */
+export function jumpTo(y: number) {
+  if (current) current.scrollTo(y, { immediate: true, force: true })
+  else window.scrollTo(0, y)
+  ScrollTrigger.update()
 }
 
 /**
@@ -58,7 +79,9 @@ export function useSmoothScroll(enabled = true) {
       const target = document.querySelector(id)
       if (!target) return
       e.preventDefault()
-      lenis.scrollTo(target as HTMLElement, { offset: -24, duration: 1.25 })
+      /* Giriş çapası sahnenin tam kendisi; ona pay bırakılmıyor */
+      const offset = id === `#${HERO_ANCHOR}` ? 0 : -24
+      lenis.scrollTo(target as HTMLElement, { offset, duration: 1.25 })
     }
     document.addEventListener('click', onClick)
 

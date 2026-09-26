@@ -46,6 +46,7 @@ function ScrollRig({
 }) {
   const rig = useRef<THREE.Group>(null)
   const spin = useRef<THREE.Group>(null)
+  const placed = useRef(false)
   const { pointer, size } = useThree()
 
   useFrame((_, delta) => {
@@ -54,6 +55,20 @@ function ScrollRig({
     /* Duruş fotoğrafa göre; yakın plan pencereden bağımsız */
     const rest = restPose(size.width, size.height)
     const target = sample(rest, isMobile ? mobileFocus : desktopFocus, focus.current ?? 0)
+
+    /*
+     * İlk kare: model yüklendiği an doğrudan standın üzerinde belirsin.
+     * Yumuşatma sıfır noktasından başlıyordu; sahne omurga zaten görünürken
+     * kurulduğunda (yenilemeden sonra doğrudan girişe inilince) model
+     * ekranın ortasından standa doğru süzülüyordu.
+     */
+    if (!placed.current) {
+      placed.current = true
+      rig.current.position.set(target.x, target.y, target.z)
+      rig.current.scale.setScalar(target.scale)
+      spin.current.rotation.set(0, target.rotY, 0)
+      return
+    }
 
     rig.current.position.x += (target.x - rig.current.position.x) * k
     rig.current.position.y += (target.y - rig.current.position.y) * k

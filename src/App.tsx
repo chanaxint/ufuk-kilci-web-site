@@ -16,7 +16,8 @@ import Contact from './components/Contact'
 import Footer from './components/Footer'
 import MobileCallBar from './components/MobileCallBar'
 import SectionRule from './components/ui/SectionRule'
-import { useSmoothScroll } from './lib/useSmoothScroll'
+import { jumpTo, useSmoothScroll } from './lib/useSmoothScroll'
+import { heroY, introSeen } from './lib/entry'
 
 export default function App() {
   const [loading, setLoading] = useState(true)
@@ -28,6 +29,16 @@ export default function App() {
     return () => {
       document.documentElement.style.overflow = ''
     }
+  }, [loading])
+
+  /*
+   * Yürüyüş bu sekmede daha önce izlendiyse (yani sayfa yenilendiyse) yükleme
+   * ekranı kalkar kalkmaz masanın üstündeki giriş sahnesine geçiliyor;
+   * kapıdan yeniden yürümek yok. İlk girişte kapıdan başlanıyor.
+   */
+  useEffect(() => {
+    if (loading || !introSeen()) return
+    jumpTo(heroY())
   }, [loading])
 
   const handleDone = useCallback(() => setLoading(false), [])

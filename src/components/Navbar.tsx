@@ -78,7 +78,7 @@ export default function Navbar() {
               />
             </div>
 
-            <a href="#top" className="group relative flex flex-col items-center leading-none">
+            <a href="#giris" className="group relative flex flex-col items-center leading-none">
               <ShinyText
                 text={doctor.name}
                 speed={5}

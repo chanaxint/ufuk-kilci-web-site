@@ -228,7 +228,7 @@ export default function SpineStageScene({
                               {part.region.name}
                             </span>
                             <span
-                              className={`font-display text-[0.66rem] font-bold whitespace-nowrap transition-all duration-500 ${
+                              className={`font-display text-[0.7rem] font-bold whitespace-nowrap transition-all duration-500 ${
                                 active ? 'max-w-32 opacity-100' : 'max-w-0 overflow-hidden opacity-0'
                               }`}
                               style={{ color: '#d8c3a0', textShadow: LABEL_SHADOW }}

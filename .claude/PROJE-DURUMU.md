@@ -300,6 +300,13 @@ ahşabın üstünde koyu düğme kayboluyordu.
 
 ---
 
+- **`npx tsc --noEmit` hiçbir şeyi denetlemiyor.** Kök `tsconfig.json`
+  `"files": []` + referanslar; komut boş geçiyor. Gerçek denetim
+  `npx tsc -b` (derlemedeki adım). Bir kez "temiz" deyip derlemede kırıldı.
+- Döngü içinde aynı adla gölgelenen değişken (`const drop` hem düşüş süresi
+  hem gölge derinliği) TDZ hatasıyla sayfayı düşürdü; `tsc` yakalamadı,
+  `AppBoundary` ekranda gösterdi. Değişkeni yeniden adlandır.
+
 ## 7. Doğrulama alışkanlığı
 
 Her görsel iddia gerçek Chromium'da ölçülerek doğrulanıyor:
@@ -308,6 +315,10 @@ Her görsel iddia gerçek Chromium'da ölçülerek doğrulanıyor:
 /opt/pw-browsers/chromium-1194/chrome-linux/chrome
 --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader
 ```
+
+Tüm sayfa denetimi: `.claude/araclar/denetim.mjs` (kullanımı dosyanın başında).
+Playwright konteynerde global: `/opt/node22/lib/node_modules/playwright/index.js`
+(ESM'de `import pw from …; const { chromium } = pw`).
 
 `playwright-core` oturum scratchpad'ine kuruluyor (`npm i playwright-core`),
 `ffmpeg-static` de video/görsel işleri için oradan. Ölçüm örnekleri: dönüşüm
@@ -394,6 +405,37 @@ damarda 3,03 → 5,11).
 
 Bölüm artık diğerleriyle aynı düzende: `<h2 class="title-lg">Hakkımda</h2>` +
 altında `lead` cümlesi ("Tedaviye her zaman aynı soruyla başlarım: …").
+
+### Denetim turu (kaydırma ipucu + masaüstü/mobil tarama)
+
+- **Kaydırma ipucu** `ui/ScrollHint.tsx`: `data-kaydir` işaretli bölgelerde
+  (giriş sahnesi, yorumların yapışkan alanı) kullanıcı durunca "AŞAĞI
+  KAYDIRIN" çıkıyor; kaydırma olayında anında çekiliyor, 1,2 sn durunca geri
+  geliyor, `lenis-stopped` (omurga odağı) sırasında gizli. Telefonda arama
+  çubuğunun üstünde (`bottom-[4.6rem]`), masaüstünde `bottom-5`; omurga ipucu
+  masaüstünde onun üstünde (`sm:bottom-[4.1rem]`), telefonda başlığın altında
+  (`top-[5.75rem]`).
+- **Fontlar yerelde**: `@fontsource-variable/manrope`, `@fontsource-variable/inter`,
+  `@fontsource/instrument-serif` (400 + italik), `main.tsx`'te içe aktarılıyor;
+  `index.html`'deki Google Fonts bağlantıları kaldırıldı (KVKK + yedek fonta
+  düşüp kayma yok). Aile adları `Manrope Variable`, `Inter Variable`.
+- **Başlık perdesi** `.nav-scrim` (index.css) + `--stage-photo` artık yürüyüş
+  videosunun **fotoğrafa çözüldüğü anda** (`walkOut`) değişiyor; eskiden
+  videonun 3,5–5,5. sn'sindeydi ve ölçüm ters çıktı (videonun sonunda mürekkep
+  1,5 kontrast). Menü açıkken perde gizli; ≤1024 px'te `.nav-open` başlığı
+  mürekkebe çeviriyor (panel tam ekran krem), çarpı her genişlikte mürekkep.
+- **Yorumlar** `scatter()`: kâğıdın gerçek boyu ve ekran ölçülüp eğik kutu
+  kadar hücreli ızgara; hücre içinde kaydırma + eğim. Sığmayan kâğıtlar dalga
+  dalga (`group`), zamanlama dalgaya göre. Ölçüm: yere inmiş kâğıtlar
+  1920/1440/1366/1280/1024/768/390/360'ta hiç çakışmıyor; telefonda her kâğıt
+  ≥ ~200 px kaydırma okunur (eskiden ~25 px).
+- **Sertifikalar**: `lg:w-[17.5rem] xl:w-[20rem]`, üçüncü nokta %68 (1024'te
+  sağdan taşıyordu). Künyeler 9 px → 10,5–11 px.
+- **Mobil hero**: unvan satırı telefonda gizli (başlıkta zaten var, omurgaya
+  biniyordu); `pb-[7.75rem]`. Omurgaya dokununca bölge seçiliyor
+  (`SpineParts` onClick → onHover, `picked`) ve adı ipucu hapında yazıyor —
+  telefonda etiket çizilmediği için eskiden hiçbir ad görünmüyordu.
+- Yükleme ekranı "LOADING" → "YÜKLENİYOR". Küçük yazılar 0,62 → 0,7rem civarı.
 
 ---
 

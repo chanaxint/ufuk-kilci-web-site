@@ -3,12 +3,78 @@ import { testimonials } from '../lib/content'
 import Reveal from './ui/Reveal'
 import { Star } from './ui/icons'
 
+/** Bir kâğıdın yeri: kabın sol üstüne göre piksel, yattığı açı */
+type Slot = { x: number; y: number; r: number }
+type Layout = { slots: Slot[]; group: number }
+
+/* Kâğıtların yattığı açılar; telefonda biraz daha az eğik */
+const TILT = [-5, 4, -3, 6, -6, 3, -4, 5]
+
+/* 0–1 arası sabit "rastgele" sayılar: her açılışta aynı dağılım */
+const rnd = (k: number) => {
+  const v = Math.sin(k * 127.1 + 311.7) * 43758.5453
+  return v - Math.floor(v)
+}
+
 /**
- * Kâğıtların yere düştüğü noktalar (sahnenin yüzdesi) ve yattıkları açı.
- * Elle dağıtıldı: üst üste binen ama yazısı okunan, rastgele atılmış bir
- * deste hissi verecek şekilde.
+ * Kâğıtları yere dağıtır.
+ *
+ * Eskiden sekiz nokta elle, ekranın yüzdesi olarak yazılmıştı. 1920×1080'de
+ * temizdi ama ekran kısaldıkça sıralar birbirine yaklaşıyordu: 1440×900'de
+ * iki kâğıt birinin imzasını örtüyor, 1366×768 ve 1280×720'de dört çift
+ * üst üste biniyor, 1024'te kâğıtlar ekrandan taşıyordu (ölçüldü).
+ *
+ * Şimdi alan ve kâğıdın gerçek boyu ölçülüyor: eğik kâğıdın kapladığı kutu
+ * kadar hücreli bir ızgara kuruluyor, kâğıtlar hücrelerin içinde biraz
+ * kaydırılıp eğiliyor — dağınık görünüyor ama hücre dışına taşamadığı için
+ * hiçbir yazı örtülmüyor. Sekizi birden sığmıyorsa kâğıtlar dalga dalga
+ * geliyor: sonraki kâğıt düşerken aynı yerdeki önceki kâğıt kalkıyor.
  */
-type Spot = { x: number; y: number; r: number }
+function scatter(
+  W: number,
+  H: number,
+  pad: number,
+  pw: number,
+  ph: number,
+  n: number,
+): Layout {
+  const phone = W < 640
+  /* Üstte başlık ve perdesi, altta kaydırma ipucu (telefonda arama çubuğu da) */
+  const top = phone ? 84 : 92
+  const bottom = phone ? 124 : 64
+  const availW = W - pad * 2
+  const availH = Math.max(ph, H - top - bottom)
+  const tilt = phone ? 0.6 : 1
+  const rad = (6 * tilt * Math.PI) / 180
+  const bw = pw * Math.cos(rad) + ph * Math.sin(rad)
+  const bh = pw * Math.sin(rad) + ph * Math.cos(rad)
+  const gapX = 24
+  const gapY = 18
+  const cols = Math.max(1, Math.floor((availW + gapX) / (bw + gapX)))
+  const rows = Math.max(1, Math.floor((availH + gapY) / (bh + gapY)))
+  const group = Math.min(n, cols * rows)
+
+  /* Önce dama tahtası gibi seyrek hücreler, sonra aradakiler */
+  const cells: [number, number][] = []
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) cells.push([r, c])
+  cells.sort((a, b) => ((a[0] + a[1]) % 2) - ((b[0] + b[1]) % 2) || a[0] - b[0] || a[1] - b[1])
+  const chosen = cells.slice(0, group)
+  /* Düşüş sırası okuma sırasında olmasın; kâğıtlar oraya buraya düşsün */
+  chosen.sort((a, b) => rnd(a[0] * 7 + a[1] + 1) - rnd(b[0] * 7 + b[1] + 1))
+
+  const cw = availW / cols
+  const ch = availH / rows
+  const slots = chosen.map(([r, c], i) => {
+    const jx = (rnd(i * 3 + 11) - 0.5) * 1.4 * Math.max(0, (cw - bw) / 2)
+    const jy = (rnd(i * 5 + 17) - 0.5) * 1.4 * Math.max(0, (ch - bh) / 2)
+    return {
+      x: pad + (c + 0.5) * cw - pw / 2 + jx,
+      y: top + (r + 0.5) * ch - ph / 2 + jy,
+      r: TILT[i % TILT.length] * tilt,
+    }
+  })
+  return { slots, group }
+}
 
 /*
  * Kâğıtlar birbirinin kopyası olmasın: her biri biraz farklı sararmış,
@@ -26,49 +92,57 @@ const AGED = [
   { tone: '#f1e6d1', stain: '20% 68%', stain2: '80% 24%', crease: 88 },
 ]
 
-/* Üst sıra sabit başlığın altından başlıyor (≈%11), en alt kâğıt ekranda kalıyor */
-const WIDE: Spot[] = [
-  { x: 4, y: 12, r: -6 },
-  { x: 58, y: 10, r: 5 },
-  { x: 31, y: 27, r: 2.5 },
-  { x: 74, y: 33, r: -4.5 },
-  { x: 2, y: 46, r: 4 },
-  { x: 42, y: 51, r: -3 },
-  { x: 70, y: 62, r: 7 },
-  { x: 16, y: 68, r: -7 },
-]
-
-/*
- * Dar ekranda aynı anda üç kâğıt sığıyor. Sekizi birden inince yazılar
- * birbirinin altında kalıyordu; bu yüzden mobilde kâğıtlar üçlü dalgalar
- * hâlinde geliyor: ilk üçü yere iner, dördüncü düşerken ilki yerini ona
- * bırakır.
- */
-const NARROW: Spot[] = [
-  { x: 2, y: 9, r: -5 },
-  { x: 12, y: 39, r: 4 },
-  { x: 4, y: 68, r: 6 },
-]
-
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
 /* Düşüşün sonunda hafif bir oturma: yere çarpıp yerine yatıyor */
 const settle = (t: number) => 1 - Math.pow(1 - t, 3)
 
-/** Kâğıtların hepsi bu ilerlemeye kadar yere inmiş oluyor */
+/** Son kâğıt bu ilerlemede yere inmiş oluyor; kalanı okumak için duruş */
 const LAST = 0.86
 const DROP = 0.2
 
 export default function Testimonials() {
   const pinRef = useRef<HTMLDivElement>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
   const paperRefs = useRef<(HTMLElement | null)[]>([])
-  const [narrow, setNarrow] = useState(false)
+  const [layout, setLayout] = useState<Layout | null>(null)
 
+  /*
+   * Yerleşim ekran boyu değişince ve fontlar yüklenince yeniden kuruluyor
+   * (kâğıdın boyu yazının kaç satıra kırıldığına bağlı). Ölçü dönüşümden
+   * bağımsız: offsetWidth/offsetHeight eğim ve düşüş hareketini saymıyor.
+   */
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 1023px)')
-    const apply = () => setNarrow(mq.matches)
-    apply()
-    mq.addEventListener('change', apply)
-    return () => mq.removeEventListener('change', apply)
+    const stage = stageRef.current
+    if (!stage) return
+    let raf = 0
+    let lastKey = ''
+    const measure = () => {
+      raf = 0
+      const papers = paperRefs.current.filter((n): n is HTMLElement => !!n)
+      if (!papers.length) return
+      const pw = Math.max(...papers.map((n) => n.offsetWidth))
+      const ph = Math.max(...papers.map((n) => n.offsetHeight))
+      const pad = parseFloat(getComputedStyle(stage).paddingLeft) || 0
+      const next = scatter(stage.clientWidth, stage.clientHeight, pad, pw, ph, testimonials.length)
+      /*
+       * Telefonda adres çubuğu açılıp kapandıkça "resize" geliyor ama sahne
+       * `svh` ile sabit; sonuç aynıysa yeniden çizim tetiklenmesin.
+       */
+      const key = JSON.stringify(next)
+      if (key === lastKey) return
+      lastKey = key
+      setLayout(next)
+    }
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(measure)
+    }
+    measure()
+    document.fonts?.ready.then(schedule)
+    window.addEventListener('resize', schedule)
+    return () => {
+      if (raf) cancelAnimationFrame(raf)
+      window.removeEventListener('resize', schedule)
+    }
   }, [])
 
   /*
@@ -86,21 +160,32 @@ export default function Testimonials() {
       const travel = el.offsetHeight - window.innerHeight
       if (travel <= 0) return
       const p = clamp01(-el.getBoundingClientRect().top / travel)
-      const step = LAST / testimonials.length
-      const group = (narrow ? NARROW : WIDE).length
+      const n = testimonials.length
+      const group = layout?.group ?? n
+      /*
+       * Zamanlama dalgalara göre. Hepsi sığıyorsa kâğıtlar sırayla düşüp
+       * LAST'ta hepsi yerde oluyor. Dalga varsa her dalga kendi payında
+       * düşüyor, bir süre okunacak kadar yerde kalıyor, sonra bir sonraki
+       * dalga geliyor. Eskiden adım sabitti: telefonda (dalga başına iki
+       * kâğıt) kâğıt yere indiği an kalkmaya başlıyordu.
+       */
+      const waves = Math.ceil(n / group)
+      const waveLen = LAST / waves
+      const fall = waves > 1 ? Math.min(DROP, waveLen * 0.45) : DROP
+      const start = (k: number) =>
+        waves === 1
+          ? k * ((LAST - DROP) / Math.max(1, n - 1))
+          : Math.floor(k / group) * waveLen + (k % group) * ((waveLen * 0.4) / group)
 
       paperRefs.current.forEach((node, i) => {
         if (!node) return
-        const t = settle(clamp01((p - i * step) / DROP))
+        const t = settle(clamp01((p - start(i)) / fall))
         /*
-         * Yerinde bir sonraki dalga varsa (mobil), ardılı düşerken bu kâğıt
+         * Yerinde bir sonraki dalga varsa, ardılı düşerken bu kâğıt
          * yerini ona bırakıyor: hafifçe aşağı kayıp siliniyor.
          */
         const next = i + group
-        const leave =
-          next < testimonials.length
-            ? settle(clamp01((p - next * step) / (DROP * 0.7)))
-            : 0
+        const leave = next < n ? settle(clamp01((p - start(next)) / (fall * 0.7))) : 0
         /* Havadayken kadranın üstünde, eğik ve biraz büyük; sonra yere iniyor */
         const lift = -(1 - t) * 74 + leave * 9
         const spin = (1 - t) * -16 + leave * 6
@@ -129,9 +214,7 @@ export default function Testimonials() {
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
     }
-  }, [narrow])
-
-  const spots = narrow ? NARROW : WIDE
+  }, [layout])
 
   return (
     <section id="yorumlar" className="relative scroll-mt-28 pt-24 pb-16 sm:pt-28">
@@ -171,11 +254,11 @@ export default function Testimonials() {
         burada bir süre yerinde kalıyor ve kaydırma yalnızca kâğıtları
         indiriyor. Kâğıtlar kabuğun dışında, tam genişlikte duruyor.
       */}
-      <div ref={pinRef} className="relative mt-8 h-[300vh] sm:mt-12 sm:h-[340vh]">
+      <div ref={pinRef} data-kaydir className="relative mt-8 h-[300vh] sm:mt-12 sm:h-[340vh]">
         <div className="sticky top-0 h-[100svh] overflow-hidden">
-          <div className="relative mx-auto h-full w-full max-w-[86rem] px-4 sm:px-8">
+          <div ref={stageRef} className="relative mx-auto h-full w-full max-w-[86rem] px-4 sm:px-8">
             {testimonials.map((item, i) => {
-              const spot = spots[i % spots.length]
+              const spot = layout?.slots[i % layout.group] ?? { x: 0, y: 0, r: 0 }
               const aged = AGED[i % AGED.length]
               return (
                 <figure
@@ -185,8 +268,8 @@ export default function Testimonials() {
                   }}
                   data-rot={spot.r}
                   style={{
-                    left: `${spot.x}%`,
-                    top: `${spot.y}%`,
+                    left: `${spot.x.toFixed(1)}px`,
+                    top: `${spot.y.toFixed(1)}px`,
                     transformOrigin: '50% 40%',
                     opacity: 0,
                     /*

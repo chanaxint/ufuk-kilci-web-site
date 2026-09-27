@@ -129,6 +129,12 @@ export default function SpineParts({
             onClick={(e) => {
               e.stopPropagation()
               onSelect?.()
+              /*
+               * Dokunmatik ekranda "üzerine gelme" olayı yok: 3B katman onu
+               * yalnızca imleç hareketinde üretiyor. Odaktayken dokunulan
+               * bölge böylece seçilmiş oluyor; farede zaten üzerindeyiz.
+               */
+              if (interactive) onHover(part.region.id)
             }}
             onPointerOver={(e) => {
               e.stopPropagation()

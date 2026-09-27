@@ -11,7 +11,8 @@ bitirdiğinde o dosyayı da güncelle — sohbetler arası hafıza orası.
 
 Bir iş bittiğinde ve site tamamen açılabilir durumdayken **her seferinde**:
 
-1. `npx tsc --noEmit` ve `npm run build` temiz geçsin.
+1. `npx tsc -b` ve `npm run build` temiz geçsin. (`npx tsc --noEmit` bu projede
+   hiçbir dosyayı denetlemiyor: kök `tsconfig.json` yalnızca referans veriyor.)
 2. Site gerçek tarayıcıda açılıp kontrol edilsin (beyaz ekran / konsol hatası yok).
 3. Geliştirme sunucusu başlatılsın.
 4. Kullanıcıya çalıştırma komutları verilsin:

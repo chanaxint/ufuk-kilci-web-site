@@ -6,7 +6,7 @@ import { doctor } from '../lib/content'
 import { setScrollLocked } from '../lib/useSmoothScroll'
 import { HERO_ANCHOR, markIntroSeen } from '../lib/entry'
 import ShinyText from './reactbits/ShinyText'
-import type { SpineRegionId } from '../lib/spine'
+import { spineRegions, type SpineRegionId } from '../lib/spine'
 import { ArrowDown, ArrowRight } from './ui/icons'
 import SceneBoundary from './ui/SceneBoundary'
 import PoseTuner from './ui/PoseTuner'
@@ -89,13 +89,6 @@ const HANDOFF = 0.035 // fotoğraftan iniş videosuna devir
 const FLOOR = 0.88 // burada kamera zemine varmış oluyor
 const BLOOM = 0.93 // ışık doluyor, sonra sahne sayfaya çözülüyor
 
-/*
- * Kliniğe giriş videosunda ilk saniyeler loş koridor, sonu aydınlık oda.
- * Sabit başlık bu yüzden sonda mürekkebe dönüyor (`--stage-photo`).
- */
-const WALK_LIGHT_FROM = 3.5
-const WALK_LIGHT_TO = 5.5
-
 /**
  * Giriş sahnesi.
  *
@@ -174,6 +167,13 @@ export default function SpineStage() {
 
   const [focused, setFocused] = useState(false)
   const [hovered, setHovered] = useState<SpineRegionId | null>(null)
+  /*
+   * Telefonda bölge etiketleri çizilmiyor (dar ekranda omurganın iki yanına
+   * sığmıyor) ve dokunuşta "üzerine gelme" parmak kalkınca hemen bitiyor.
+   * Bu yüzden dokunulan bölge seçili kalıyor ve adı ipucu hapında yazıyor;
+   * yoksa "bölgeleri tanıyın" deyip hiçbir ad göstermiyordu.
+   */
+  const [picked, setPicked] = useState<SpineRegionId | null>(null)
   const [mounted, setMounted] = useState(false)
   const heroSeen = useRef(false)
   const [onScreen, setOnScreen] = useState(true)
@@ -348,6 +348,7 @@ export default function SpineStage() {
     const release = () => {
       setFocused(false)
       setHovered(null)
+      setPicked(null)
     }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') release()
@@ -486,19 +487,16 @@ export default function SpineStage() {
           applyDark()
 
           /*
-           * Başlık rengi: açık giriş fotoğrafının üzerinde mürekkep, ahşap
-           * zeminde ve loş koridorda fildişi. Yürüyüşün sonunda oda
-           * aydınlandığı için geçiş orada başlıyor.
+           * Başlık rengi: açık giriş fotoğrafının üzerinde mürekkep; yürüyüş
+           * videosunda ve ahşap zeminde fildişi. Eskiden videonun 3,5–5,5.
+           * saniyesinde mürekkebe dönüyordu; ölçünce başlık şeridinin arkası
+           * videonun sonunda koyulaşıyor çıktı (mürekkep kontrastı 1,5–2).
+           * Artık geçiş videonun fotoğrafa çözüldüğü anda, onunla birlikte.
+           * Başlığın arkasındaki perde de aynı değişkenle renk değiştiriyor.
            */
-          const walkLight = ease(
-            clamp01(
-              (walk * (walkDuration.current || 8) - WALK_LIGHT_FROM) /
-                (WALK_LIGHT_TO - WALK_LIGHT_FROM),
-            ),
-          )
           document.documentElement.style.setProperty(
             '--stage-photo',
-            (walkLight * (1 - hand)).toFixed(3),
+            (walkOut * (1 - hand)).toFixed(3),
           )
 
           /* Yürüyüş bitmeden ve omurga silindikten sonra boşuna dönmesin */
@@ -514,7 +512,7 @@ export default function SpineStage() {
   }, [])
 
   return (
-    <section id="top" ref={stageRef} className="relative h-[480vh] lg:h-[580vh]">
+    <section id="top" ref={stageRef} data-kaydir className="relative h-[480vh] lg:h-[580vh]">
       {/*
         Giriş çapası. Bölümün kaydırma aralığı (yükseklik − ekran) içinde
         HERO oranına denk gelen noktada duruyor; tarayıcının kendi çapa
@@ -584,8 +582,11 @@ export default function SpineStage() {
                     focus={focus}
                     active={onScreen && isSceneLive}
                     labelsVisible={focused}
-                    hovered={hovered}
-                    onHover={setHovered}
+                    hovered={isMobile ? picked : hovered}
+                    onHover={(id) => {
+                      setHovered(id)
+                      if (isMobile && id) setPicked(id)
+                    }}
                     onSelect={() => {
                       spineClickAt.current = performance.now()
                       setFocused(true)
@@ -600,7 +601,7 @@ export default function SpineStage() {
           {/* Giriş metni */}
           <div
             ref={heroRef}
-            className="pointer-events-none absolute inset-0 flex items-end pb-24 sm:pb-28 lg:items-center lg:pb-0"
+            className="pointer-events-none absolute inset-0 flex items-end pb-[7.75rem] sm:pb-28 lg:items-center lg:pb-0"
           >
             <div className="section-shell">
               <div className="max-w-2xl">
@@ -608,7 +609,7 @@ export default function SpineStage() {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.15, duration: 0.7 }}
-                  className="font-display text-[0.7rem] font-bold tracking-[0.42em] text-ink-600 uppercase"
+                  className="hidden font-display text-[0.7rem] font-bold tracking-[0.42em] text-ink-600 uppercase sm:inline"
                 >
                   {doctor.titles}
                 </motion.span>
@@ -653,15 +654,29 @@ export default function SpineStage() {
             </div>
           </div>
 
-          {/* Alt ipucu */}
+          {/*
+            Omurga ipucu. Masaüstünde en alttaki "Aşağı kaydırın"ın hemen
+            üstünde; telefonda alt kısım düğmeler, arama çubuğu ve kaydırma
+            ipucuyla dolu olduğu için (eskiden "Skolyoz Tedavisi" düğmesinin
+            üstüne biniyordu) başlığın altına, omurganın tepesine çıkıyor.
+          */}
           <div
             ref={hintRef}
-            className="pointer-events-none absolute inset-x-0 bottom-20 flex justify-center px-6 sm:bottom-6"
+            className="pointer-events-none absolute inset-x-0 top-[5.75rem] flex justify-center px-6 sm:top-auto sm:bottom-[4.1rem]"
           >
-            <span className="rounded-full bg-ink-950/45 px-4 py-2 text-center font-display text-[0.66rem] font-bold tracking-[0.2em] text-sand-50/85 uppercase backdrop-blur-sm">
-              {focused
-                ? 'Bölgelerin üzerine gelin · boşluğa tıklayın ya da kaydırın'
-                : 'Omurgaya tıklayın · bölgeleri tanıyın'}
+            <span className="rounded-full bg-ink-950/55 px-4 py-2 text-center font-display text-[0.66rem] font-bold tracking-[0.1em] whitespace-nowrap text-sand-50/90 uppercase backdrop-blur-sm sm:text-[0.7rem] sm:tracking-[0.18em]">
+              {isMobile
+                ? focused
+                  ? picked
+                    ? (() => {
+                        const r = spineRegions.find((x) => x.id === picked)
+                        return r ? `${r.name} · ${r.code}` : ''
+                      })()
+                    : 'Bölgelere dokunun · kaydırınca kapanır'
+                  : 'Omurgaya dokunun · bölgeleri tanıyın'
+                : focused
+                  ? 'Bölgelerin üzerine gelin · boşluğa tıklayın ya da kaydırın'
+                  : 'Omurgaya tıklayın · bölgeleri tanıyın'}
             </span>
           </div>
           </div>

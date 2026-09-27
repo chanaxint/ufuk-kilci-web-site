@@ -76,7 +76,7 @@ export default function Contact() {
                         <Icon className="size-4" />
                       </span>
                       <span className="min-w-0">
-                        <span className="block font-display text-[0.66rem] font-bold tracking-[0.18em] text-[#7a6446] uppercase">
+                        <span className="block font-display text-[0.7rem] font-bold tracking-[0.16em] text-[#735d40] uppercase">
                           {label}
                         </span>
                         <span className="mt-1 block text-[0.95rem] leading-snug font-medium text-[#3b2c1d]">
@@ -88,7 +88,7 @@ export default function Contact() {
                 </div>
 
                 <div className="mt-7 border-t border-[#6b5334]/30 pt-6">
-                  <span className="flex items-center gap-2 font-display text-[0.66rem] font-bold tracking-[0.18em] text-[#7a6446] uppercase">
+                  <span className="flex items-center gap-2 font-display text-[0.7rem] font-bold tracking-[0.16em] text-[#735d40] uppercase">
                     <Clock className="size-4" />
                     Çalışma Saatleri
                   </span>

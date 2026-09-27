@@ -59,7 +59,7 @@ export default function ScoliosisAngles() {
             <div className="relative mx-auto max-w-md px-1 pt-1 pb-2">
               {/* Görünüm değiştirici */}
               <div className="relative z-10 flex items-center justify-between gap-2 pt-1">
-                <span className="inline-flex items-center gap-1.5 font-display text-[0.62rem] font-bold tracking-[0.14em] text-ivory-300 uppercase">
+                <span className="inline-flex items-center gap-1.5 font-display text-[0.7rem] font-bold tracking-[0.14em] text-ivory-300 uppercase">
                   <Rotate3D className="size-3.5 text-warm-300" />
                   Sürükleyin
                 </span>

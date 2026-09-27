@@ -49,13 +49,15 @@ export default function Navbar() {
         initial={{ y: -40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-        className="pointer-events-none fixed inset-x-0 top-0 z-50"
+        className={`pointer-events-none fixed inset-x-0 top-0 z-50 ${open ? 'nav-open' : ''}`}
       >
         <div
           className="relative flex items-center justify-center px-5 py-5 sm:px-8 sm:py-6"
           /* Giriş sahnesinin koyu geçişinde başlık siliniyor */
           style={{ opacity: 'calc(1 - var(--stage-dark, 0))' }}
         >
+          {/* Başlığın arkasındaki perde — renk ve gerekçe `.nav-scrim` içinde */}
+          <span aria-hidden="true" className={`nav-scrim pointer-events-none absolute inset-x-0 top-0 h-[6.5rem] transition-opacity duration-300 sm:h-[7.5rem] ${open ? 'opacity-0' : ''}`} />
           <div className="pointer-events-auto relative flex items-center gap-10 xl:gap-14">
             {/*
               Omurga ya da yorum spirali başlığın altından geçtiğinde okunurluğu
@@ -87,7 +89,7 @@ export default function Navbar() {
                 spread={90}
                 className="font-wordmark text-[1.55rem] leading-none font-normal tracking-[0.004em] whitespace-nowrap sm:text-[1.85rem]"
               />
-              <span className="mt-1.5 font-display text-[0.56rem] font-semibold tracking-[0.3em] whitespace-nowrap nav-fg-soft uppercase sm:text-[0.62rem]">
+              <span className="mt-1.5 font-display text-[0.64rem] font-semibold tracking-[0.22em] whitespace-nowrap nav-fg-soft uppercase sm:text-[0.7rem] sm:tracking-[0.3em]">
                 {doctor.titles}
               </span>
             </a>
@@ -112,7 +114,10 @@ export default function Navbar() {
             aria-expanded={open}
             aria-controls="staggered-menu-panel"
             onClick={() => setOpen((v) => !v)}
-            className="pointer-events-auto absolute right-5 z-[60] grid size-11 place-items-center rounded-full nav-fg transition-colors duration-300 hover:text-warm-300 sm:right-8"
+            className={`pointer-events-auto absolute right-5 z-[60] grid size-11 place-items-center rounded-full transition-colors duration-300 sm:right-8 ${
+              /* Açıkken çarpı krem panelin üstünde: fildişi kalırsa görünmüyordu */
+              open ? 'text-ink-900 hover:text-brand-700' : 'nav-fg hover:text-warm-300'
+            }`}
           >
             <span className="relative block h-3.5 w-7">
               <span

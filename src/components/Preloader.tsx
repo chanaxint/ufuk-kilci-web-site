@@ -90,11 +90,12 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
             </SceneBoundary>
           </div>
           {/*
-            LOADING zaten büyük harfle yazılı: `uppercase` Türkçe yerelde "i"
-            harfini "İ" yapıp LOADİNG üretiyordu.
+            Türkçe sitede İngilizce "LOADING" yazıyordu. Metin doğrudan büyük
+            harfle yazılı: `uppercase` dönüşümü yerel ayara göre İ/I karışıklığı
+            çıkarabiliyor.
           */}
           <span className="mt-1 flex items-center gap-1.5 font-display text-[0.68rem] font-bold tracking-[0.34em] text-ink-500">
-            LOADING
+            YÜKLENİYOR
             <MessageLoading className="-ml-0.5 size-3.5" />
           </span>
         </motion.div>

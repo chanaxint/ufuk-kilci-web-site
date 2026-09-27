@@ -29,10 +29,14 @@ type FrameSpot = {
  * Hiçbir çerçeve bir diğerinin üstüne binmiyor: geniş ekranda üstte üç,
  * altta iki; dağınıklık açı, yatıklık ve ölçek farkından geliyor.
  */
+/*
+ * 1024–1279 px'te çerçeveler biraz daha dar (17,5rem): 20rem'de üçüncü
+ * çerçeve %71'den başlayınca ekranın sağından taşıyordu (1047 px / 1024).
+ */
 const WIDE_SPOTS: FrameSpot[] = [
   { x: 3, y: 2, rotate: -7, lean: 6, depth: 24, scale: 1, z: 2 },
   { x: 37, y: 4, rotate: 5, lean: 5, depth: 48, scale: 0.95, z: 4 },
-  { x: 71, y: 1, rotate: -4, lean: 7, depth: 14, scale: 0.98, z: 3 },
+  { x: 68, y: 1, rotate: -4, lean: 7, depth: 14, scale: 0.98, z: 3 },
   { x: 19, y: 52, rotate: 6.5, lean: 6, depth: 40, scale: 0.93, z: 1 },
   { x: 54, y: 54, rotate: -6, lean: 8, depth: 20, scale: 0.97, z: 5 },
 ]
@@ -122,7 +126,7 @@ function CertificateFrame({ item, large = false }: { item: Credential; large?: b
       <div className="mt-3 flex justify-center">
         <span
           className={`max-w-full rounded-[2px] px-3 py-1.5 text-center font-display leading-tight font-bold tracking-[0.1em] text-[#3a2c18] uppercase ${
-            large ? 'text-[0.68rem] sm:px-5 sm:py-2 sm:text-[0.74rem]' : 'text-[0.56rem]'
+            large ? 'text-[0.72rem] sm:px-5 sm:py-2 sm:text-[0.78rem]' : 'text-[0.66rem] lg:text-[0.68rem]'
           }`}
           style={{
             background: 'linear-gradient(145deg,#e4cd9b,#b99a63 45%,#f0dcb0 70%,#a98e5d)',
@@ -153,7 +157,7 @@ function WallCertificate({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-12% 0px' }}
       transition={{ duration: 0.9, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-      className="absolute w-[14.5rem] sm:w-[17rem] lg:w-[20rem]"
+      className="absolute w-[14.5rem] sm:w-[17rem] lg:w-[17.5rem] xl:w-[20rem]"
       style={{
         left: `${spot.x}%`,
         top: `${spot.y}%`,
@@ -305,7 +309,7 @@ function Lightbox({ index, onClose }: { index: number; onClose: () => void }) {
           <p className="mt-1.5 text-[0.9rem] text-brand-200">
             {item.org} · {item.year}
           </p>
-          <p className="mt-5 font-display text-[0.62rem] font-bold tracking-[0.2em] text-sand-50/40 uppercase">
+          <p className="mt-5 font-display text-[0.7rem] font-bold tracking-[0.2em] text-sand-50/55 uppercase">
             Kapatmak için boşluğa tıklayın
           </p>
         </figcaption>
@@ -374,7 +378,7 @@ export default function Certificates() {
           {/* Pirinç künye */}
           <div className="relative z-10 flex justify-center pb-12">
             <span
-              className="rounded-[3px] px-4 py-2 text-center font-display text-[0.5rem] font-bold tracking-[0.16em] text-[#3a2c18] uppercase sm:px-5 sm:text-[0.62rem] sm:tracking-[0.22em]"
+              className="rounded-[3px] px-4 py-2 text-center font-display text-[0.62rem] font-bold tracking-[0.14em] text-[#3a2c18] uppercase sm:px-5 sm:text-[0.72rem] sm:tracking-[0.22em]"
               style={{
                 background: 'linear-gradient(145deg,#e4cd9b,#b99a63 45%,#f0dcb0 70%,#a98e5d)',
                 boxShadow: '0 2px 6px rgba(30,18,6,0.45), 0 1px 0 rgba(255,255,255,0.4) inset',

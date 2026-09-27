@@ -16,6 +16,7 @@ import Contact from './components/Contact'
 import Footer from './components/Footer'
 import MobileCallBar from './components/MobileCallBar'
 import SectionRule from './components/ui/SectionRule'
+import ScrollHint from './components/ui/ScrollHint'
 import { jumpTo, useSmoothScroll } from './lib/useSmoothScroll'
 import { heroY, introSeen } from './lib/entry'
 
@@ -90,6 +91,7 @@ export default function App() {
 
       <Footer />
       {!loading && <MobileCallBar />}
+      {!loading && <ScrollHint />}
     </>
   )
 }

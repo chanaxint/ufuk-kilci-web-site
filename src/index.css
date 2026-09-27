@@ -50,10 +50,10 @@
   --color-sand-200: #ece2d3;
   --color-sand-300: #dccebb;
 
-  --font-display: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Manrope Variable', 'Manrope', ui-sans-serif, system-ui, sans-serif;
   /* Yalnızca doktorun adı için: modern, yüksek kontrastlı editoryal serif */
   --font-wordmark: 'Instrument Serif', ui-serif, Georgia, serif;
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif;
 
   --shadow-soft: 0 2px 8px -2px rgb(58 42 28 / 0.07), 0 12px 32px -12px rgb(58 42 28 / 0.14);
   --shadow-lift: 0 4px 12px -4px rgb(58 42 28 / 0.1), 0 24px 56px -20px rgb(58 42 28 / 0.24);
@@ -69,6 +69,11 @@
 @keyframes float {
   0%, 100% { transform: translateY(0) }
   50% { transform: translateY(-14px) }
+}
+/* "Aşağı kaydırın" okunun hafif iniş-çıkışı */
+@keyframes hintBob {
+  0%, 100% { transform: translateY(-1px) }
+  50% { transform: translateY(2px) }
 }
 @keyframes pulse-ring {
   0% { transform: scale(0.85); opacity: 0.8 }
@@ -242,6 +247,37 @@
    */
   .nav-fg {
     color: color-mix(in srgb, #241a12 calc(var(--stage-photo) * 100%), #f2e8d8);
+  }
+
+  /*
+   * Sabit başlığın arkasındaki perde. Başlık hem giriş videosunun, hem açık
+   * fotoğrafın, hem de ahşap zeminin üstünden geçiyor; arka plan her an
+   * değiştiği için yazı renginin tek başına okunurluğu taşıması mümkün
+   * değildi (ölçüm: koridorda fildişi yazı 2,5, videonun sonunda mürekkep
+   * 1,5 kontrast). Perde yazıyla aynı değişkeni izliyor — fildişi yazının
+   * arkasında koyu, mürekkebin arkasında krem — ve aşağı doğru sönüyor.
+   * Sayfa içeriği başlığın altından geçerken de yazıların üst üste
+   * okunmasını engelliyor. Bulanıklık yok: tam genişlikte bir
+   * backdrop-filter her karede yeniden hesaplanıp kaydırmayı ağırlaştırıyor.
+   */
+  .nav-scrim {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, rgb(244 236 223 / 0.8) calc(var(--stage-photo) * 100%), rgb(22 14 8 / 0.82)) 0%,
+      color-mix(in srgb, rgb(244 236 223 / 0.5) calc(var(--stage-photo) * 100%), rgb(22 14 8 / 0.55)) 55%,
+      transparent 100%
+    );
+  }
+
+  /*
+   * Menü 1024 px ve altında ekranı tamamen kaplayan krem bir panel. Başlık
+   * onun üstünde kaldığı için fildişi logo ve altyazı kayboluyordu; menü
+   * açıkken başlık "açık zemin" moduna geçiyor (mürekkep).
+   */
+  @media (max-width: 1024px) {
+    .nav-open {
+      --stage-photo: 1;
+    }
   }
 
   .nav-fg-soft {

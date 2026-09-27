@@ -280,6 +280,37 @@
     }
   }
 
+  /*
+   * "Aşağı kaydırın" — çerçevesiz yazı. Okunurluğu arka plana göre renk
+   * değiştiren katmanlı hâle taşıyor. Kapı, iniş videosu ve ahşap zeminde
+   * fildişi yazı + koyu hâle. 1024 px altında giriş fotoğrafının alt kısmı
+   * açık krem bir perdeyle kaplı; fotoğraf görünürken (`--stage-photo`)
+   * orada mürekkep yazı + krem hâleye geçiyor. Masaüstünde fotoğrafın altı
+   * koyu masa, orada fildişi kalıyor.
+   */
+  .hint-fg {
+    --hint-ink: #f5ecdf;
+    --hint-halo: rgb(18 12 7 / 0.9);
+    --hint-glow: rgb(18 12 7 / 0.65);
+    color: var(--hint-ink);
+    text-shadow:
+      0 1px 2px var(--hint-halo),
+      0 0 10px var(--hint-glow),
+      0 0 22px var(--hint-glow);
+  }
+
+  .hint-fg svg {
+    filter: drop-shadow(0 1px 2px var(--hint-halo));
+  }
+
+  @media (max-width: 1023px) {
+    .hint-fg {
+      --hint-ink: color-mix(in srgb, #2a1d12 calc(var(--stage-photo) * 100%), #f5ecdf);
+      --hint-halo: color-mix(in srgb, rgb(250 246 239 / 0.9) calc(var(--stage-photo) * 100%), rgb(18 12 7 / 0.9));
+      --hint-glow: color-mix(in srgb, rgb(250 246 239 / 0.7) calc(var(--stage-photo) * 100%), rgb(18 12 7 / 0.65));
+    }
+  }
+
   .nav-fg-soft {
     color: color-mix(in srgb, #4a3626 calc(var(--stage-photo) * 100%), #d6c6ad);
   }

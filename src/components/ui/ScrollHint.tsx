@@ -37,20 +37,37 @@ function inZone() {
 export default function ScrollHint() {
   const [show, setShow] = useState(false)
   const timer = useRef<number>(0)
+  const textRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
     const locked = () => document.documentElement.classList.contains('lenis-stopped')
+    /*
+     * İpucunun altında okunacak bir şey varsa (telefonda en alttaki yorum
+     * kâğıdı gibi) görünmesin; yazı kâğıdın imzasının üstüne biniyordu.
+     * İpucu yalnızca kaydırma dururken çıktığı için o an her şey yerinde.
+     */
+    const blocked = () => {
+      const t = textRef.current?.getBoundingClientRect()
+      if (!t) return false
+      for (const el of document.querySelectorAll<HTMLElement>('[data-ipucu-engel]')) {
+        if (+getComputedStyle(el).opacity < 0.1) continue
+        const r = el.getBoundingClientRect()
+        if (r.left < t.right && r.right > t.left && r.top < t.bottom + 8 && r.bottom > t.top - 8) return true
+      }
+      return false
+    }
+    const canShow = () => inZone() && !locked() && !blocked()
 
     const settle = () => {
       window.clearTimeout(timer.current)
-      timer.current = window.setTimeout(() => setShow(inZone() && !locked()), IDLE)
+      timer.current = window.setTimeout(() => setShow(canShow()), IDLE)
     }
     const onMove = () => {
       setShow(false)
       settle()
     }
 
-    timer.current = window.setTimeout(() => setShow(inZone() && !locked()), FIRST)
+    timer.current = window.setTimeout(() => setShow(canShow()), FIRST)
 
     /*
      * Lenis yumuşatması sürdükçe tarayıcıya kaydırma olayı gelmeye devam
@@ -85,9 +102,13 @@ export default function ScrollHint() {
         show ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
       }`}
     >
-      <span className="inline-flex items-center gap-2 rounded-full bg-ink-950/55 py-2 pr-3.5 pl-4 font-display text-[0.7rem] font-bold tracking-[0.18em] text-sand-50/90 shadow-[0_10px_24px_-14px_rgb(10_6_3/0.9)] backdrop-blur-sm">
+      {/* Yalnızca yazı, çerçevesiz; renk ve hâle `.hint-fg` içinde */}
+      <span ref={textRef} className="hint-fg inline-flex items-center gap-2 font-display text-[0.72rem] font-bold tracking-[0.2em]">
         AŞAĞI KAYDIRIN
-        <ChevronDown className="size-3.5 animate-[hintBob_1.6s_ease-in-out_infinite]" strokeWidth={2.2} />
+        <ChevronDown
+          className="size-3.5 animate-[hintBob_1.6s_ease-in-out_infinite]"
+          strokeWidth={2.2}
+        />
       </span>
     </div>
   )

@@ -424,11 +424,17 @@ altında `lead` cümlesi ("Tedaviye her zaman aynı soruyla başlarım: …").
   videonun 3,5–5,5. sn'sindeydi ve ölçüm ters çıktı (videonun sonunda mürekkep
   1,5 kontrast). Menü açıkken perde gizli; ≤1024 px'te `.nav-open` başlığı
   mürekkebe çeviriyor (panel tam ekran krem), çarpı her genişlikte mürekkep.
-- **Yorumlar** `scatter()`: kâğıdın gerçek boyu ve ekran ölçülüp eğik kutu
-  kadar hücreli ızgara; hücre içinde kaydırma + eğim. Sığmayan kâğıtlar dalga
-  dalga (`group`), zamanlama dalgaya göre. Ölçüm: yere inmiş kâğıtlar
-  1920/1440/1366/1280/1024/768/390/360'ta hiç çakışmıyor; telefonda her kâğıt
-  ≥ ~200 px kaydırma okunur (eskiden ~25 px).
+- **Yorumlar — kullanıcı isteğiyle eski hâlinde.** Ölçerek dağıtan ızgara
+  (`scatter()`, 66b9816) denendi, kullanıcı elle dağıtılmış eski düzeni
+  (WIDE/NARROW yüzdeleri, sabit adım) istedi; geri alındı. Bilinen bedel:
+  1440×900'de bir imza hafifçe örtülüyor, 1366/1280'de dört çift binişiyor,
+  telefonda üçlü dalgada kâğıtlar kısa süre okunuyor. Kullanıcı yeniden
+  isterse ızgara sürümü git geçmişinde (66b9816).
+- **Kaydırma ipucu çerçevesiz** (`.hint-fg`): fildişi + koyu hâle; 1024 px
+  altında giriş fotoğrafının üstünde (`--stage-photo`) mürekkep + krem hâle
+  (orada fotoğrafın altı krem perde). `data-ipucu-engel` işaretli bir öğe
+  (yorum kâğıtları) altındaysa ipucu çıkmıyor — telefonda en alttaki
+  kâğıdın imzasına biniyordu.
 - **Sertifikalar**: `lg:w-[17.5rem] xl:w-[20rem]`, üçüncü nokta %68 (1024'te
   sağdan taşıyordu). Künyeler 9 px → 10,5–11 px.
 - **Mobil hero**: unvan satırı telefonda gizli (başlıkta zaten var, omurgaya

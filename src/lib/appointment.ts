@@ -1,4 +1,6 @@
 import { waHref, type SiteContent } from './siteContent'
+import { SUPABASE_ANON_KEY, SUPABASE_URL, configured, demoMode } from './backend'
+import { isPreview } from './preview'
 
 export type AppointmentForm = {
   name: string
@@ -32,6 +34,56 @@ export const ACCESS_KEY = (import.meta.env.VITE_APPOINTMENT_KEY ?? '').trim()
 
 export const hasEndpoint = ENDPOINT.length > 0
 
+/** Talebin gidebileceği en az bir yer var mı (panel, e-posta servisi ya da deneme kaydı) */
+export const canDeliver = !isPreview && (configured || hasEndpoint || demoMode)
+
+/** Deneme modunda talepler bu tarayıcıda saklanıyor; panel oradan okuyor */
+export const DEMO_REQUESTS_KEY = 'uk-deneme-randevular'
+
+/** Veritabanındaki sınırlarla aynı (`supabase/kurulum.sql`) */
+export const REQUEST_LIMITS = { name: 120, phone: 40, topic: 200, message: 2000 }
+
+const clip = (form: AppointmentForm) => ({
+  ad: form.name.trim().slice(0, REQUEST_LIMITS.name),
+  telefon: form.phone.trim().slice(0, REQUEST_LIMITS.phone),
+  konu: form.topic.trim().slice(0, REQUEST_LIMITS.topic),
+  mesaj: form.message.trim().slice(0, REQUEST_LIMITS.message),
+})
+
+/**
+ * Yönetim paneline düşen kayıt. Ziyaretçi yalnızca ekleyebiliyor; okuyan,
+ * durumunu değiştiren ve silen yalnızca yönetici (satır kuralları).
+ * Yanıt olarak satır istenmiyor (`return=minimal`): ziyaretçinin okuma
+ * yetkisi yok, istense kural reddederdi.
+ */
+async function saveToPanel(form: AppointmentForm) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/randevu_talepleri`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal',
+    },
+    body: JSON.stringify({ ...clip(form), onay: true }),
+  })
+  if (!res.ok) throw new Error(`Kayıt başarısız: ${res.status}`)
+}
+
+function saveToDemo(form: AppointmentForm) {
+  const list = (() => {
+    try {
+      const raw = JSON.parse(localStorage.getItem(DEMO_REQUESTS_KEY) ?? '[]')
+      return Array.isArray(raw) ? raw : []
+    } catch {
+      return []
+    }
+  })()
+  const id = list.reduce((m: number, r: { id?: number }) => Math.max(m, Number(r.id) || 0), 0) + 1
+  list.push({ id, created_at: new Date().toISOString(), ...clip(form), durum: 'yeni' })
+  localStorage.setItem(DEMO_REQUESTS_KEY, JSON.stringify(list))
+}
+
 /** Hem WhatsApp bağlantısında hem de uç noktaya giden gövdede aynı metin */
 export function appointmentText(form: AppointmentForm, content: SiteContent) {
   return [
@@ -51,11 +103,23 @@ export function whatsappHref(form: AppointmentForm, content: SiteContent) {
 }
 
 /**
- * Talebi uç noktaya gönderir. Uç nokta tanımlı değilse `false` döner;
- * arayüz o zaman "iletildi" demiyor, kullanıcıya bağlantıyı gösteriyor.
+ * Talebi iletir: Supabase bağlıysa yönetim paneline, e-posta uç noktası
+ * tanımlıysa oraya da. Biri bile ulaştıysa `true`. Gidecek yer yoksa
+ * (ya da paneldeki önizlemedeyse) `false` döner; arayüz o zaman "iletildi"
+ * demiyor, kullanıcıya WhatsApp bağlantısını gösteriyor.
  */
 export async function sendAppointment(form: AppointmentForm, content: SiteContent): Promise<boolean> {
-  if (!hasEndpoint) return false
+  if (!canDeliver) return false
+  const jobs: Promise<unknown>[] = []
+  if (configured) jobs.push(saveToPanel(form))
+  else if (demoMode) jobs.push(Promise.resolve().then(() => saveToDemo(form)))
+  if (hasEndpoint) jobs.push(sendToEndpoint(form, content))
+  const results = await Promise.allSettled(jobs)
+  if (results.some((r) => r.status === 'fulfilled')) return true
+  throw new Error('Talep hiçbir yere ulaşmadı')
+}
+
+async function sendToEndpoint(form: AppointmentForm, content: SiteContent) {
   const res = await fetch(ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -69,5 +133,4 @@ export async function sendAppointment(form: AppointmentForm, content: SiteConten
     }),
   })
   if (!res.ok) throw new Error(`Gönderim başarısız: ${res.status}`)
-  return true
 }

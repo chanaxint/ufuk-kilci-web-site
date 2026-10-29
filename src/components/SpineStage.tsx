@@ -11,6 +11,7 @@ import { ArrowDown, ArrowRight } from './ui/icons'
 import SceneBoundary from './ui/SceneBoundary'
 import PoseTuner from './ui/PoseTuner'
 import { hasWebGL } from '../lib/webgl'
+import { EditChip } from './CustomBlock'
 
 const SpineStageScene = lazy(() => import('./three/SpineStageScene'))
 
@@ -526,6 +527,7 @@ export default function SpineStage() {
         style={{ top: `calc((100% - 100vh) * ${HERO})` }}
       />
       <div ref={stickyRef} className="sticky top-0 h-[100svh] overflow-hidden">
+        <EditChip target="giris" label="Giriş" at="top-[6.5rem] left-3" />
         {/*
           Yığın sırası: en altta video, üstünde giriş fotoğrafı (sönerek
           videoyu açıyor), en üstte kamerayla yükselen omurga ve yazılar.

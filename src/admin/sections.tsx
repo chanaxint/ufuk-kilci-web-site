@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { LIMITS, type SiteContent } from '../lib/siteContent'
-import { CardList, ImageInput, NumberInput, StringList, TextArea, TextInput } from './fields'
+import { CardList, HeadingInput, ImageInput, NumberInput, StringList, TextArea, TextInput } from './fields'
 
 /** Bir bölümün alanlarını değiştirmek için: `set('doctor', { phone: '…' })` */
 export type Setter = <K extends keyof SiteContent>(key: K, patch: Partial<SiteContent[K]>) => void
@@ -116,6 +116,7 @@ export const sections: Section[] = [
     where: '"Hakkımda" bölümü: fotoğrafınız, tanıtım yazınız, uzmanlık etiketleri ve iki sayı.',
     render: (c, set) => (
       <>
+        <HeadingInput value={c.headings.hakkimda} onChange={(v) => set('headings', { hakkimda: v })} />
         <ImageInput
           label="Fotoğrafınız"
           hint="Kare ya da dikey, yüzünüzün net göründüğü bir fotoğraf en iyisi."
@@ -179,9 +180,10 @@ export const sections: Section[] = [
   {
     id: 'skolyoz',
     title: 'Skolyoz bölümü',
-    where: '"Skolyoz Nedir?" bölümü ve altındaki belirtiler listesi.',
+    where: '"Skolyoz Nedir?" bölümü, altındaki belirtiler listesi ve skolyoz açıları tablosunun başlığı.',
     render: (c, set) => (
       <>
+        <HeadingInput value={c.headings.skolyoz} onChange={(v) => set('headings', { skolyoz: v })} />
         <TextArea label="Skolyoz nedir?" rows={4} value={c.scoliosis.definition} onChange={(v) => set('scoliosis', { definition: v })} />
         <TextInput label="Altındaki kalın cümle" value={c.scoliosis.note} onChange={(v) => set('scoliosis', { note: v })} />
         <StringList
@@ -192,6 +194,8 @@ export const sections: Section[] = [
           itemName="Belirti"
         />
         <TextArea label="Belirtilerin altındaki not" rows={2} value={c.scoliosis.symptomsNote} onChange={(v) => set('scoliosis', { symptomsNote: v })} />
+        <HeadingInput label="Belirtiler başlığı" value={c.headings.belirtiler} onChange={(v) => set('headings', { belirtiler: v })} />
+        <HeadingInput label="Skolyoz açıları başlığı" value={c.headings.acilar} onChange={(v) => set('headings', { acilar: v })} />
       </>
     ),
   },
@@ -201,6 +205,7 @@ export const sections: Section[] = [
     where: 'Kaydırdıkça yere düşen kâğıtlar. Yorumları hastanın izniyle, adını kısaltarak yazın.',
     render: (c, set) => (
       <>
+        <HeadingInput value={c.headings.yorumlar} onChange={(v) => set('headings', { yorumlar: v })} />
         <TextArea label="Bölüm açıklaması" rows={2} value={c.testimonials.intro} onChange={(v) => set('testimonials', { intro: v })} />
         <div className="grid gap-4 sm:grid-cols-2">
           <TextInput
@@ -244,6 +249,7 @@ export const sections: Section[] = [
     where: 'Yere bırakılmış çerçeveler. Ziyaretçi tıklayınca belge büyüyor.',
     render: (c, set) => (
       <>
+        <HeadingInput value={c.headings.sertifikalar} onChange={(v) => set('headings', { sertifikalar: v })} />
         <TextArea label="Bölüm açıklaması" rows={3} value={c.certificates.intro} onChange={(v) => set('certificates', { intro: v })} />
         <CardList
           items={c.certificates.items}
@@ -278,9 +284,10 @@ export const sections: Section[] = [
   {
     id: 'sss',
     title: 'Sık sorulan sorular',
-    where: '"Aklınızdaki soruların cevabı" bölümü. Soruya tıklanınca cevap açılır.',
+    where: 'Sık sorulan sorular bölümü. Soruya tıklanınca cevap açılır.',
     render: (c, set) => (
       <>
+        <HeadingInput value={c.headings.sss} onChange={(v) => set('headings', { sss: v })} />
         <TextArea label="Bölüm açıklaması" rows={2} value={c.faq.intro} onChange={(v) => set('faq', { intro: v })} />
         <CardList
           items={c.faq.items}

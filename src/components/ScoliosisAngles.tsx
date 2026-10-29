@@ -2,12 +2,15 @@ import { Suspense, lazy, useRef, useState } from 'react'
 import { motion, useInView } from 'motion/react'
 import { angleStages } from '../lib/content'
 import Reveal from './ui/Reveal'
+import { Emphasis } from './ui/RichText'
+import { useContent } from '../lib/ContentContext'
 import type { SpineView } from './three/ScoliosisAngleScene'
 import AngleScale from './ui/AngleScale'
 import { Rotate3D } from './ui/icons'
 
 import SceneBoundary from './ui/SceneBoundary'
 import { hasWebGL } from '../lib/webgl'
+import { EditChip } from './CustomBlock'
 
 const ScoliosisAngleScene = lazy(() => import('./three/ScoliosisAngleScene'))
 
@@ -23,6 +26,7 @@ const stageFor = (angle: number) =>
   angleStages.find((s) => angle < s.max) ?? angleStages[angleStages.length - 1]
 
 export default function ScoliosisAngles() {
+  const { headings } = useContent()
   const ref = useRef<HTMLDivElement>(null)
   /*
    * Model bölüm ekrana girmeden önce yüklenmeye başlıyor: parça, GLB ve
@@ -39,10 +43,13 @@ export default function ScoliosisAngles() {
 
   return (
     <section id="skolyoz-acilari" className="relative scroll-mt-28 py-24 sm:py-28">
+      <EditChip target="acilar" label="Başlık" />
       <div className="section-shell">
         <div className="mx-auto max-w-2xl text-center">
           <Reveal>
-            <h2 className="title-lg">Skolyoz Açıları</h2>
+            <h2 className="title-lg">
+              <Emphasis text={headings.acilar} />
+            </h2>
           </Reveal>
           <Reveal delay={0.14}>
             <p className="lead mt-6">

@@ -2,22 +2,23 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useContent } from '../lib/ContentContext'
 import Reveal from './ui/Reveal'
+import { Emphasis } from './ui/RichText'
 import { Plus } from './ui/icons'
+import { EditChip } from './CustomBlock'
 
 export default function Faq() {
-  const { faq } = useContent()
+  const { faq, headings } = useContent()
   const [open, setOpen] = useState<number | null>(0)
 
   return (
     <section id="sss" className="relative scroll-mt-28 py-24 sm:py-28">
+      <EditChip target="sss" label="Sorular" />
       <div className="section-shell">
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
           <div className="lg:col-span-4">
             <Reveal>
               <h2 className="title-lg">
-                Aklınızdaki{' '}
-                <br className="hidden sm:block" />
-                <span className="gradient-text">soruların</span> cevabı.
+                <Emphasis text={headings.sss} />
               </h2>
             </Reveal>
             <Reveal delay={0.12}>

@@ -1,8 +1,9 @@
-import { navLinks } from '../lib/content'
+import { menuLinks } from '../lib/content'
 import { useContent } from '../lib/ContentContext'
 import { instagramHref, telHref, waHref } from '../lib/siteContent'
 import ShinyText from './reactbits/ShinyText'
 import { ArrowRight, Instagram, Mail, Phone, WhatsApp } from './ui/icons'
+import { EditChip } from './CustomBlock'
 
 /**
  * Alt bilgi.
@@ -15,9 +16,11 @@ import { ArrowRight, Instagram, Mail, Phone, WhatsApp } from './ui/icons'
  */
 export default function Footer() {
   const content = useContent()
+  const links = menuLinks(content.blocks)
   const { doctor } = content
   return (
     <footer className="relative mt-10 text-ivory-200">
+      <EditChip target="genel" label="Alt bilgi" />
       {/* Zemine doğru koyulaşan perde — blok değil, geçiş */}
       <div
         aria-hidden
@@ -70,7 +73,7 @@ export default function Footer() {
               Sayfalar
             </p>
             <ul className="mt-5 flex flex-col gap-3">
-              {navLinks.map((link) => (
+              {links.map((link) => (
                 <li key={link.href}>
                   <a
                     href={link.href}

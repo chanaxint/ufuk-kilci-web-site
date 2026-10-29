@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useContent } from '../../lib/ContentContext'
 import {
-  hasEndpoint,
+  canDeliver,
   sendAppointment,
   whatsappHref,
+  REQUEST_LIMITS,
   type AppointmentForm as Form,
 } from '../../lib/appointment'
 import { ArrowRight, ChevronDown, Send } from './icons'
@@ -38,6 +39,9 @@ export default function LetterForm() {
     topic: complaintOptions[0] ?? '',
     message: '',
   })
+  const [consent, setConsent] = useState(false)
+  /* Görünmez tuzak alan: insanlar görmüyor, formu dolduran botlar dolduruyor */
+  const [trap, setTrap] = useState('')
   /*
    * Seçenekler panelden değişebilir (ve kayıtlı içerik sayfa açıldıktan
    * kısa süre sonra gelir): seçili konu listede yoksa ilkine geç.
@@ -57,7 +61,8 @@ export default function LetterForm() {
     e.preventDefault()
     /* Kullanıcı sitede kalıyor; talep arka planda gidiyor */
     setSonuc('hazir')
-    if (hasEndpoint) {
+    if (trap) setSonuc('iletildi')
+    else if (canDeliver) {
       sendAppointment(form, content)
         .then((ok) => setSonuc(ok ? 'iletildi' : 'hazir'))
         .catch(() => setSonuc('hata'))
@@ -74,6 +79,7 @@ export default function LetterForm() {
     timers.current.forEach(window.clearTimeout)
     timers.current = []
     setForm({ name: '', phone: '', topic: complaintOptions[0] ?? '', message: '' })
+    setConsent(false)
     setPhase('yazi')
   }
 
@@ -147,6 +153,8 @@ export default function LetterForm() {
                   <span className={labelRow}>Ad Soyad</span>
                   <input
                     required
+                    maxLength={REQUEST_LIMITS.name}
+                    autoComplete="name"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder="Adınız ve soyadınız"
@@ -159,6 +167,10 @@ export default function LetterForm() {
                   <input
                     required
                     type="tel"
+                    maxLength={REQUEST_LIMITS.phone}
+                    autoComplete="tel"
+                    pattern="(?:\D*\d){7,15}\D*"
+                    title="Telefon numaranızı en az 7 rakamla yazın"
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
                     placeholder="05__ ___ __ __"
@@ -189,6 +201,7 @@ export default function LetterForm() {
                   <span className={labelRow}>Kısaca anlatın</span>
                   <textarea
                     rows={4}
+                    maxLength={REQUEST_LIMITS.message}
                     value={form.message}
                     onChange={(e) => setForm({ ...form, message: e.target.value })}
                     placeholder="Şikâyetiniz ne zaman başladı, hangi hareketlerde artıyor?"
@@ -198,7 +211,33 @@ export default function LetterForm() {
                 </label>
               </div>
 
-              <div className="mt-8 flex flex-wrap items-center gap-4">
+              {/* Tuzak alan: ekran okuyucudan ve klavyeden de gizli */}
+              <input
+                type="text"
+                name="web_sitesi"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden
+                value={trap}
+                onChange={(e) => setTrap(e.target.value)}
+                className="pointer-events-none absolute -left-[9999px] h-0 w-0 opacity-0"
+              />
+
+              <label className="mt-7 flex cursor-pointer items-start gap-3 text-[0.86rem] leading-snug text-[#4a3826]">
+                <input
+                  type="checkbox"
+                  required
+                  checked={consent}
+                  onChange={(e) => setConsent(e.target.checked)}
+                  className="mt-0.5 size-4 shrink-0 cursor-pointer accent-[#6b4a2c]"
+                />
+                <span>
+                  Bilgilerimin yalnızca randevu planlaması için kullanılmasını ve bu
+                  numaradan aranmayı kabul ediyorum.
+                </span>
+              </label>
+
+              <div className="mt-6 flex flex-wrap items-center gap-4">
                 <button
                   type="submit"
                   className="group inline-flex items-center gap-2 rounded-full bg-[#2a1d12] px-7 py-3.5 font-display text-[0.95rem] font-bold text-[#f4ead6] shadow-[0_14px_30px_-16px_rgb(12_7_3/0.9)] transition-colors duration-300 hover:bg-[#3b2a1a]"
@@ -207,9 +246,6 @@ export default function LetterForm() {
                   Zarfa koy ve gönder
                   <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
                 </button>
-                <p className="text-[0.78rem] leading-snug text-[#6b5334]">
-                  Bilgileriniz yalnızca randevu planlaması için kullanılır.
-                </p>
               </div>
             </div>
           </form>
@@ -347,7 +383,11 @@ export default function LetterForm() {
                   className="mt-10 text-center"
                 >
                   <p className="font-display text-lg font-extrabold text-ivory-50">
-                    {sonuc === 'iletildi' ? 'Zarf kapandı, talebiniz iletildi.' : 'Zarf kapandı.'}
+                    {sonuc === 'iletildi'
+                      ? 'Zarf kapandı, talebiniz iletildi.'
+                      : sonuc === 'hata'
+                        ? 'Talebiniz şu an iletilemedi.'
+                        : 'Zarf kapandı.'}
                   </p>
                   <p className="mt-2 text-[0.92rem] leading-relaxed text-ivory-300">
                     {sonuc === 'iletildi' ? (
@@ -358,7 +398,7 @@ export default function LetterForm() {
                       </>
                     ) : (
                       <>
-                        Talebiniz hazırlandı. Dilerseniz aynı bilgileri
+                        {sonuc === 'hata' ? 'Aynı bilgileri' : 'Talebiniz hazırlandı. Dilerseniz aynı bilgileri'}
                         <a
                           href={waHref}
                           target="_blank"

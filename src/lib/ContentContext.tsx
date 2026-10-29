@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { defaultContent, mergeContent, type SiteContent } from './siteContent'
+import { defaultContent, loadSaved, type SiteContent } from './siteContent'
 import { DEMO_KEY, demoMode, fetchSavedContent } from './backend'
+import { isPreview, onPanelMessage, sendToPanel } from './preview'
 
 const ContentCtx = createContext<SiteContent>(defaultContent)
 
@@ -21,13 +22,22 @@ const WAIT_MS = 4000
  */
 export function useLoadedContent() {
   const [content, setContent] = useState<SiteContent>(defaultContent)
-  const [ready, setReady] = useState(false)
+  const [ready, setReady] = useState(isPreview)
 
   useEffect(() => {
+    /* Paneldeki önizleme: kayıtlı içerik yerine panelin taslağını göster */
+    if (isPreview) {
+      const stop = onPanelMessage((msg) => {
+        if (msg.type === 'uk-icerik') setContent(loadSaved(msg.content))
+      })
+      sendToPanel({ type: 'uk-hazir' })
+      return stop
+    }
+
     const ctrl = new AbortController()
     const timer = window.setTimeout(() => setReady(true), WAIT_MS)
     fetchSavedContent(ctrl.signal).then((saved) => {
-      if (saved) setContent(mergeContent(defaultContent, saved))
+      if (saved) setContent(loadSaved(saved))
       window.clearTimeout(timer)
       setReady(true)
     })
@@ -36,7 +46,7 @@ export function useLoadedContent() {
     const onStorage = (e: StorageEvent) => {
       if (!demoMode || e.key !== DEMO_KEY) return
       try {
-        setContent(mergeContent(defaultContent, e.newValue ? JSON.parse(e.newValue) : null))
+        setContent(loadSaved(e.newValue ? JSON.parse(e.newValue) : null))
       } catch {
         /* bozuk kayıt: mevcut içerik kalsın */
       }

@@ -1,22 +1,27 @@
 import { motion } from 'motion/react'
 import { useContent } from '../lib/ContentContext'
 import Reveal from './ui/Reveal'
+import { Emphasis } from './ui/RichText'
 import CountUp from './ui/CountUp'
 import ShinyText from './reactbits/ShinyText'
 import { Sparkle } from './ui/icons'
+import { EditChip } from './CustomBlock'
 
 /* Kart yüzeyi yok; bölümler yalnızca ince bir üst çizgiyle ayrılıyor */
 const tile =
   'relative border-t border-ivory-100/18 pt-6 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1'
 
 export default function About() {
-  const { doctor, about } = useContent()
+  const { doctor, about, headings } = useContent()
   return (
     <section id="hakkimda" className="relative scroll-mt-28 py-24 sm:py-28">
+      <EditChip target="hakkimda" label="Hakkımda" />
       <div className="section-shell">
         <div className="max-w-2xl">
           <Reveal>
-            <h2 className="title-lg">Hakkımda</h2>
+            <h2 className="title-lg">
+              <Emphasis text={headings.hakkimda} />
+            </h2>
           </Reveal>
           <Reveal delay={0.12}>
             <p className="lead mt-6">

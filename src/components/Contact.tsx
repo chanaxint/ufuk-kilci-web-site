@@ -4,6 +4,7 @@ import Reveal from './ui/Reveal'
 import { Clock, Instagram, Mail, MapPin, Phone, WhatsApp } from './ui/icons'
 import LetterForm from './ui/LetterForm'
 import { GRAIN, PAPER } from '../lib/paper'
+import { EditChip } from './CustomBlock'
 
 /**
  * Randevu ve iletişim.
@@ -30,6 +31,7 @@ export default function Contact() {
 
   return (
     <section id="iletisim" className="relative scroll-mt-28 py-24 sm:py-28">
+      <EditChip target="iletisim" label="İletişim" />
       <div className="section-shell">
         <div className="grid items-start gap-12 lg:grid-cols-12 lg:gap-14">
           {/* Bilgi sayfası — kliniğin künyesi kâğıda yazılmış gibi */}

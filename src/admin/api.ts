@@ -1,6 +1,6 @@
 /**
  * Yönetim panelinin bütün sunucu işleri: giriş, çıkış, şifre, kaydetme,
- * fotoğraf yükleme.
+ * fotoğraf yükleme, randevu talepleri.
  *
  * Supabase bağlıysa gerçek işlemler; geliştirmede bağlı değilse "deneme
  * modu" (her şey bu tarayıcıda). Deneme modunda giriş bilgisi KONTROL
@@ -14,7 +14,8 @@
  */
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { BUCKET, configured, DEMO_KEY, demoMode, SUPABASE_ANON_KEY, SUPABASE_URL } from '../lib/backend'
-import { defaultContent, mergeContent, type SiteContent } from '../lib/siteContent'
+import { defaultContent, loadSaved, type SiteContent } from '../lib/siteContent'
+import { DEMO_REQUESTS_KEY } from '../lib/appointment'
 
 export type Mode = 'supabase' | 'deneme' | 'kurulmamis'
 export const mode: Mode = configured ? 'supabase' : demoMode ? 'deneme' : 'kurulmamis'
@@ -120,12 +121,12 @@ export async function loadContent(): Promise<SiteContent> {
   if (mode === 'supabase') {
     const { data, error } = await (await sb()).from('site_content').select('data').eq('id', 1).maybeSingle()
     if (error) throw new PanelError(turkce(error))
-    return mergeContent(defaultContent, data?.data ?? null)
+    return loadSaved(data?.data ?? null)
   }
   if (mode === 'deneme') {
     try {
       const raw = localStorage.getItem(DEMO_KEY)
-      return mergeContent(defaultContent, raw ? JSON.parse(raw) : null)
+      return loadSaved(raw ? JSON.parse(raw) : null)
     } catch {
       return defaultContent
     }
@@ -161,7 +162,7 @@ export async function saveContent(content: SiteContent) {
 /* ——— Fotoğraflar ——— */
 
 /** Telefon fotoğrafları 5–10 MB geliyor; site için bu boyut yetiyor */
-const MAX_SIDE = { portre: 1600, sertifika: 2000 } as const
+const MAX_SIDE = { portre: 1600, sertifika: 2000, bolum: 2000 } as const
 export type ImageKind = keyof typeof MAX_SIDE
 
 /**
@@ -213,4 +214,62 @@ export async function uploadImage(file: File, kind: ImageKind): Promise<string> 
   const { error } = await store.upload(path, blob, { contentType: blob.type, cacheControl: '31536000', upsert: false })
   if (error) throw new PanelError(turkce(error))
   return store.getPublicUrl(path).data.publicUrl
+}
+
+/* ——— Randevu talepleri ——— */
+
+export type RequestStatus = 'yeni' | 'arandi' | 'tamamlandi'
+export type AppointmentRequest = {
+  id: number
+  created_at: string
+  ad: string
+  telefon: string
+  konu: string
+  mesaj: string
+  durum: RequestStatus
+}
+
+const demoRequests = (): AppointmentRequest[] => {
+  try {
+    const raw = JSON.parse(localStorage.getItem(DEMO_REQUESTS_KEY) ?? '[]')
+    return Array.isArray(raw) ? raw : []
+  } catch {
+    return []
+  }
+}
+const setDemoRequests = (list: AppointmentRequest[]) => localStorage.setItem(DEMO_REQUESTS_KEY, JSON.stringify(list))
+
+/** En yeni talep en üstte; çok eski kayıtlar listeyi şişirmesin diye son 300 */
+export async function listRequests(): Promise<AppointmentRequest[]> {
+  if (mode === 'supabase') {
+    const { data, error } = await (await sb())
+      .from('randevu_talepleri')
+      .select('id, created_at, ad, telefon, konu, mesaj, durum')
+      .order('created_at', { ascending: false })
+      .limit(300)
+    if (error) throw new PanelError(turkce(error))
+    return (data ?? []) as AppointmentRequest[]
+  }
+  if (mode === 'deneme') return demoRequests().sort((a, b) => b.created_at.localeCompare(a.created_at))
+  return []
+}
+
+export async function setRequestStatus(id: number, durum: RequestStatus) {
+  if (mode === 'supabase') {
+    const { data, error } = await (await sb()).from('randevu_talepleri').update({ durum }).eq('id', id).select('id')
+    if (error) throw new PanelError(turkce(error))
+    if (!data?.length) throw new PanelError(turkce('row-level security'))
+    return
+  }
+  if (mode === 'deneme') setDemoRequests(demoRequests().map((r) => (r.id === id ? { ...r, durum } : r)))
+}
+
+export async function deleteRequest(id: number) {
+  if (mode === 'supabase') {
+    const { data, error } = await (await sb()).from('randevu_talepleri').delete().eq('id', id).select('id')
+    if (error) throw new PanelError(turkce(error))
+    if (!data?.length) throw new PanelError(turkce('row-level security'))
+    return
+  }
+  if (mode === 'deneme') setDemoRequests(demoRequests().filter((r) => r.id !== id))
 }

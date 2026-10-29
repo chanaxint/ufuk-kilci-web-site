@@ -73,6 +73,22 @@ export function TextInput({
   )
 }
 
+/** Bölüm başlığı: *yıldız* arasına alınan kelimeler sitede altın renkle yazılıyor */
+export function HeadingInput({ label = 'Bölüm başlığı', value, onChange }: { label?: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <TextInput
+      label={label}
+      hint={
+        <>
+          Bir kelimeyi altın renkle vurgulamak için yıldız içine alın: <code className="rounded bg-[#f3ebde] px-1">Sonucu en iyi *onlar* anlatır.</code>
+        </>
+      }
+      value={value}
+      onChange={onChange}
+    />
+  )
+}
+
 export function TextArea({
   label,
   hint,

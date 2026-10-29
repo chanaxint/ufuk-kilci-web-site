@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
-import { navLinks } from '../lib/content'
+import { menuLinks } from '../lib/content'
 import { useContent } from '../lib/ContentContext'
 import { instagramHref, telHref, waHref } from '../lib/siteContent'
 import DrawUnderlineLink from './reactbits/DrawUnderlineLink'
@@ -9,6 +9,7 @@ import ShinyText from './reactbits/ShinyText'
 
 export default function Navbar() {
   const content = useContent()
+  const links = menuLinks(content.blocks)
   const { doctor } = content
   const [open, setOpen] = useState(false)
   const toggleRef = useRef<HTMLButtonElement>(null)
@@ -147,10 +148,10 @@ export default function Navbar() {
         position="right"
         colors={['#e0d2b8', '#7a5637']}
         accentColor="#7a5637"
-        items={navLinks.map((l) => ({ label: l.label, ariaLabel: l.label, link: l.href }))}
+        items={links.map((l) => ({ label: l.label, ariaLabel: l.label, link: l.href }))}
         panelContent={
           <ul className="flex list-none flex-col gap-1 p-0" role="list">
-            {navLinks.map((l) => (
+            {links.map((l) => (
               <li key={l.href}>
                 <DrawUnderlineLink
                   text={l.label}

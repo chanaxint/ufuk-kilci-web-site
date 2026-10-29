@@ -1,17 +1,22 @@
 import { motion } from 'motion/react'
 import { useContent } from '../lib/ContentContext'
 import Reveal from './ui/Reveal'
+import { Emphasis } from './ui/RichText'
 import { Check } from './ui/icons'
+import { EditChip } from './CustomBlock'
 
 export default function Scoliosis() {
-  const { scoliosis } = useContent()
+  const { scoliosis, headings } = useContent()
   return (
     <section id="skolyoz" className="relative scroll-mt-28 pt-28 pb-20 sm:pt-36 sm:pb-24">
+      <EditChip target="skolyoz" label="Skolyoz" />
       <div className="section-shell">
         {/* Başlık — ortalanmış, bol boşluklu */}
         <div className="mx-auto max-w-3xl text-center">
           <Reveal>
-            <h2 className="title-lg">Skolyoz Nedir?</h2>
+            <h2 className="title-lg">
+              <Emphasis text={headings.skolyoz} />
+            </h2>
           </Reveal>
           <Reveal delay={0.14}>
             <p className="lead mt-7">{scoliosis.definition}</p>
@@ -25,7 +30,7 @@ export default function Scoliosis() {
         <div className="mx-auto mt-20 max-w-4xl">
           <Reveal>
             <h3 className="text-center font-display text-2xl font-extrabold tracking-[-0.02em] text-ivory-50 sm:text-3xl">
-              Skolyoz belirtileri
+              <Emphasis text={headings.belirtiler} />
             </h3>
           </Reveal>
 

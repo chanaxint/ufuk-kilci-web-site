@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { useContent } from '../lib/ContentContext'
 import { LIMITS } from '../lib/siteContent'
 import Reveal from './ui/Reveal'
+import { Emphasis } from './ui/RichText'
 import { Star } from './ui/icons'
+import { EditChip } from './CustomBlock'
 
 /**
  * Kâğıtların yere düştüğü noktalar (sahnenin yüzdesi) ve yattıkları açı.
@@ -60,7 +62,7 @@ const LAST = 0.86
 const DROP = 0.2
 
 export default function Testimonials() {
-  const { testimonials: section } = useContent()
+  const { testimonials: section, headings } = useContent()
   /* Elle dağıtılmış sekiz nokta var; fazlası aynı noktalara düşerdi */
   const testimonials = section.items.slice(0, LIMITS.testimonials)
   const count = testimonials.length
@@ -144,12 +146,13 @@ export default function Testimonials() {
 
   return (
     <section id="yorumlar" className="relative scroll-mt-28 pt-24 pb-16 sm:pt-28">
+      <EditChip target="yorumlar" label="Yorumlar" />
       <div className="section-shell">
         <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <div className="max-w-2xl">
             <Reveal>
               <h2 className="title-lg">
-                Sonucu en iyi <span className="gradient-text">onlar</span> anlatır.
+                <Emphasis text={headings.yorumlar} />
               </h2>
             </Reveal>
             <Reveal delay={0.12}>

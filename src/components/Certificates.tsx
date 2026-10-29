@@ -3,7 +3,9 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useContent } from '../lib/ContentContext'
 import { LIMITS, type Credential } from '../lib/siteContent'
 import Reveal from './ui/Reveal'
+import { Emphasis } from './ui/RichText'
 import { Close } from './ui/icons'
+import { EditChip } from './CustomBlock'
 
 /*
  * Çerçeveler zemine tek tek bırakılmış gibi duruyor: dizilmiş değil,
@@ -329,7 +331,7 @@ function Lightbox({
 }
 
 export default function Certificates() {
-  const { doctor, certificates } = useContent()
+  const { doctor, certificates, headings } = useContent()
   /* Yerleşim beş noktaya göre elle dağıtıldı; fazlası birbirinin üstüne düşerdi */
   const items = certificates.items.slice(0, LIMITS.certificates)
   const n = items.length
@@ -364,10 +366,13 @@ export default function Certificates() {
 
   return (
     <section id="sertifikalar" className="relative scroll-mt-28 py-24 sm:py-28">
+      <EditChip target="sertifikalar" label="Sertifikalar" />
       <div className="section-shell">
         <div className="mx-auto max-w-2xl text-center">
           <Reveal>
-            <h2 className="title-lg">Sertifikalar</h2>
+            <h2 className="title-lg">
+              <Emphasis text={headings.sertifikalar} />
+            </h2>
           </Reveal>
           <Reveal delay={0.12}>
             <p className="lead mt-6">{certificates.intro}</p>

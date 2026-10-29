@@ -1,19 +1,45 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { SiteContent } from '../lib/siteContent'
+import type { Block, SiteContent, SiteSectionId } from '../lib/siteContent'
 import { loadContent, mode, PanelError, saveContent, signOut, updatePassword } from './api'
 import { TextInput } from './fields'
 import { missingRequired, sections, type Setter } from './sections'
+import BlocksEditor, { AddBlockDialog } from './Blocks'
+import Preview from './Preview'
+import Requests, { useNewRequestCount } from './Requests'
 
 type Status = { kind: 'idle' | 'saving' | 'ok' | 'error'; message?: string }
 
 const ACCOUNT = 'hesap'
+const BLOCKS = 'bolumler'
+const REQUESTS = 'talepler'
+
+/** Önizlemedeki "Düzenle" etiketinden paneldeki bölüme */
+const EDIT_TARGET: Record<string, string> = { acilar: 'skolyoz' }
+
+const PREVIEW_KEY = 'uk-panel-onizleme'
+const readPreviewPref = () => {
+  try {
+    return localStorage.getItem(PREVIEW_KEY) !== '0'
+  } catch {
+    return true
+  }
+}
 
 export default function Editor({ email, onSignedOut }: { email: string; onSignedOut: () => void }) {
   const [saved, setSaved] = useState<SiteContent | null>(null)
   const [draft, setDraft] = useState<SiteContent | null>(null)
   const [loadError, setLoadError] = useState('')
-  const [active, setActive] = useState(sections[0].id)
+  const [active, setActive] = useState(REQUESTS)
   const [status, setStatus] = useState<Status>({ kind: 'idle' })
+  /* Masaüstünde önizleme yanda; telefonda "Düzenle / Önizle" sekmeleri */
+  const [showPreview, setShowPreview] = useState(readPreviewPref)
+  const [tab, setTab] = useState<'duzenle' | 'onizle'>('duzenle')
+  const [focusBlock, setFocusBlock] = useState<string | null>(null)
+  const [adding, setAdding] = useState<SiteSectionId | null>(null)
+  const [requestsTick, setRequestsTick] = useState(0)
+  const newRequests = useNewRequestCount(requestsTick)
+  /* Aynı bölüme ikinci kez tıklanınca da önizleme yeniden oraya gitsin */
+  const [jump, setJump] = useState(0)
 
   const load = useCallback(() => {
     setLoadError('')
@@ -51,6 +77,52 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
     setStatus((s) => (s.kind === 'ok' || s.kind === 'error' ? { kind: 'idle' } : s))
   }, [])
 
+  const setBlocks = useCallback((blocks: Block[]) => {
+    setDraft((d) => (d ? { ...d, blocks } : d))
+    setStatus((s) => (s.kind === 'ok' || s.kind === 'error' ? { kind: 'idle' } : s))
+  }, [])
+
+  /* Bölüm seçilince önizleme de oraya kayıyor (`previewTarget`) */
+  const open = (id: string, block: string | null = null) => {
+    setActive(id)
+    setFocusBlock(block)
+    setJump((n) => n + 1)
+  }
+
+  const previewHandlers = {
+    onEdit: (target: string) => {
+      setTab('duzenle')
+      if (target.startsWith('blok:')) {
+        setActive(BLOCKS)
+        setFocusBlock(target.slice(5))
+      } else {
+        setActive(EDIT_TARGET[target] ?? target)
+        setFocusBlock(null)
+      }
+    },
+    onInsert: (after: SiteSectionId) => setAdding(after),
+  }
+
+  const addBlock = (b: Block) => {
+    if (!draft) return
+    setBlocks([...draft.blocks, b])
+    setAdding(null)
+    setActive(BLOCKS)
+    setFocusBlock(b.id)
+    setTab('duzenle')
+  }
+
+  const togglePreview = () => {
+    setShowPreview((v) => {
+      try {
+        localStorage.setItem(PREVIEW_KEY, v ? '0' : '1')
+      } catch {
+        /* tercih hatırlanmazsa da olur */
+      }
+      return !v
+    })
+  }
+
   const save = async () => {
     if (!draft) return
     const missing = missingRequired(draft)
@@ -83,17 +155,37 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
   }
 
   const section = sections.find((s) => s.id === active)
+  const editing = active !== ACCOUNT && active !== REQUESTS
+  /* Önizleme yalnızca site içeriği düzenlenirken; talepler ve hesap ekranında yok */
+  const withPreview = editing && !!draft && showPreview
+  const previewTarget = active === BLOCKS ? (focusBlock ? `blok:${focusBlock}` : null) : editing ? active : null
+  const nav = [
+    { id: REQUESTS, title: 'Randevu talepleri', badge: newRequests },
+    ...sections.map((s) => ({ id: s.id, title: s.title, badge: 0 })),
+    { id: BLOCKS, title: '+ Yeni bölümler', badge: 0 },
+    { id: ACCOUNT, title: 'Hesabım', badge: 0 },
+  ]
 
   return (
     <div className="min-h-svh pb-28">
       {/* Üst şerit */}
       <header className="sticky top-0 z-30 border-b border-[#e3d7c4] bg-[#fbf7f0]/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <div className={`mx-auto flex items-center justify-between gap-3 px-4 py-3 sm:px-6 ${withPreview ? 'max-w-[112rem]' : 'max-w-6xl'}`}>
           <div className="min-w-0">
             <p className="font-wordmark text-[1.45rem] leading-none text-[#2a1d12]">{draft?.doctor.name || 'Site'}</p>
             <p className="mt-0.5 font-display text-[0.72rem] font-bold tracking-[0.16em] text-[#8a7458] uppercase">Site yönetimi</p>
           </div>
           <div className="flex items-center gap-2">
+            {editing && (
+              <button
+                type="button"
+                onClick={togglePreview}
+                aria-pressed={showPreview}
+                className="hidden rounded-xl border border-[#dccfbb] bg-white px-4 py-2.5 font-display text-[0.9rem] font-bold text-[#5c4831] transition-colors hover:bg-[#f3ebde] xl:inline-flex"
+              >
+                {showPreview ? 'Önizlemeyi gizle' : 'Önizlemeyi göster'}
+              </button>
+            )}
             <a
               href="/"
               target="_blank"
@@ -120,43 +212,80 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
         </div>
       )}
 
-      <div className="mx-auto grid max-w-6xl gap-6 px-4 pt-6 sm:px-6 lg:grid-cols-[15rem_1fr] lg:gap-10 lg:pt-10">
+      {/* Telefon ve tablette: düzenle / önizle sekmeleri */}
+      {withPreview && (
+        <div className="sticky top-[4.4rem] z-20 border-b border-[#e3d7c4] bg-[#f5efe6]/95 px-4 py-2 backdrop-blur sm:px-6 xl:hidden">
+          <div className="mx-auto flex max-w-md gap-1 rounded-xl bg-[#e9dfcf] p-1" role="tablist">
+            {(['duzenle', 'onizle'] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                role="tab"
+                aria-selected={tab === t}
+                onClick={() => setTab(t)}
+                className={`flex-1 rounded-lg py-2.5 font-display text-[0.95rem] font-bold transition-colors ${
+                  tab === t ? 'bg-white text-[#2a1d12] shadow-sm' : 'text-[#7a6650]'
+                }`}
+              >
+                {t === 'duzenle' ? 'Düzenle' : 'Önizle'}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div
+        className={`mx-auto grid grid-cols-[minmax(0,1fr)] gap-6 px-4 pt-6 sm:px-6 lg:gap-8 lg:pt-8 ${
+          withPreview
+            ? 'max-w-[112rem] lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[13rem_minmax(0,1fr)_minmax(0,1.15fr)]'
+            : 'max-w-6xl lg:grid-cols-[15rem_1fr] lg:gap-10 lg:pt-10'
+        }`}
+      >
         {/* Bölümler — masaüstünde yan menü, telefonda açılır liste */}
-        <nav aria-label="Bölümler">
+        <nav aria-label="Bölümler" className={withPreview && tab === 'onizle' ? 'max-xl:hidden' : ''}>
           <label className="lg:hidden">
             <span className="mb-1.5 block font-display text-[0.85rem] font-bold text-[#7a6650]">Düzenlenecek bölüm</span>
             <select
               value={active}
-              onChange={(e) => setActive(e.target.value)}
+              onChange={(e) => open(e.target.value)}
               className="w-full rounded-xl border border-[#dccfbb] bg-white px-4 py-3 font-display text-[1rem] font-bold text-[#2a1d12]"
             >
-              {sections.map((s) => (
+              {nav.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.title}
+                  {s.badge ? ` (${s.badge} yeni)` : ''}
                 </option>
               ))}
-              <option value={ACCOUNT}>Hesabım</option>
             </select>
           </label>
-          <ul className="hidden flex-col gap-1 lg:flex">
-            {[...sections.map((s) => ({ id: s.id, title: s.title })), { id: ACCOUNT, title: 'Hesabım' }].map((s) => (
+          <ul className="hidden flex-col gap-1 lg:sticky lg:top-24 lg:flex">
+            {nav.map((s) => (
               <li key={s.id}>
                 <button
                   type="button"
-                  onClick={() => setActive(s.id)}
+                  onClick={() => open(s.id)}
                   aria-current={active === s.id ? 'page' : undefined}
-                  className={`w-full rounded-xl px-4 py-3 text-left font-display text-[0.98rem] font-bold transition-colors ${
+                  className={`flex w-full items-center justify-between gap-2 rounded-xl px-4 py-3 text-left font-display text-[0.98rem] font-bold transition-colors ${
                     active === s.id ? 'bg-[#6b4a2c] text-white' : 'text-[#5c4831] hover:bg-[#efe5d6]'
-                  } ${s.id === ACCOUNT ? 'mt-4' : ''}`}
+                  } ${s.id === ACCOUNT || s.id === BLOCKS ? 'mt-3' : ''} ${s.id === REQUESTS ? 'mb-3' : ''}`}
                 >
                   {s.title}
+                  {s.badge > 0 && (
+                    <span
+                      className={`min-w-6 rounded-full px-2 py-0.5 text-center text-[0.78rem] ${
+                        active === s.id ? 'bg-white text-[#6b4a2c]' : 'bg-[#c2702e] text-white'
+                      }`}
+                    >
+                      {s.badge}
+                    </span>
+                  )}
                 </button>
               </li>
             ))}
           </ul>
         </nav>
 
-        <main className="min-w-0">
+        <main className={`min-w-0 ${withPreview && tab === 'onizle' ? 'max-xl:hidden' : ''}`}>
           {loadError ? (
             <div className="rounded-2xl border border-[#e8c3b8] bg-[#fbeee9] p-6">
               <p className="font-display text-[1.05rem] font-bold text-[#7d2f20]">{loadError}</p>
@@ -168,6 +297,25 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
             <p className="py-16 text-center text-[#7a6650]">İçerik yükleniyor…</p>
           ) : active === ACCOUNT ? (
             <Account email={email} onLeave={leave} />
+          ) : active === REQUESTS ? (
+            <Requests onChanged={() => setRequestsTick((n) => n + 1)} />
+          ) : active === BLOCKS ? (
+            <>
+              <h1 className="font-display text-[1.75rem] leading-tight font-extrabold text-[#2a1d12] sm:text-[2rem]">Yeni bölümler</h1>
+              <p className="mt-2 max-w-2xl text-[0.98rem] leading-relaxed text-[#7a6650]">
+                Sitenin istediğiniz yerine kendi bölümünüzü ekleyin: yazı, fotoğraf, galeri ya da duyuru. Önizlemedeki
+                “+ Buraya yeni bölüm ekle” çubuklarına tıklayarak da tam yerine ekleyebilirsiniz.
+              </p>
+              <div className="mt-6">
+                <BlocksEditor
+                  blocks={draft.blocks}
+                  onChange={setBlocks}
+                  onAdd={() => setAdding('skolyoz')}
+                  focusId={focusBlock}
+                  onFocus={(id) => open(BLOCKS, id)}
+                />
+              </div>
+            </>
           ) : section ? (
             <>
               <h1 className="font-display text-[1.75rem] leading-tight font-extrabold text-[#2a1d12] sm:text-[2rem]">{section.title}</h1>
@@ -178,12 +326,26 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
             </>
           ) : null}
         </main>
+
+        {withPreview && (
+          <aside
+            aria-label="Önizleme"
+            className={`h-[calc(100svh-14.5rem)] min-h-[24rem] min-w-0 lg:col-span-2 xl:sticky xl:top-[5.5rem] xl:col-span-1 xl:h-[calc(100svh-11rem)] ${
+              tab === 'onizle' ? '' : 'max-xl:hidden'
+            }`}
+          >
+            <Preview draft={draft} target={previewTarget}
+              jumpKey={jump} handlers={previewHandlers} />
+          </aside>
+        )}
       </div>
 
+      {adding && draft && <AddBlockDialog after={adding} onAdd={addBlock} onClose={() => setAdding(null)} />}
+
       {/* Kaydet şeridi */}
-      {draft && active !== ACCOUNT && (
+      {draft && editing && (
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[#e3d7c4] bg-[#fbf7f0]/97 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          <div className={`mx-auto flex items-center justify-between gap-3 px-4 py-3 sm:px-6 ${withPreview ? 'max-w-[112rem]' : 'max-w-6xl'}`}>
             <p
               role="status"
               className={`min-w-0 text-[0.92rem] leading-snug font-semibold ${

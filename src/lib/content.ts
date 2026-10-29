@@ -4,13 +4,29 @@
  * bileşenler onu `useContent()` ile okuyor.
  */
 
+import { SITE_SECTIONS, blockAnchor, blockIsEmpty, type Block } from './siteContent'
+
 export const navLinks = [
-  { label: 'Skolyoz', href: '#skolyoz' },
-  { label: 'Hakkımda', href: '#hakkimda' },
-  { label: 'Sertifikalar', href: '#sertifikalar' },
-  { label: 'S.S.S.', href: '#sss' },
-  { label: 'İletişim', href: '#iletisim' },
+  { label: 'Skolyoz', href: '#skolyoz', section: 'skolyoz' },
+  { label: 'Hakkımda', href: '#hakkimda', section: 'hakkimda' },
+  { label: 'Sertifikalar', href: '#sertifikalar', section: 'sertifikalar' },
+  { label: 'S.S.S.', href: '#sss', section: 'sss' },
+  { label: 'İletişim', href: '#iletisim', section: 'iletisim' },
 ]
+
+/**
+ * Menü: sabit bağlantılar + panelde "menüde göster" adı verilen yeni
+ * bölümler, sayfadaki sıralarına göre araya yerleşmiş.
+ */
+export function menuLinks(blocks: Block[]) {
+  const order = (id: string) => SITE_SECTIONS.findIndex((s) => s.id === id)
+  const items = navLinks.map((l) => ({ label: l.label, href: l.href, rank: order(l.section) }))
+  blocks.forEach((b, i) => {
+    const label = b.menuLabel.trim()
+    if (label && !blockIsEmpty(b)) items.push({ label, href: `#${blockAnchor(b)}`, rank: order(b.after) + 0.5 + i / 1000 })
+  })
+  return items.sort((a, b) => a.rank - b.rank).map(({ label, href }) => ({ label, href }))
+}
 
 /** Taslaktaki 6. bölüm — Cobb açısına göre evreler */
 export const angleStages = [

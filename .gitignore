@@ -4,3 +4,6 @@ dist
 *.local
 .vite
 *.tsbuildinfo
+
+# Ortam değişkenleri (Supabase adresi vb.) depoya girmesin; örnek: .env.example
+.env

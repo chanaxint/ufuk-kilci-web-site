@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { doctor } from '../lib/content'
+import { useContent } from '../lib/ContentContext'
 import { setScrollLocked } from '../lib/useSmoothScroll'
 import { HERO_ANCHOR, markIntroSeen } from '../lib/entry'
 import ShinyText from './reactbits/ShinyText'
@@ -104,6 +104,7 @@ const BLOOM = 0.93 // ışık doluyor, sonra sahne sayfaya çözülüyor
  * siteyi devralıyor.
  */
 export default function SpineStage() {
+  const { doctor, hero } = useContent()
   const stageRef = useRef<HTMLDivElement>(null)
   const stickyRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<HTMLDivElement>(null)
@@ -630,8 +631,7 @@ export default function SpineStage() {
                   mürekkep kalması gerekiyor.
                 */}
                 <p className="mt-6 hidden max-w-lg text-lg leading-relaxed text-ink-700 sm:block sm:text-[1.15rem]">
-                  Ağrıyı susturmak yetmez; sebebini bulmak gerekir. Omurga, duruş ve hareket
-                  bütününü tek bir zincir olarak değerlendiren bütüncül bir tedavi yaklaşımı.
+                  {hero.tagline}
                 </p>
 
                 <div className="pointer-events-auto mt-6 flex flex-wrap items-center gap-3 sm:mt-9">

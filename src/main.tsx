@@ -15,6 +15,12 @@ import '@fontsource/instrument-serif/400.css'
 import '@fontsource/instrument-serif/400-italic.css'
 import './index.css'
 
+/*
+ * "/yonetim" sondaki eğik çizgi olmadan yazılınca birçok sunucu (ve
+ * geliştirme sunucusu) siteyi açıyor; panelin adresi "/yonetim/".
+ */
+if (location.pathname === '/yonetim') location.replace(`/yonetim/${location.search}${location.hash}`)
+
 createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>
     <AppBoundary>

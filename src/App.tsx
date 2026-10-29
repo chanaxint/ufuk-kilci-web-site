@@ -19,9 +19,18 @@ import SectionRule from './components/ui/SectionRule'
 import ScrollHint from './components/ui/ScrollHint'
 import { jumpTo, useSmoothScroll } from './lib/useSmoothScroll'
 import { heroY, introSeen } from './lib/entry'
+import { ContentProvider, useLoadedContent } from './lib/ContentContext'
 
 export default function App() {
-  const [loading, setLoading] = useState(true)
+  /*
+   * Yükleme ekranı iki şeyi bekliyor: kendi açılış animasyonu ve yönetim
+   * panelinden kaydedilmiş içerik. Böylece ziyaretçi önce eski metni görüp
+   * sonra değiştiğini görmüyor (içerik en geç birkaç saniyede gelmezse site
+   * varsayılan metinlerle açılıyor).
+   */
+  const { content, ready } = useLoadedContent()
+  const [preloaderDone, setPreloaderDone] = useState(false)
+  const loading = !(preloaderDone && ready)
   useSmoothScroll(!loading)
 
   /* Yükleme ekranı açıkken sayfa kaydırılmasın */
@@ -42,10 +51,10 @@ export default function App() {
     jumpTo(heroY())
   }, [loading])
 
-  const handleDone = useCallback(() => setLoading(false), [])
+  const handleDone = useCallback(() => setPreloaderDone(true), [])
 
   return (
-    <>
+    <ContentProvider value={content}>
       <AnimatePresence mode="wait">
         {loading && <Preloader key="preloader" onDone={handleDone} />}
       </AnimatePresence>
@@ -92,6 +101,6 @@ export default function App() {
       <Footer />
       {!loading && <MobileCallBar />}
       {!loading && <ScrollHint />}
-    </>
+    </ContentProvider>
   )
 }

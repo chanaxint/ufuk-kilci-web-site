@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { credentials, doctor } from '../lib/content'
+import { useContent } from '../lib/ContentContext'
+import { LIMITS, type Credential } from '../lib/siteContent'
 import Reveal from './ui/Reveal'
 import { Close } from './ui/icons'
-
-type Credential = (typeof credentials)[number]
 
 /*
  * Çerçeveler zemine tek tek bırakılmış gibi duruyor: dizilmiş değil,
@@ -145,11 +144,14 @@ function WallCertificate({
   index,
   onOpen,
   spot,
+  yScale,
 }: {
   item: Credential
   index: number
   onOpen: (index: number) => void
   spot: FrameSpot
+  /** Sahne az belgeyle kısaldığında dikey konumlar aynı oranda açılıyor */
+  yScale: number
 }) {
   return (
     <motion.div
@@ -160,7 +162,7 @@ function WallCertificate({
       className="absolute w-[14.5rem] sm:w-[17rem] lg:w-[17.5rem] xl:w-[20rem]"
       style={{
         left: `${spot.x}%`,
-        top: `${spot.y}%`,
+        top: `${spot.y * yScale}%`,
         zIndex: spot.z,
         transform: `translateZ(${spot.depth}px) scale(${spot.scale})`,
         transformStyle: 'preserve-3d',
@@ -200,8 +202,16 @@ function WallCertificate({
  * Gezinme düğmesi yok: boşluğa tıklayıp kapatılıyor, zeminden başka bir
  * çerçeveye tıklanarak diğer belgeler açılıyor.
  */
-function Lightbox({ index, onClose }: { index: number; onClose: () => void }) {
-  const item = credentials[index]
+function Lightbox({
+  items,
+  index,
+  onClose,
+}: {
+  items: Credential[]
+  index: number
+  onClose: () => void
+}) {
+  const item = items[index]
   const tilt = useRef<HTMLDivElement>(null)
   const glare = useRef<HTMLSpanElement>(null)
 
@@ -319,6 +329,16 @@ function Lightbox({ index, onClose }: { index: number; onClose: () => void }) {
 }
 
 export default function Certificates() {
+  const { doctor, certificates } = useContent()
+  /* Yerleşim beş noktaya göre elle dağıtıldı; fazlası birbirinin üstüne düşerdi */
+  const items = certificates.items.slice(0, LIMITS.certificates)
+  const n = items.length
+  /*
+   * Daha az belge varsa sahne kısalıyor, boş zemin kalmıyor: dar ekranda tek
+   * sütun belge sayısıyla orantılı, geniş ekranda üç ve altı tek sıra.
+   */
+  const narrowF = Math.max(1, n) / LIMITS.certificates
+  const wideF = n <= 3 ? 0.55 : 1
   const [open, setOpen] = useState<number | null>(null)
   /* Dar ekranda dağılım tek sütuna yakın: çerçeveler kenardan taşmasın */
   const [narrow, setNarrow] = useState(false)
@@ -332,6 +352,9 @@ export default function Certificates() {
   }, [])
 
   const close = useCallback(() => setOpen(null), [])
+
+  /* Panelde bütün belgeler silinmişse bölüm hiç görünmüyor */
+  if (n === 0) return null
 
   /*
    * Fare paralaksı kaldırıldı: imleç çerçevelerin üzerinde gezinirken
@@ -347,11 +370,7 @@ export default function Certificates() {
             <h2 className="title-lg">Sertifikalar</h2>
           </Reveal>
           <Reveal delay={0.12}>
-            <p className="lead mt-6">
-              Manuel terapi, osteopati, Schroth ve kuru iğneleme başta olmak üzere tamamladığım
-              eğitimler. Her biri, kliniğe yeni bir değerlendirme ya da tedavi yöntemi olarak
-              taşındı; belgeyi büyütmek için üzerine tıklayabilirsiniz.
-            </p>
+            <p className="lead mt-6">{certificates.intro}</p>
           </Reveal>
         </div>
       </div>
@@ -361,16 +380,19 @@ export default function Certificates() {
         <div className="relative mt-14 overflow-hidden" style={{ perspective: '1400px' }}>
           {/* Çerçeveler */}
           <div
-            className="relative mx-auto h-[82rem] w-full max-w-[86rem] px-5 sm:h-[96rem] sm:px-6 lg:h-[46rem]"
-            style={{ transformStyle: 'preserve-3d' }}
+            className="relative mx-auto h-[calc(82rem*var(--f))] w-full max-w-[86rem] px-5 sm:h-[calc(96rem*var(--f))] sm:px-6 lg:h-[calc(46rem*var(--fw))]"
+            style={
+              { transformStyle: 'preserve-3d', '--f': narrowF, '--fw': wideF } as React.CSSProperties
+            }
           >
-            {credentials.map((item, i) => (
+            {items.map((item, i) => (
               <WallCertificate
-                key={item.title}
+                key={i}
                 item={item}
                 index={i}
                 onOpen={setOpen}
                 spot={(narrow ? NARROW_SPOTS : WIDE_SPOTS)[i % WIDE_SPOTS.length]}
+                yScale={narrow ? 1 / narrowF : 1 / wideF}
               />
             ))}
           </div>
@@ -392,7 +414,7 @@ export default function Certificates() {
 
       <AnimatePresence>
         {open !== null && (
-          <Lightbox key="lightbox" index={open} onClose={close} />
+          <Lightbox key="lightbox" items={items} index={open} onClose={close} />
         )}
       </AnimatePresence>
     </section>

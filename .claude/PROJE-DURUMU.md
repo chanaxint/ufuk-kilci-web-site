@@ -443,6 +443,59 @@ altında `lead` cümlesi ("Tedaviye her zaman aynı soruyla başlarım: …").
   telefonda etiket çizilmediği için eskiden hiçbir ad görünmüyordu.
 - Yükleme ekranı "LOADING" → "YÜKLENİYOR". Küçük yazılar 0,62 → 0,7rem civarı.
 
+### Yönetim paneli (`/yonetim/`, Supabase)
+
+Kullanıcı isteği: doktor kendi e-posta/şifresiyle girip fotoğraf, yazı,
+biyografi, yorum, sertifika, SSS, iletişim — "tüm siteyi" yönetebilsin;
+basit ve Türkçe.
+
+- **İçerik modeli** `lib/siteContent.ts`: `SiteContent` tipi + varsayılanlar
+  (eski `content.ts` verileri + bileşenlere gömülü metinler: hero cümlesi,
+  hakkımda paragrafları/etiketleri/sayıları, bölüm açıklamaları, puan).
+  `mergeContent` kayıtlıyı varsayılanın üstüne yazar; liste öğeleri boş
+  şablona göre tamamlanır, türü tutmayan değer yok sayılır. Türetilenler:
+  `waHref`, `telHref`, `instagramHref`, `mapsHref` (panelde yalnızca sade
+  bilgi isteniyor). `LIMITS`: sertifika 5, yorum 8, sayı 2 (yerleşimler elle).
+  `lib/content.ts` artık yalnızca `navLinks` + `angleStages`.
+- **Sağlayıcı** `lib/ContentContext.tsx`: `useLoadedContent` (App) +
+  `useContent()` (bileşenler). Yükleme ekranı içerik gelene kadar bekliyor
+  (en çok 4 sn), eski metin görünüp değişmesin. Deneme modunda başka
+  sekmedeki kayıt `storage` olayıyla anında yansıyor.
+- **Okuma** `lib/backend.ts`: ziyaretçi sitesi Supabase kütüphanesini
+  indirmiyor; tek `fetch` ile `site_content?id=eq.1&select=data`.
+  Kütüphane (`@supabase/supabase-js`) yalnızca panelin dinamik parçasında
+  (derlemede doğrulandı: site paketi o parçaya hiç başvurmuyor).
+- **Panel** `src/admin/` + `yonetim/index.html` (Vite çok sayfa:
+  `build.rollupOptions.input`). `api.ts` (giriş/çıkış/sıfırlama, kaydet =
+  `upsert(...).select('id')` — boş dönerse yetki hatası sayılıyor, fotoğraf
+  = tarayıcıda küçültme → WEBP, `portre` 1600 / `sertifika` 2000 px),
+  `fields.tsx` (alan, liste, kart listesi, fotoğraf), `sections.tsx` (9
+  bölüm + zorunlu alan kontrolü), `Editor.tsx` (yan menü / telefonda açılır
+  liste, yapışkan Kaydet şeridi, kaydedilmemiş değişiklik uyarısı, Hesabım),
+  `AdminApp.tsx` (giriş, şifremi unuttum, e-posta bağlantısıyla yeni şifre,
+  "henüz kurulmadı"). `src/main.tsx` `/yonetim` → `/yonetim/` yönlendiriyor.
+- **Üç mod** (`api.ts` `mode`): `supabase` (.env'de VITE_SUPABASE_URL +
+  VITE_SUPABASE_ANON_KEY), `deneme` (yalnızca `npm run dev` ve ayar yokken:
+  her giriş kabul, veri localStorage `uk-deneme-icerik`), `kurulmamis`
+  (yayında ayar yoksa "Panel henüz kurulmadı", giriş formu yok).
+- **Güvenlik** `supabase/kurulum.sql`: `site_content` (tek satır), RLS
+  herkes okur / yalnızca `public.yonetici_mi()` yazar (security definer,
+  `yoneticiler` tablosunda e-posta, harf duyarsız), depo `site-gorselleri`
+  (herkese açık okuma, listeleme kuralı yok, 5 MB, webp/jpeg/png).
+  Yerel PostgreSQL 16'da Supabase iskeletiyle denendi: ziyaretçi okur ama
+  yazamaz; başka hesap kaydedemez, fotoğraf yükleyemez, yönetici listesini
+  göremez ve kendini ekleyemez; betik iki kez çalıştırılınca da hatasız.
+- **Test** (yayın derlemesi + sahte Supabase, 20/20): yanlış şifre, doğru
+  giriş, 2400×3000 PNG → 1280×1600 WEBP yükleme, kaydetme jetonla, sitede ad
+  ve fotoğraf, ziyaretçinin yalnızca okuma isteği, çıkış, yönetici olmayanın
+  reddi, şifre sıfırlama isteği ve bağlantıyla yeni şifre. Deneme modu uçtan
+  uca (1440 + 390): ad, telefon→WhatsApp, boş e-posta satırı gizleniyor,
+  yorum sil/ekle (8 sınırı), fotoğraf.
+- Kurulum rehberi (doktor için): `docs/yonetim-paneli.md`. `.env` artık
+  `.gitignore`'da.
+- Panelde bilerek olmayanlar: bölüm başlıkları, açı tablosu, giriş
+  videoları/masa fotoğrafı, `index.html` JSON-LD.
+
 ---
 
 ## 9. Dosya haritası (kısa)

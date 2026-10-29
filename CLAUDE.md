@@ -30,7 +30,11 @@ Bu adım hatırlatılmayı beklemez; her iş tesliminin parçasıdır.
 
 - Konteynerdeki dev sunucusu kullanıcının makinesinden erişilemez; site mutlaka
   kendi bilgisayarında çalıştırılır.
-- Yayına çıkmadan önce `src/lib/content.ts` içindeki telefon, e-posta, adres,
-  Instagram/WhatsApp bağlantıları, yorumlar, "4.9 / 120+ değerlendirme" puanı ve
-  sertifika yılları gerçek verilerle değiştirilmeli (`index.html` içindeki
-  JSON-LD ile birlikte).
+- Sitenin düzenlenebilir içeriği (iletişim, yazılar, yorumlar, sertifikalar, SSS…)
+  `src/lib/siteContent.ts` içindeki varsayılanlar + yönetim paneli (`/yonetim/`,
+  Supabase). Kurulum: `docs/yonetim-paneli.md`. Yayından önce örnek veriler
+  (e-posta, yorumlar, "4.9 / 120+" puanı, sertifikalar) panelden ya da
+  varsayılanlardan gerçekleriyle değiştirilmeli; `index.html` içindeki JSON-LD
+  panelden değişmez, elle güncellenir.
+- Bileşenler içeriği `useContent()` ile okur; `lib/content.ts` yalnızca panelde
+  olmayan sabitler (menü bağlantıları, skolyoz açı tablosu).

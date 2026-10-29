@@ -1,9 +1,10 @@
 import { motion } from 'motion/react'
-import { scoliosis } from '../lib/content'
+import { useContent } from '../lib/ContentContext'
 import Reveal from './ui/Reveal'
 import { Check } from './ui/icons'
 
 export default function Scoliosis() {
+  const { scoliosis } = useContent()
   return (
     <section id="skolyoz" className="relative scroll-mt-28 pt-28 pb-20 sm:pt-36 sm:pb-24">
       <div className="section-shell">
@@ -31,7 +32,7 @@ export default function Scoliosis() {
           <ul className="mt-10 flex flex-col">
             {scoliosis.symptoms.map((symptom, i) => (
               <motion.li
-                key={symptom}
+                key={i}
                 initial={{ opacity: 0, y: 22 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-10% 0px' }}
@@ -51,8 +52,7 @@ export default function Scoliosis() {
 
           <Reveal delay={0.1}>
             <p className="mt-10 text-center text-[0.88rem] leading-relaxed text-ivory-200">
-              Bu belirtilerden birini fark ettiyseniz erken değerlendirme önemlidir; büyüme çağında
-              eğrilik sessizce ilerleyebilir.
+              {scoliosis.symptomsNote}
             </p>
           </Reveal>
         </div>

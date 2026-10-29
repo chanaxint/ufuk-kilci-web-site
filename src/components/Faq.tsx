@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { faqs } from '../lib/content'
+import { useContent } from '../lib/ContentContext'
 import Reveal from './ui/Reveal'
 import { Plus } from './ui/icons'
 
 export default function Faq() {
+  const { faq } = useContent()
   const [open, setOpen] = useState<number | null>(0)
 
   return (
@@ -21,18 +22,17 @@ export default function Faq() {
             </Reveal>
             <Reveal delay={0.12}>
               <p className="mt-5 text-[1rem] leading-relaxed text-ivory-200">
-                Cevabını bulamadığınız bir soru varsa yazmanız yeterli; aynı gün içinde dönüş
-                yapıyorum.
+                {faq.intro}
               </p>
             </Reveal>
           </div>
 
           <div className="lg:col-span-8">
             <div className="flex flex-col border-t border-ivory-100/18">
-              {faqs.map((faq, i) => {
+              {faq.items.map((item, i) => {
                 const active = open === i
                 return (
-                  <Reveal key={faq.q} delay={i * 0.05}>
+                  <Reveal key={i} delay={i * 0.05}>
                     <div className="overflow-hidden border-b border-ivory-100/18">
                       <button
                         type="button"
@@ -41,7 +41,7 @@ export default function Faq() {
                         className="flex w-full items-center justify-between gap-5 py-5 pr-1 text-left"
                       >
                         <span className="font-display text-[1.05rem] font-bold text-ivory-50 sm:text-[1.15rem]">
-                          {faq.q}
+                          {item.q}
                         </span>
                         <span
                           className={`grid size-8 shrink-0 place-items-center rounded-full transition-all duration-500 ${
@@ -60,7 +60,7 @@ export default function Faq() {
                             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                           >
                             <p className="max-w-2xl pr-8 pb-6 text-[0.98rem] leading-relaxed text-ivory-300">
-                              {faq.a}
+                              {item.a}
                             </p>
                           </motion.div>
                         )}

@@ -1,0 +1,23 @@
+/*
+ * Yönetim paneli açık zeminde. Sitenin genel kuralları (koyu ahşap zemin,
+ * fildişi başlıklar, açık renkli kaydırma çubuğu) burada aynı katmanda
+ * eziliyor; katman dışına yazılsaydı Tailwind sınıflarını da ezerdi.
+ */
+@layer base {
+  body.yonetim {
+    background-color: #f5efe6;
+    color: #2a1d12;
+  }
+
+  .yonetim :is(h1, h2, h3, h4, h5) {
+    color: inherit;
+  }
+
+  .yonetim ::-webkit-scrollbar-thumb {
+    background-color: rgb(42 29 18 / 0.22);
+  }
+
+  .yonetim ::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(42 29 18 / 0.36);
+  }
+}

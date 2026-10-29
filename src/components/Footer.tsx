@@ -1,4 +1,6 @@
-import { doctor, navLinks } from '../lib/content'
+import { navLinks } from '../lib/content'
+import { useContent } from '../lib/ContentContext'
+import { instagramHref, telHref, waHref } from '../lib/siteContent'
 import ShinyText from './reactbits/ShinyText'
 import { ArrowRight, Instagram, Mail, Phone, WhatsApp } from './ui/icons'
 
@@ -12,6 +14,8 @@ import { ArrowRight, Instagram, Mail, Phone, WhatsApp } from './ui/icons'
  * koyulaşan yumuşak bir perde (yazılar okunsun diye).
  */
 export default function Footer() {
+  const content = useContent()
+  const { doctor } = content
   return (
     <footer className="relative mt-10 text-ivory-200">
       {/* Zemine doğru koyulaşan perde — blok değil, geçiş */}
@@ -42,10 +46,10 @@ export default function Footer() {
 
             <div className="mt-7 flex items-center gap-2">
               {[
-                { href: doctor.whatsapp, icon: WhatsApp, label: 'WhatsApp' },
-                { href: doctor.instagram, icon: Instagram, label: 'Instagram' },
+                { href: waHref(content), icon: WhatsApp, label: 'WhatsApp' },
+                { href: instagramHref(doctor.instagramHandle), icon: Instagram, label: 'Instagram' },
                 { href: `mailto:${doctor.email}`, icon: Mail, label: 'E-posta' },
-                { href: `tel:${doctor.phone.replace(/\s/g, '')}`, icon: Phone, label: 'Telefon' },
+                { href: telHref(doctor.phone), icon: Phone, label: 'Telefon' },
               ].map(({ href, icon: Icon, label }) => (
                 <a
                   key={label}

@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect } from 'react'
 import { motion } from 'motion/react'
-import { doctor } from '../lib/content'
+import { useContent } from '../lib/ContentContext'
 import MessageLoading from './ui/MessageLoading'
 import SceneBoundary from './ui/SceneBoundary'
 
@@ -13,6 +13,7 @@ const LottieCat = lazy(() => import('./ui/LottieCat'))
 const letters = (word: string) => Array.from(word)
 
 export default function Preloader({ onDone }: { onDone: () => void }) {
+  const { doctor } = useContent()
   /* Dolan çubuk kalktı; ekran sabit bir süre durup kendini kapatıyor */
   useEffect(() => {
     const id = window.setTimeout(onDone, 2400)

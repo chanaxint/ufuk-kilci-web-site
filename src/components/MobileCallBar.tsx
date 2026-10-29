@@ -1,9 +1,11 @@
 import { motion } from 'motion/react'
-import { doctor } from '../lib/content'
+import { useContent } from '../lib/ContentContext'
+import { telHref, waHref } from '../lib/siteContent'
 import { Phone, WhatsApp } from './ui/icons'
 
 /** Mobilde ekranın altına sabitlenen hızlı iletişim çubuğu. */
 export default function MobileCallBar() {
+  const content = useContent()
   return (
     <motion.div
       initial={{ y: 90 }}
@@ -13,14 +15,14 @@ export default function MobileCallBar() {
       style={{ opacity: 'calc(1 - var(--stage-dark, 0))' }}
     >
       <a
-        href={`tel:${doctor.phone.replace(/\s/g, '')}`}
+        href={telHref(content.doctor.phone)}
         className="flex flex-1 items-center justify-center gap-2 rounded-full bg-ink-900 py-3.5 font-display text-[0.88rem] font-bold text-sand-50 shadow-[0_14px_30px_-16px_rgb(58_42_28/0.9)]"
       >
         <Phone className="size-4" />
         Hemen Ara
       </a>
       <a
-        href={doctor.whatsapp}
+        href={waHref(content)}
         target="_blank"
         rel="noreferrer"
         className="flex flex-1 items-center justify-center gap-2 rounded-full bg-vital-600 py-3.5 font-display text-[0.88rem] font-bold text-white shadow-[0_14px_30px_-16px_rgb(58_42_28/0.9)]"

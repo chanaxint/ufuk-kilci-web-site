@@ -5,6 +5,18 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   assetsInclude: ['**/*.glb'],
+  build: {
+    rollupOptions: {
+      /*
+       * İki ayrı sayfa: site ve yönetim paneli (/yonetim/). Ziyaretçi panelin
+       * kodunu, panel de sitenin 3B sahnesini ve videolarını indirmiyor.
+       */
+      input: {
+        site: 'index.html',
+        yonetim: 'yonetim/index.html',
+      },
+    },
+  },
   server: {
     /**
      * Geliştirme sunucusu geçici bir tünelle (localtunnel/cloudflared) dışarı

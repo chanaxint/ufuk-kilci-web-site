@@ -1,4 +1,5 @@
-import { doctor, workingHours } from '../lib/content'
+import { useContent } from '../lib/ContentContext'
+import { instagramHref, mapsHref, telHref, waHref } from '../lib/siteContent'
 import Reveal from './ui/Reveal'
 import { Clock, Instagram, Mail, MapPin, Phone, WhatsApp } from './ui/icons'
 import LetterForm from './ui/LetterForm'
@@ -12,22 +13,20 @@ import { GRAIN, PAPER } from '../lib/paper'
  * çıkıyor; ahşap zeminin üstüne bırakılmış iki belge gibi duruyorlar.
  */
 export default function Contact() {
+  const content = useContent()
+  const { doctor, contact } = content
+  /* Panelde boş bırakılan satır sayfada görünmüyor */
   const contactCards = [
-    {
-      icon: Phone,
-      label: 'Telefon',
-      value: doctor.phone,
-      href: `tel:${doctor.phone.replace(/\s/g, '')}`,
-    },
+    { icon: Phone, label: 'Telefon', value: doctor.phone, href: telHref(doctor.phone) },
     { icon: Mail, label: 'E-posta', value: doctor.email, href: `mailto:${doctor.email}` },
-    { icon: MapPin, label: 'Klinik', value: doctor.address, href: doctor.mapsUrl },
+    { icon: MapPin, label: 'Klinik', value: doctor.address, href: mapsHref(doctor) },
     {
       icon: Instagram,
       label: 'Instagram',
       value: doctor.instagramHandle,
-      href: doctor.instagram,
+      href: instagramHref(doctor.instagramHandle),
     },
-  ]
+  ].filter((c) => c.value.trim())
 
   return (
     <section id="iletisim" className="relative scroll-mt-28 py-24 sm:py-28">
@@ -56,11 +55,10 @@ export default function Contact() {
 
               <div className="relative px-7 py-8 sm:px-9 sm:py-10">
                 <h2 className="font-wordmark text-[2rem] leading-[1.1] text-[#31241a] sm:text-[2.3rem]">
-                  İlk adımı bugün atalım.
+                  {contact.heading}
                 </h2>
                 <p className="mt-3 text-[0.95rem] leading-relaxed text-[#6b5334]">
-                  Formu doldurun ya da doğrudan arayın. Uygun seans saatleri için aynı gün
-                  içinde dönüş yapıyorum.
+                  {contact.intro}
                 </p>
 
                 <div className="mt-7 flex flex-col">
@@ -93,9 +91,9 @@ export default function Contact() {
                     Çalışma Saatleri
                   </span>
                   <ul className="mt-4 flex flex-col gap-2.5">
-                    {workingHours.map((w) => (
+                    {contact.hours.map((w, i) => (
                       <li
-                        key={w.day}
+                        key={i}
                         className="flex items-baseline justify-between gap-4 text-[0.9rem] text-[#5c4831]"
                       >
                         <span>{w.day}</span>
@@ -117,7 +115,7 @@ export default function Contact() {
                 </div>
 
                 <a
-                  href={doctor.whatsapp}
+                  href={waHref(content)}
                   target="_blank"
                   rel="noreferrer"
                   className="mt-7 inline-flex items-center gap-2 rounded-full border border-[#6b5334]/35 px-4 py-2.5 font-display text-[0.82rem] font-bold text-[#4a3826] transition-colors duration-300 hover:border-[#6b4a2c] hover:bg-[#6b4a2c]/8"

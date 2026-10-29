@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
-import { doctor, navLinks } from '../lib/content'
+import { navLinks } from '../lib/content'
+import { useContent } from '../lib/ContentContext'
+import { instagramHref, telHref, waHref } from '../lib/siteContent'
 import DrawUnderlineLink from './reactbits/DrawUnderlineLink'
 import { StaggeredMenu } from './reactbits/StaggeredMenu'
 import ShinyText from './reactbits/ShinyText'
 
 export default function Navbar() {
+  const content = useContent()
+  const { doctor } = content
   const [open, setOpen] = useState(false)
   const toggleRef = useRef<HTMLButtonElement>(null)
 
@@ -162,9 +166,9 @@ export default function Navbar() {
           </ul>
         }
         socialItems={[
-          { label: doctor.phone, link: `tel:${doctor.phone.replace(/\s/g, '')}` },
-          { label: 'WhatsApp', link: doctor.whatsapp },
-          { label: 'Instagram', link: doctor.instagram },
+          { label: doctor.phone, link: telHref(doctor.phone) },
+          { label: 'WhatsApp', link: waHref(content) },
+          { label: 'Instagram', link: instagramHref(doctor.instagramHandle) },
           { label: 'Randevu Al', link: '#iletisim' },
         ]}
         closeOnClickAway={false}

@@ -1,6 +1,6 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { complaintOptions, doctor } from '../../lib/content'
+import { useContent } from '../../lib/ContentContext'
 import {
   hasEndpoint,
   sendAppointment,
@@ -29,26 +29,36 @@ const labelRow =
  * kapalı zarf gösteriliyor.
  */
 export default function LetterForm() {
+  const content = useContent()
+  const { doctor } = content
+  const complaintOptions = content.appointment.complaintOptions
   const [form, setForm] = useState<Form>({
     name: '',
     phone: '',
-    topic: complaintOptions[0],
+    topic: complaintOptions[0] ?? '',
     message: '',
   })
+  /*
+   * Seçenekler panelden değişebilir (ve kayıtlı içerik sayfa açıldıktan
+   * kısa süre sonra gelir): seçili konu listede yoksa ilkine geç.
+   */
+  useEffect(() => {
+    if (!complaintOptions.includes(form.topic)) setForm((f) => ({ ...f, topic: complaintOptions[0] ?? '' }))
+  }, [complaintOptions, form.topic])
   const [phase, setPhase] = useState<'yazi' | 'katlaniyor' | 'gonderildi'>('yazi')
   /** 'iletildi' uç noktaya ulaştı · 'hazir' uç nokta yok · 'hata' denendi olmadı */
   const [sonuc, setSonuc] = useState<'iletildi' | 'hazir' | 'hata'>('hazir')
   const timers = useRef<number[]>([])
   const reduce = useReducedMotion()
 
-  const waHref = useMemo(() => whatsappHref(form), [form])
+  const waHref = useMemo(() => whatsappHref(form, content), [form, content])
 
   const send = (e: React.FormEvent) => {
     e.preventDefault()
     /* Kullanıcı sitede kalıyor; talep arka planda gidiyor */
     setSonuc('hazir')
     if (hasEndpoint) {
-      sendAppointment(form)
+      sendAppointment(form, content)
         .then((ok) => setSonuc(ok ? 'iletildi' : 'hazir'))
         .catch(() => setSonuc('hata'))
     }
@@ -63,7 +73,7 @@ export default function LetterForm() {
   const reset = () => {
     timers.current.forEach(window.clearTimeout)
     timers.current = []
-    setForm({ name: '', phone: '', topic: complaintOptions[0], message: '' })
+    setForm({ name: '', phone: '', topic: complaintOptions[0] ?? '', message: '' })
     setPhase('yazi')
   }
 
@@ -72,7 +82,7 @@ export default function LetterForm() {
     <div className="flex h-full flex-col px-7 py-6 text-[#3b2c1d]">
       <p className="font-wordmark text-[1.35rem] leading-none">Randevu talebi</p>
       <p className="mt-1 font-display text-[0.62rem] font-bold tracking-[0.2em] text-[#7a6446] uppercase">
-        {doctor.name} · Fizyoterapist - Osteopat
+        {doctor.name} · {doctor.titles}
       </p>
       <dl className="mt-5 space-y-2 text-[0.9rem]">
         {[
@@ -92,7 +102,7 @@ export default function LetterForm() {
         </p>
       )}
       <p className="mt-auto font-display text-[0.6rem] font-bold tracking-[0.2em] text-[#8a765a] uppercase">
-        {doctor.phone} · Nevşehir
+        {doctor.phone}
       </p>
     </div>
   )
@@ -164,8 +174,8 @@ export default function LetterForm() {
                       onChange={(e) => setForm({ ...form, topic: e.target.value })}
                       className={`${fieldRow} paper-select cursor-pointer appearance-none pr-7`}
                     >
-                      {complaintOptions.map((option) => (
-                        <option key={option}>{option}</option>
+                      {complaintOptions.map((option, i) => (
+                        <option key={i}>{option}</option>
                       ))}
                     </select>
                     <ChevronDown
@@ -342,7 +352,7 @@ export default function LetterForm() {
                   <p className="mt-2 text-[0.92rem] leading-relaxed text-ivory-300">
                     {sonuc === 'iletildi' ? (
                       <>
-                        Talebiniz {doctor.name}'ya ulaştı. Mesai saatleri içinde
+                        Talebiniz ulaştı. Mesai saatleri içinde
                         {' '}
                         {form.phone || 'verdiğiniz numara'} üzerinden dönüş yapılacak.
                       </>

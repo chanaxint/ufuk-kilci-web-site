@@ -1,4 +1,4 @@
-import { doctor } from './content'
+import { waHref, type SiteContent } from './siteContent'
 
 export type AppointmentForm = {
   name: string
@@ -33,9 +33,9 @@ export const ACCESS_KEY = (import.meta.env.VITE_APPOINTMENT_KEY ?? '').trim()
 export const hasEndpoint = ENDPOINT.length > 0
 
 /** Hem WhatsApp bağlantısında hem de uç noktaya giden gövdede aynı metin */
-export function appointmentText(form: AppointmentForm) {
+export function appointmentText(form: AppointmentForm, content: SiteContent) {
   return [
-    `Merhaba ${doctor.name},`,
+    `Merhaba ${content.doctor.name},`,
     '',
     `Ad Soyad: ${form.name || '-'}`,
     `Telefon: ${form.phone || '-'}`,
@@ -46,15 +46,15 @@ export function appointmentText(form: AppointmentForm) {
     .join('\n')
 }
 
-export function whatsappHref(form: AppointmentForm) {
-  return `${doctor.whatsapp}?text=${encodeURIComponent(appointmentText(form))}`
+export function whatsappHref(form: AppointmentForm, content: SiteContent) {
+  return `${waHref(content)}?text=${encodeURIComponent(appointmentText(form, content))}`
 }
 
 /**
  * Talebi uç noktaya gönderir. Uç nokta tanımlı değilse `false` döner;
  * arayüz o zaman "iletildi" demiyor, kullanıcıya bağlantıyı gösteriyor.
  */
-export async function sendAppointment(form: AppointmentForm): Promise<boolean> {
+export async function sendAppointment(form: AppointmentForm, content: SiteContent): Promise<boolean> {
   if (!hasEndpoint) return false
   const res = await fetch(ENDPOINT, {
     method: 'POST',
@@ -62,9 +62,9 @@ export async function sendAppointment(form: AppointmentForm): Promise<boolean> {
     body: JSON.stringify({
       ...(ACCESS_KEY ? { access_key: ACCESS_KEY } : {}),
       subject: `Randevu talebi — ${form.name || 'isimsiz'}`,
-      from_name: 'Ufuk Kilci web sitesi',
+      from_name: `${content.doctor.name} web sitesi`,
       ...form,
-      text: appointmentText(form),
+      text: appointmentText(form, content),
       kaynak: 'ufukkilci.com randevu formu',
     }),
   })

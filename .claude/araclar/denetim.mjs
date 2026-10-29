@@ -22,7 +22,7 @@ const { chromium } = pw
 const [ad, w, h, mob] = [process.argv[2], +process.argv[3], +process.argv[4], process.argv[5] === 'mobil']
 const dir = `denetim-${ad}`
 fs.mkdirSync(dir, { recursive: true })
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] })
+const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] })
 const ctx = await b.newContext(mob ? { viewport: { width: w, height: h }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 } : { viewport: { width: w, height: h } })
 const p = await ctx.newPage()
 const hatalar = []

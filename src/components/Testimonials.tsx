@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { testimonials } from '../lib/content'
+import { useContent } from '../lib/ContentContext'
+import { LIMITS } from '../lib/siteContent'
 import Reveal from './ui/Reveal'
 import { Star } from './ui/icons'
 
@@ -59,6 +60,10 @@ const LAST = 0.86
 const DROP = 0.2
 
 export default function Testimonials() {
+  const { testimonials: section } = useContent()
+  /* Elle dağıtılmış sekiz nokta var; fazlası aynı noktalara düşerdi */
+  const testimonials = section.items.slice(0, LIMITS.testimonials)
+  const count = testimonials.length
   const pinRef = useRef<HTMLDivElement>(null)
   const paperRefs = useRef<(HTMLElement | null)[]>([])
   const [narrow, setNarrow] = useState(false)
@@ -129,9 +134,13 @@ export default function Testimonials() {
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
     }
-  }, [narrow])
+    /* Kâğıt sayısı panelden değişince sahne yeniden kuruluyor */
+  }, [narrow, count])
 
   const spots = narrow ? NARROW : WIDE
+
+  /* Panelde bütün yorumlar silinmişse bölüm hiç görünmüyor */
+  if (count === 0) return null
 
   return (
     <section id="yorumlar" className="relative scroll-mt-28 pt-24 pb-16 sm:pt-28">
@@ -144,25 +153,25 @@ export default function Testimonials() {
               </h2>
             </Reveal>
             <Reveal delay={0.12}>
-              <p className="lead mt-5 max-w-lg">
-                Farklı yaşlardan, farklı şikâyetlerle gelen hastaların tedavi sonrasında
-                anlattıkları. Hepsi kendi izinleriyle paylaşıldı; isimler kısaltılarak yazıldı.
-              </p>
+              <p className="lead mt-5 max-w-lg">{section.intro}</p>
             </Reveal>
           </div>
+          {/* Puan boş bırakılırsa kutu hiç gösterilmiyor */}
+          {section.rating.trim() && (
           <Reveal delay={0.1}>
             <div className="flex items-center gap-4 border-l border-ivory-100/20 pl-5">
-              <span className="font-display text-3xl font-extrabold text-ivory-50">4.9</span>
+              <span className="font-display text-3xl font-extrabold text-ivory-50">{section.rating}</span>
               <span>
                 <span className="flex items-center gap-0.5 text-warm-500">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star key={i} className="size-3.5" />
                   ))}
                 </span>
-                <span className="mt-1 block text-[0.78rem] text-ivory-300">120+ değerlendirme</span>
+                <span className="mt-1 block text-[0.78rem] text-ivory-300">{section.ratingCount}</span>
               </span>
             </div>
           </Reveal>
+          )}
         </div>
       </div>
 
@@ -179,7 +188,7 @@ export default function Testimonials() {
               const aged = AGED[i % AGED.length]
               return (
                 <figure
-                  key={item.name}
+                  key={i}
                   data-ipucu-engel
                   ref={(node) => {
                     paperRefs.current[i] = node

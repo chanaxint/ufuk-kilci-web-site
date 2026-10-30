@@ -614,6 +614,33 @@ boyutlandırabilsin; ortaya ya da kenara gelince (yalnızca o zaman) çizgiler
   önizlemeyle birebir; telefonda sürükleme telefon yerleşimini başlattı;
   hazır bölüm çevirme; 1440/820/390 taşma yok, düzenleme izi yok.
 
+### Yayın hazırlığı (Cloudflare Pages) — yayınlanmadı, push yok
+
+Ayrıntı ve Cloudflare ayarları: `docs/yayina-alma.md`.
+
+- `.nvmrc` = 22, `package.json` `engines.node >=22.12.0` (lock dosyasına da).
+- `public/_headers`: CSP (`script-src 'self' 'wasm-unsafe-eval'` — drei
+  açılışta WebAssembly çözücüsü hazırlıyor, bu olmadan konsola CSP hatası
+  düşüyordu; `style-src 'unsafe-inline'` animasyonlar için; `img-src data:
+  blob: *.supabase.co`; `connect-src *.supabase.co lottie.host`;
+  `worker-src blob:` Lottie ve Supabase işçisi için; `frame-src` ve
+  `frame-ancestors 'self'` panel önizlemesi için — **DENY/none yazılmamalı**),
+  `X-Frame-Options: SAMEORIGIN`, nosniff, Referrer-Policy, Permissions-Policy,
+  COOP. `/yonetim*` → `X-Robots-Tag: noindex…` + `no-store`. `/assets/*` →
+  bir yıl `immutable`. HSTS bilerek yok (alan adı kesinleşince Cloudflare'den).
+- `vite/site-seo.ts` (Vite eklentisi, `tsconfig.node.json` içine alındı):
+  robots.txt her derlemede; `SITE_URL` (yalnızca https kökü, değilse derleme
+  durur) verilirse sitemap.xml (tek kayıt), canonical, og:url, tam adresli
+  og:image ve JSON-LD `url`/`image`. Verilmezse uyarı, adres uydurulmuyor.
+  Panel robots.txt'de bilerek engellenmedi (noindex görülebilsin).
+- Test: `_headers`'ı uygulayan yerel sunucu + Chromium. Site 1440/390 baştan
+  sona: CSP ihlali yok, WebGL, videolar (readyState 4), yazı tipleri,
+  animasyonlar, Lottie (adres konteynerde kapalı olduğu için geçerli sahte
+  JSON'la). Supabase'li test derlemesi (geçici klasörde, projeye anahtar
+  yazılmadı) + sahte Supabase: 13/13 (giriş, talepler, fotoğraf yükle/göster,
+  önizleme çerçevesi, serbest düzen düzenleyicisi, kaydet, randevu gönderimi,
+  başka siteden çerçeveleme reddi).
+
 - Konteynerdeki yazılım GPU'sunda iletişim bölümü ~2 kare/sn çiziliyor
   (kâğıt dokusu + karışım modu); önceki commit'te de aynı, gerçek
   cihazlarla ilgisi yok. Ekran görüntüsü alırken `timeout` uzun tutulmalı.
@@ -639,6 +666,9 @@ src/components/CanvasBlock.tsx       serbest düzenin sitedeki çizimi
 src/components/CanvasEditor.tsx      önizlemede sürükle/boyutlandır + kılavuz çizgileri
 src/admin/                           yönetim paneli (Editor, Blocks, Preview, Requests, sections…)
 supabase/kurulum.sql                 tablolar + satır kuralları (içerik, yöneticiler, depo, randevular)
+public/_headers                      Cloudflare yanıt başlıkları (CSP, çerçeveleme, panel noindex, önbellek)
+vite/site-seo.ts                     robots.txt; SITE_URL ile sitemap.xml, canonical, og:url
+docs/yayina-alma.md                  Cloudflare Pages ayarları ve yayın sonrası adımlar
 public/video/masa-alti-inis.*        iniş videosu (720p mp4 · mobil mp4 · webm)
 public/images/klinik-masa.jpg        giriş fotoğrafı (2000×1116)
 public/images/stand-kollari.png      standın iki kolu, omurganın üstüne bindirilen katman

@@ -1,0 +1,50 @@
+# Cloudflare Pages yanıt başlıkları. Derlemede dist/_headers olarak kopyalanır;
+# yerel `npm run dev` / `npm run preview` bu dosyayı okumaz.
+#
+# İçerik Güvenlik Politikası (CSP) — neye neden izin verildiği:
+#   script-src 'self'       Yalnızca sitenin kendi derlenmiş JS dosyaları. Satır içi
+#                           çalışan script yok (index.html'deki JSON-LD bir veri
+#                           bloğu, çalıştırılmaz).
+#   'wasm-unsafe-eval'      3B model yükleyicisi (drei) açılışta WebAssembly çözücüsünü
+#                           hazırlıyor; bu izin YALNIZCA WebAssembly derlemesine
+#                           izin verir, JavaScript eval'ine izin vermez.
+#   style-src 'unsafe-inline'  React ve animasyonlar (GSAP, Motion) stil özniteliği
+#                           yazıyor; bunsuz animasyonlar ve 3B sahne bozulur.
+#   img-src data: blob:     Gömülü küçük görseller, 3B modelin dokuları (blob),
+#                           panelin deneme modundaki fotoğraflar.
+#   *.supabase.co           İçerik, randevu talepleri, panel girişi ve yüklenen
+#                           fotoğraflar (img-src + connect-src).
+#   lottie.host             Kedi animasyonunun JSON dosyası. Dosya projeye alınırsa
+#                           bu adres connect-src'den çıkarılmalı.
+#   worker-src blob:        Lottie ve Supabase istemcisi arka plan işçisini blob
+#                           adresinden başlatıyor.
+#   frame-src / frame-ancestors 'self'
+#                           Yönetim panelinin canlı önizlemesi siteyi AYNI adresten
+#                           bir çerçevede açıyor. Bu yüzden 'none' / DENY DEĞİL:
+#                           yalnızca kendi alan adımız çerçeveleyebilir, başka siteler
+#                           çerçeveleyemez (tıklama tuzağına karşı).
+#
+# Randevu talebi ayrıca bir e-posta servisine gidecekse (VITE_APPOINTMENT_ENDPOINT,
+# ör. https://api.web3forms.com) o adres connect-src'ye eklenmeli; yoksa tarayıcı
+# isteği engeller ve talep yalnızca panele düşer.
+
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self'; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://lottie.host; worker-src 'self' blob:; frame-src 'self'; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()
+  Cross-Origin-Opener-Policy: same-origin
+
+# Yönetim paneli: arama motorlarına kapalı, tarayıcı ve ara önbellekler saklamasın.
+# (Sayfada ayrıca <meta name="robots" content="noindex, nofollow"> var.)
+/yonetim
+  X-Robots-Tag: noindex, nofollow, noarchive
+/yonetim/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+  Cache-Control: no-store
+
+# Derlenen JS/CSS dosya adları içeriğe göre değişiyor (ör. site-B1mAJXfm.js):
+# değişmeyecekleri için bir yıl önbellekte kalabilirler.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

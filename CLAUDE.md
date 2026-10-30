@@ -43,3 +43,8 @@ Bu adım hatırlatılmayı beklemez; her iş tesliminin parçasıdır.
   Yeni bir sabit bölüm eklenirse `SITE_SECTIONS`, `App.tsx` içindeki
   `BlocksAfter` ve önizleme etiketi (`EditChip`) de eklenmeli.
   `supabase/kurulum.sql` değişirse doktorun betiği yeniden çalıştırması gerekir.
+- Yayın: Cloudflare Pages, `npm run build` → `dist` (`docs/yayina-alma.md`).
+  Yeni bir dış kaynak (CDN, harita, analiz, form servisi) eklenirse
+  `public/_headers` içindeki CSP de güncellenmeli; çerçeveleme izni `'self'`
+  kalmalı (panel önizlemesi). Alan adı uydurulmaz: `SITE_URL` derleme
+  ortamında verilir.

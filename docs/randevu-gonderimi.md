@@ -1,5 +1,11 @@
 # Randevu talebinin doktora ulaşması
 
+> **Güncel durum:** Yönetim paneli kurulduysa (`docs/yonetim-paneli.md`)
+> talepler zaten panelde **"Randevu talepleri"** ekranına düşüyor; bunun
+> için aşağıdakilerin hiçbiri gerekmiyor. Aşağıdaki yollar, talebin
+> **ayrıca** e-posta ya da WhatsApp bildirimi olarak gelmesi istenirse
+> geçerli; ikisi birlikte de çalışır.
+
 Form artık kullanıcıyı siteden çıkarmıyor: "Zarfa koy ve gönder" denince
 kâğıt katlanıp zarfa giriyor ve talep arka planda gönderiliyor.
 

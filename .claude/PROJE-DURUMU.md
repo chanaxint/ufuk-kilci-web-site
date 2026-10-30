@@ -493,8 +493,79 @@ basit ve Türkçe.
   yorum sil/ekle (8 sınırı), fotoğraf.
 - Kurulum rehberi (doktor için): `docs/yonetim-paneli.md`. `.env` artık
   `.gitignore`'da.
-- Panelde bilerek olmayanlar: bölüm başlıkları, açı tablosu, giriş
-  videoları/masa fotoğrafı, `index.html` JSON-LD.
+- Panelde bilerek olmayanlar: açı tablosu, giriş videoları/masa
+  fotoğrafı, `index.html` JSON-LD.
+
+### Randevu talepleri, yeni bölümler, canlı önizleme
+
+Kullanıcı isteği: randevu talepleri panele gelsin; doktor siteye başlık /
+yeni bölüm ekleyebilsin ("+ yeni"); siteyi önizlemede görüp istediği
+fotoğrafı ve yazıyı istediği yere koyabilsin; kaydedince gerçek site
+güncellensin.
+
+- **Randevu talepleri.** `lib/appointment.ts` `sendAppointment`: Supabase
+  bağlıysa `POST /rest/v1/randevu_talepleri` (anon anahtar,
+  `Prefer: return=minimal` — ziyaretçinin okuma yetkisi yok), deneme
+  modunda localStorage `uk-deneme-randevular`, e-posta uç noktası
+  (`VITE_APPOINTMENT_ENDPOINT`) varsa ona da. Biri ulaşırsa "iletildi";
+  hiçbiri yoksa WhatsApp bağlantısı, hata olursa "iletilemedi" + WhatsApp.
+  Formda KVKK onay kutusu (zorunlu), görünmez tuzak alan `web_sitesi`
+  (doluysa gönderilmiyor ama "iletildi" deniyor), telefon `pattern` en az 7
+  rakam, alan uzunluk sınırları SQL ile aynı (`REQUEST_LIMITS`).
+  Önizlemede form hiçbir yere göndermiyor (`canDeliver`).
+- **SQL** (`supabase/kurulum.sql` 5. adım): `randevu_talepleri` (kimlik,
+  tarih, ad, telefon, konu, mesaj, `onay` true zorunlu, `durum`
+  yeni/arandi/tamamlandi, uzunluk ve "7–15 rakam" denetimleri). Sütun
+  yetkileri: ziyaretçi yalnız `ad, telefon, konu, mesaj, onay` ekler
+  (tarih/durum uyduramaz), yönetici okur/siler ve yalnız `durum`
+  günceller. Fren tetikleyicisi (security definer): 10 dakikada toplam 30,
+  aynı numaradan (son 10 rakam: 0532…/+90 532… aynı) saatte 3. Yerel
+  PostgreSQL'de 25+ durumla denendi; betik iki kez çalıştırılınca hatasız.
+  **Supabase daha önce kurulduysa betik bir kez daha çalıştırılmalı.**
+- **Panel → Randevu talepleri** (`admin/Requests.tsx`, açılış ekranı):
+  en yeni üstte, Tümü/Yeni/Arandı/Tamamlandı süzgeci, Ara (tel:) ve
+  WhatsApp (`waDigits`) bağlantıları, durum düğmeleri, sil; açıkken
+  dakikada bir, rozet iki dakikada bir tazeleniyor.
+- **Başlıklar** `SiteContent.headings` (skolyoz, belirtiler, acilar,
+  yorumlar, hakkimda, sertifikalar, sss). `*yıldız*` → `gradient-text`
+  (`ui/RichText.tsx` `Emphasis`). SSS başlığındaki zorunlu `<br>` kalktı.
+  İletişim başlığı kâğıt üstünde el yazısı olduğu için vurgusuz.
+- **Yeni bölümler** `SiteContent.blocks` (`Block`: tür, `after` = hangi
+  sabit bölümün ardından, başlık, yazı, fotoğraf + yan, alt yazı, galeri,
+  düğme, menü adı). Türler: yazı, fotoğraf+yazı, galeri, büyük fotoğraf,
+  duyuru (eski kâğıt). `components/CustomBlock.tsx` `BlocksAfter` her sabit
+  bölümün ardında (`App.tsx`); girişten sonra çizgi blokların ardına,
+  diğerlerinde önüne. Boş bölüm gerçek sitede ve menüde görünmez
+  (`blockIsEmpty`). Güvenlik: bağlantılar `safeHref` (http/https, tel,
+  mailto, #çapa, çıplak alan adı; `whatsapp`/`telefon` hazır seçenekleri
+  içerikten çözülüyor), görseller `safeImage`; kimlikler `[\w-]{1,40}`,
+  en çok 20 bölüm, galeri 12 fotoğraf (`BLOCK_LIMITS`). Menü adı verilen
+  bölüm `menuLinks()` ile menüye/alt bilgiye sırasına göre giriyor.
+- **Canlı önizleme** (`lib/preview.ts`, `admin/Preview.tsx`): panel siteyi
+  `/?onizleme=1` çerçevesinde açıyor; site `uk-hazir` deyince taslak
+  `uk-icerik` ile gidiyor (180 ms duraksamayla). Önizlemede yükleme ekranı
+  yok, kapı yürüyüşü atlanıyor, içerik değişince `ScrollTrigger.refresh`.
+  Site → panel: `uk-duzenle` (bölümlerdeki "✎" etiketleri; `acilar` →
+  skolyoz formu, footer → genel), `uk-ekle` ("+ Buraya yeni bölüm ekle"
+  çubukları). Panel → site: `uk-git` (seçili bölüme kay; bulunamazsa 2 sn
+  boyunca yeniden dener), `uk-olcek` (küçültülmüş "Bilgisayar" görünümünde
+  etiketler `zoom` ile okunur kalsın). Mesajlar yalnız aynı köken ve
+  `window.parent` / çerçevenin kendisi arasında kabul ediliyor.
+  "Bilgisayar" görünümü 1280 px çizip sığdırıyor, "Telefon" 390 px;
+  telefondan açılan panelde varsayılan telefon. Düzen: xl'de form +
+  önizleme yan yana (gizlenebilir, tercih localStorage `uk-panel-onizleme`),
+  daha darda "Düzenle / Önizle" sekmeleri; gizliyken çerçeve yeniden
+  yüklenmiyor.
+- **Test**: deneme modu uçtan uca (form → panel listesi, onay kutusu
+  zorunlu, tuzak alan kaydetmiyor, başlık önizlemede altın vurgulu,
+  önizlemedeki çubukla fotoğraf+yazı ekleme, chip → form, kaydet → gerçek
+  sitede doğru sırada, menüde, chip/çubuk yok); sahte Supabase ile yayın
+  derlemesi 10/10 (insert `return=minimal` anon, ziyaretçi hiç GET yok,
+  yönetici olmayan göremez, durum/silme, duyuru SSS'den sonra); telefonda
+  panel (390 px) taşma yok.
+- Konteynerdeki yazılım GPU'sunda iletişim bölümü ~2 kare/sn çiziliyor
+  (kâğıt dokusu + karışım modu); önceki commit'te de aynı, gerçek
+  cihazlarla ilgisi yok. Ekran görüntüsü alırken `timeout` uzun tutulmalı.
 
 ---
 
@@ -508,7 +579,12 @@ src/components/ui/StudioBackground.tsx    ahşap zemin arkaplanı
 src/components/ui/AppBoundary.tsx    beyaz ekran yerine hata gösteren sınır
 src/components/ui/SceneBoundary.tsx  3B sahne ve tembel parçalar için sınır
 src/index.css                        @theme tasarım sistemi + temel katman
-src/lib/content.ts                   bütün metinler ve veriler (yayın öncesi gerçekleşecek)
+src/lib/siteContent.ts               düzenlenebilir içerik: tip, varsayılanlar, yeni bölümler, güvenli adresler
+src/lib/content.ts                   panelde olmayan sabitler (menü, açı tablosu) + menuLinks
+src/lib/preview.ts                   panel ↔ önizleme mesajları
+src/components/CustomBlock.tsx       panelden eklenen bölümler, ✎ etiketleri, ekleme çubukları
+src/admin/                           yönetim paneli (Editor, Blocks, Preview, Requests, sections…)
+supabase/kurulum.sql                 tablolar + satır kuralları (içerik, yöneticiler, depo, randevular)
 public/video/masa-alti-inis.*        iniş videosu (720p mp4 · mobil mp4 · webm)
 public/images/klinik-masa.jpg        giriş fotoğrafı (2000×1116)
 public/images/stand-kollari.png      standın iki kolu, omurganın üstüne bindirilen katman

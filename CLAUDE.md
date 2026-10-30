@@ -38,3 +38,8 @@ Bu adım hatırlatılmayı beklemez; her iş tesliminin parçasıdır.
   panelden değişmez, elle güncellenir.
 - Bileşenler içeriği `useContent()` ile okur; `lib/content.ts` yalnızca panelde
   olmayan sabitler (menü bağlantıları, skolyoz açı tablosu).
+- Panelden eklenen bölümler (`blocks`), randevu talepleri ve canlı önizleme
+  (`/?onizleme=1`, `lib/preview.ts`) için ayrıntılar `.claude/PROJE-DURUMU.md`.
+  Yeni bir sabit bölüm eklenirse `SITE_SECTIONS`, `App.tsx` içindeki
+  `BlocksAfter` ve önizleme etiketi (`EditChip`) de eklenmeli.
+  `supabase/kurulum.sql` değişirse doktorun betiği yeniden çalıştırması gerekir.

@@ -1,7 +1,10 @@
 # Yönetim paneli — kurulum ve kullanım
 
 Panel, sitenin yazılarını, fotoğraflarını, yorumlarını, sertifikalarını ve
-iletişim bilgilerini kod bilmeden değiştirmenizi sağlar. Adresi:
+iletişim bilgilerini kod bilmeden değiştirmenizi; siteye kendi
+bölümlerinizi eklemenizi ve sitedeki formdan gelen **randevu taleplerini**
+görmenizi sağlar. Değişiklikleri kaydetmeden önce yan taraftaki
+önizlemede görürsünüz. Adresi:
 
 ```
 https://sitenizin-adresi.com/yonetim/
@@ -41,9 +44,16 @@ hem siteyi değiştirme yetkisi hem de veriler sizin olur.
 4. **Run** deyin. "Success" yazısını görmelisiniz.
 
 Bu adım şunları kurar: sitenin yazılarının saklandığı tablo, yönetici
-listesi, fotoğraf deposu ve kurallar — **herkes okuyabilir, yalnızca
-yönetici listesindeki e-posta yazabilir.** (Bu kurallar gerçek bir
-PostgreSQL veritabanında tek tek denendi.)
+listesi, fotoğraf deposu, randevu talepleri tablosu ve kurallar —
+**herkes siteyi okuyabilir, yalnızca yönetici listesindeki e-posta
+değiştirebilir; ziyaretçi randevu talebi bırakabilir ama hiçbir talebi
+göremez.** (Bu kurallar gerçek bir PostgreSQL veritabanında tek tek
+denendi.)
+
+> Paneli daha önce kurduysanız ve randevu talepleri sonradan eklendiyse:
+> `supabase/kurulum.sql` dosyasını **bir kez daha** aynı şekilde çalıştırın
+> (e-postanızı yine yazarak). Tekrar çalıştırmak zararsızdır; mevcut
+> yazılarınız silinmez.
 
 ### 3. Giriş hesabınızı açın
 
@@ -103,11 +113,57 @@ Supabase'e yazılır.
 
 ## Günlük kullanım
 
-1. Panele girin, soldan (telefonda üstteki listeden) bölümü seçin.
-2. Değiştirin. Her bölümün başında, o yazıların sitede nerede göründüğü
-   yazar.
+### Randevu talepleri
+
+Panel açılınca ilk bu ekran gelir. Sitedeki randevu mektubunu dolduran
+her hasta burada görünür; yeni talep sayısı menüde rozetle yazar.
+
+- **Ara** telefonu açar, **WhatsApp'tan yaz** hastaya WhatsApp'ta yazar.
+- Aradıktan sonra **Arandı**, iş bitince **Tamamlandı** deyin; üstteki
+  düğmelerle yalnızca yenileri ya da tamamlananları görebilirsiniz.
+- İşi biten talebi **Sil** ile kaldırabilirsiniz (geri alınamaz).
+- Liste açıkken dakikada bir kendiliğinden yenilenir.
+
+Formda hastanın "bilgilerimin randevu için kullanılmasını kabul ediyorum"
+kutusunu işaretlemesi zorunludur. Aynı numaradan kısa sürede çok sayıda
+talep gelirse sistem fazlasını kabul etmez (formu dolduran programlara
+karşı).
+
+### Yazıları ve fotoğrafları değiştirmek
+
+1. Soldan (telefonda üstteki listeden) bölümü seçin. Bilgisayarda sağda
+   sitenin **önizlemesi** açılır ve o bölüme kayar; telefonda üstteki
+   **Önizle** sekmesine dokunun.
+2. Değiştirin — önizleme yazdıkça güncellenir. Önizlemedeki **✎**
+   etiketlerine tıklarsanız o bölümün formu açılır.
 3. Alttaki **Kaydet**'e basın. "Kaydedildi. Site güncellendi." yazısını
    görünce bitti — ziyaretçiler sayfayı açtığında yeni hâlini görür.
+   Kaydetmeden önce gerçek site değişmez.
+
+- **Başlıklar:** her bölümün başlığı değiştirilebilir. Bir kelimeyi altın
+  renkle vurgulamak için yıldız içine alın: `Sonucu en iyi *onlar* anlatır.`
+- **Önizlemede Bilgisayar / Telefon:** sitenin iki cihazda nasıl
+  göründüğünü kaydetmeden görürsünüz. Önizleme yer kaplıyorsa üstteki
+  **Önizlemeyi gizle** ile kapatabilirsiniz.
+
+### Siteye yeni bölüm eklemek (+)
+
+Soldaki **+ Yeni bölümler**'den ya da önizlemedeki **"+ Buraya yeni
+bölüm ekle"** çubuklarından birine tıklayın; bölüm tam o yere eklenir.
+
+- **Türler:** başlık ve yazı · fotoğraf ve yazı · fotoğraf galerisi ·
+  büyük fotoğraf · duyuru (kâğıda yazılmış kısa not: tatil, yeni hizmet…).
+- **Nereye?** Her bölüm sitedeki sabit bölümlerden birinin ardından gelir;
+  sonradan değiştirebilirsiniz. Aynı yerdeki bölümleri **↑ ↓** ile
+  sıralayın.
+- **Düğme** (isteğe bağlı): randevu formuna götürsün, WhatsApp'tan
+  yazsın, telefonla arasın ya da başka bir web adresine gitsin.
+- **Menüde görünsün mü?** Bir ad yazarsanız bölüm üst menüde ve sayfanın
+  altında o adla görünür.
+- Boş bırakılan bölüm sitede görünmez. Bir sayfada en fazla 20 yeni bölüm,
+  bir galeride en fazla 12 fotoğraf olabilir.
+- Yerleşim bilerek serbest sürükle-bırak değil: her şey sitenin kendi
+  düzeninde aktığı için telefonda da bilgisayarda da düzgün durur.
 
 - **Fotoğraf:** "Fotoğraf seç" → telefondan ya da bilgisayardan seçin.
   Büyük fotoğraflar otomatik küçültülür; site yavaşlamaz.
@@ -123,9 +179,7 @@ Supabase'e yazılır.
 - **Yorumlar en fazla 8, sertifikalar en fazla 5.** Yere düşen kâğıtların
   ve çerçevelerin yerleşimi bu sayılara göre elle ayarlandı; fazlası üst
   üste binerdi. Yenisini eklemek için birini silin.
-- **Bölüm başlıkları** ("Sertifikalar", "Skolyoz Nedir?"…) ve **skolyoz
-  açı tablosu** panelde yok: başlıklar tasarımın parçası, açı tablosu
-  klinik bir ölçek.
+- **Skolyoz açı tablosu** panelde yok: klinik bir ölçek.
 - **Giriş videoları ve masadaki fotoğraf** panelden değiştirilemez; 3B
   omurga o fotoğrafa göre yerleştirildi.
 - Arama motorlarının okuduğu künye (`index.html` içindeki yapısal veri)
@@ -147,7 +201,8 @@ Supabase'e yazılır.
 
 `npm run dev` ile açıp `http://localhost:5173/yonetim/` adresine girin.
 Supabase bağlı değilken panel **deneme modunda** açılır: herhangi bir
-e-posta ve şifreyle girilir, değişiklikler yalnızca o tarayıcıda saklanır
-ve yalnızca o bilgisayardaki sitede görünür. Panelin nasıl çalıştığını
+e-posta ve şifreyle girilir, değişiklikler (ve sitedeki formdan
+gönderilen randevu talepleri) yalnızca o tarayıcıda saklanır ve yalnızca
+o bilgisayardaki sitede görünür. Panelin nasıl çalıştığını
 görmek için birebir. Bu mod yalnızca `npm run dev` altında var; yayına
 alınan sitede asla açılmaz.

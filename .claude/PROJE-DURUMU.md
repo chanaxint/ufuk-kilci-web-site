@@ -343,10 +343,10 @@ kaydırma/sticky ofsetleri, paket boyutları, SSIM.
 3. **Yayın öncesi içerik.** Telefon (0543 780 50 50), WhatsApp, Instagram
    (@fzt.ufukkilci) ve adres (350 Evler Mah. Milli İrade Cad. İŞKUR yanı
    No: 46, Daire 6-7 — Nevşehir/Merkez) **gerçek** ve `index.html` JSON-LD
-   ile birlikte güncellendi. Hâlâ örnek olanlar: **e-posta**
-   (info@ufukkilci.com), **"4.9 / 120+ değerlendirme"**, About'taki dört
-   sayı (12+ yıl, 4.500+ seans, %96 memnuniyet, 18 sertifika), **8 hasta
-   yorumu** ve sertifika yıl/kurumları.
+   ile birlikte güncellendi. Hâlâ örnek olan: **e-posta**
+   (info@ufukkilci.com, sitede ve JSON-LD'de). Yorumlar, puan, sayılar ve
+   örnek sertifikalar yayından kaldırıldı (aşağıda "Yayın öncesi içerik
+   temizliği"); sağlık beyanları ve KVKK metinleri doktor onayı bekliyor.
 4. **Kedi Lottie**: şu an uzak adresten çekiliyor. `public/animations/cat.json`
    olarak indirilip `CAT_SRC` oraya çevrilebilir; lisans kontrol edilmeli.
 5. İstenirse doktor sitesine içerik eklemeleri: öncesi/sonrası vakalar, seans
@@ -641,6 +641,27 @@ Ayrıntı ve Cloudflare ayarları: `docs/yayina-alma.md`.
   önizleme çerçevesi, serbest düzen düzenleyicisi, kaydet, randevu gönderimi,
   başka siteden çerçeveleme reddi).
 
+### Yayın öncesi içerik temizliği (push yok)
+
+- Varsayılan içerikten kaldırıldı (`siteContent.ts`): 8 örnek hasta yorumu,
+  "4.9 / 120+ değerlendirme" puanı, sayılar (12+ yıl, 4.500+ seans), Hakkımda
+  paragrafındaki "On iki yılı aşkın", 5 örnek sertifika (yıl/kurum/başlık) ve
+  `public/images/sertifika-ornek.jpg` (silindi). Yorumlar ve sertifikalar
+  boşken bölüm görünmüyor; `App.tsx` ayırıcı çizgisini de çizmiyor (çift çizgi
+  olmasın), menü/alt bilgi "Sertifikalar" bağlantısını gizliyor
+  (`menuLinks(content)`), Hakkımda'da sayı yokken tanıtım kutusu `lg:row-span-2`.
+- Boş varsayılan listeler için `loadSaved` içinde açık şablon (`LIST_TEMPLATES`):
+  `mergeContent` şablonu listenin ilk öğesinden aldığı için boş listede panel
+  verisi denetlenmeden geçerdi.
+- Panelde uyarı notları (yorumlar: tanıtım kuralları / hukuki görüş;
+  sertifikalar: yalnızca gerçek belge; sayılar: yalnızca belgelenebilir).
+- Giriş fotoğrafı ve iki video: duvardaki altı sahte diploma ("Dr. Elara
+  Vance") kâğıt içleri bulanıklaştırıldı — `tasarim/belgeler/` (betik + README).
+  Fotoğraf↔video geçişi korunuyor. Kalıcı çözüm: doktorun belgeleriyle yeni
+  görsel (spinePose ve STAND_RISE yeniden ayarlanmalı).
+- Doğrulama bekleyen içerik listesi ve KVKK eksikleri kullanıcıya raporlandı
+  (yayın öncesi onay listesi).
+
 - Konteynerdeki yazılım GPU'sunda iletişim bölümü ~2 kare/sn çiziliyor
   (kâğıt dokusu + karışım modu); önceki commit'te de aynı, gerçek
   cihazlarla ilgisi yok. Ekran görüntüsü alırken `timeout` uzun tutulmalı.
@@ -670,7 +691,7 @@ public/_headers                      Cloudflare yanıt başlıkları (CSP, çer�
 vite/site-seo.ts                     robots.txt; SITE_URL ile sitemap.xml, canonical, og:url
 docs/yayina-alma.md                  Cloudflare Pages ayarları ve yayın sonrası adımlar
 public/video/masa-alti-inis.*        iniş videosu (720p mp4 · mobil mp4 · webm)
-public/images/klinik-masa.jpg        giriş fotoğrafı (2000×1116)
+public/images/klinik-masa.jpg        giriş fotoğrafı (2000×1116; diploma kâğıtları bulanık, tasarim/belgeler/)
 public/images/stand-kollari.png      standın iki kolu, omurganın üstüne bindirilen katman
 public/images/zemin-arkaplan.jpg     sitenin ahşap zemini
 tasarim/inis/README.md               iniş videosunun üretim komutları ve kaynak kareler

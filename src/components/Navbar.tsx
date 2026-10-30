@@ -9,7 +9,7 @@ import ShinyText from './reactbits/ShinyText'
 
 export default function Navbar() {
   const content = useContent()
-  const links = menuLinks(content.blocks)
+  const links = menuLinks(content)
   const { doctor } = content
   const [open, setOpen] = useState(false)
   const toggleRef = useRef<HTMLButtonElement>(null)

@@ -144,7 +144,12 @@ export type SiteContent = {
 /* Yerleşimin taşıyabildiği en fazla öğe: sertifika ve yorum sahneleri elle dağıtılmış noktalara dayanıyor */
 export const LIMITS = { certificates: 5, testimonials: 8, stats: 2 } as const
 
-const SAMPLE_CERTIFICATE = '/images/sertifika-ornek.jpg'
+/*
+ * Yayın öncesi temizlik: gerçek olmayan hasta yorumları ve puanı, doğrulanmamış
+ * sayılar (deneyim yılı, seans sayısı) ve örnek sertifikalar varsayılandan
+ * kaldırıldı. Bu bölümler boşken sitede hiç görünmüyor; doktor gerçek ve
+ * doğrulanmış bilgileri panelden ekleyince geri geliyor.
+ */
 
 export const defaultContent: SiteContent = {
   headings: {
@@ -178,14 +183,11 @@ export const defaultContent: SiteContent = {
     intro: 'Tedaviye her zaman aynı soruyla başlarım:',
     introHighlight: 'bu ağrı neden burada?',
     paragraphs: [
-      'On iki yılı aşkın klinik deneyimimde bel ve boyun problemlerinden sporcu yaralanmalarına, skolyozdan ameliyat sonrası rehabilitasyona kadar geniş bir yelpazede çalıştım.',
+      'Klinik çalışmalarımda bel ve boyun problemlerinden sporcu yaralanmalarına, skolyozdan ameliyat sonrası rehabilitasyona kadar geniş bir yelpazede çalıştım.',
       'Manuel terapi ve osteopatik teknikleri ölçülebilir hedeflerle ilerleyen egzersiz programlarıyla birleştiriyorum. Amacım seans sayısını uzatmak değil; bedeninizi yönetebildiğiniz noktaya en kısa sürede ulaşmak.',
     ],
     chips: ['Manuel Terapi', 'Osteopati', 'Schroth', 'Kuru İğneleme'],
-    stats: [
-      { value: 12, suffix: '+', label: 'Yıllık klinik deneyim' },
-      { value: 4500, suffix: '+', label: 'Tamamlanan seans' },
-    ],
+    stats: [],
   },
   scoliosis: {
     definition:
@@ -202,71 +204,14 @@ export const defaultContent: SiteContent = {
       'Bu belirtilerden birini fark ettiyseniz erken değerlendirme önemlidir; büyüme çağında eğrilik sessizce ilerleyebilir.',
   },
   testimonials: {
-    intro:
-      'Farklı yaşlardan, farklı şikâyetlerle gelen hastaların tedavi sonrasında anlattıkları. Hepsi kendi izinleriyle paylaşıldı; isimler kısaltılarak yazıldı.',
-    rating: '4.9',
-    ratingCount: '120+ değerlendirme',
-    items: [
-      {
-        name: 'Elif A.',
-        role: 'Grafik Tasarımcı',
-        quote:
-          'İki yıldır süren boyun ağrım için gittiğim ilk yer değildi ama son yer oldu. Neyi neden yaptığını anlatması tedaviden bağımsız bir güven veriyor.',
-      },
-      {
-        name: 'Mert K.',
-        role: 'Yarı Maraton Koşucusu',
-        quote:
-          'Sakatlık sonrası koşuya dönüş sürecini haftalara bölerek planladı. Altı haftada yarışa girdim, üstelik daha sağlam bir teknikle.',
-      },
-      {
-        name: 'Ayşe D.',
-        role: 'Öğretmen',
-        quote:
-          'Bel fıtığı ameliyatı önerilmişti. Üç aylık programın sonunda ağrısız şekilde günlük hayatıma döndüm, ameliyat gündemden kalktı.',
-      },
-      {
-        name: 'Can Ö.',
-        role: 'Yazılım Geliştirici',
-        quote:
-          'Masa başı duruşumun ne yaptığını ilk kez birinden net şekilde duydum. Ev egzersizleri kısa ve uygulanabilir, o yüzden gerçekten yapıyorum.',
-      },
-      {
-        name: 'Zeynep T.',
-        role: '16 yaşında hastanın annesi',
-        quote:
-          'Kızımın skolyoz açısı bir yılda ilerlemedi. Schroth egzersizlerini ona sabırla öğretmesi bu işin yarısıydı.',
-      },
-      {
-        name: 'Burak S.',
-        role: 'Şef',
-        quote:
-          'Günde on saat ayaktayım. Bel ağrım için verilen program mutfaktaki düzenime göre kurgulandı; iki ayda ağrısız çalışmaya başladım.',
-      },
-      {
-        name: 'Nihan K.',
-        role: 'Yoga Eğitmeni',
-        quote:
-          'Kalça sıkışmamın kaynağının sırtımda olduğunu burada öğrendim. Bölgeye değil zincire bakması işi çözdü.',
-      },
-      {
-        name: 'Serkan A.',
-        role: 'Emekli',
-        quote:
-          'Yürüyüş mesafem 200 metreye düşmüştü. Üç aylık programın sonunda parkta bir saat yürüyorum.',
-      },
-    ],
+    intro: '',
+    rating: '',
+    ratingCount: '',
+    items: [],
   },
   certificates: {
-    intro:
-      'Manuel terapi, osteopati, Schroth ve kuru iğneleme başta olmak üzere tamamladığım eğitimler. Her biri, kliniğe yeni bir değerlendirme ya da tedavi yöntemi olarak taşındı; belgeyi büyütmek için üzerine tıklayabilirsiniz.',
-    items: [
-      { year: '2012', title: 'Fizyoterapi ve Rehabilitasyon Lisans', org: 'Sağlık Bilimleri Fakültesi', image: SAMPLE_CERTIFICATE },
-      { year: '2015', title: 'Manuel Terapi Sertifikasyonu', org: 'Uluslararası Manuel Terapi Derneği', image: SAMPLE_CERTIFICATE },
-      { year: '2018', title: 'Osteopati Eğitimi (D.O.)', org: 'Osteopatik Tıp Akademisi', image: SAMPLE_CERTIFICATE },
-      { year: '2021', title: 'Kuru İğneleme & Ağrı Bilimi', org: 'Klinik Uygulamalı Eğitim Programı', image: SAMPLE_CERTIFICATE },
-      { year: '2023', title: 'Schroth Metodu — Skolyoz Rehabilitasyonu', org: 'Uluslararası Schroth Eğitim Enstitüsü', image: SAMPLE_CERTIFICATE },
-    ],
+    intro: 'Tamamladığım eğitimlerin belgeleri. Büyütmek için belgenin üzerine tıklayabilirsiniz.',
+    items: [],
   },
   faq: {
     intro:
@@ -402,8 +347,24 @@ function normalizeBlocks(raw: unknown): Block[] {
 }
 
 /** Kayıtlı içeriği okunur hâle getirir: varsayılanlarla birleştirir, yeni bölümleri denetler */
+/*
+ * Varsayılanı boş olan listeler: `mergeContent` liste öğelerini varsayılan
+ * listenin ilk öğesine göre denetliyor; ilk öğe olmayınca panelden gelen veri
+ * denetlenmeden geçerdi. Bu yüzden şablonları ayrıca veriliyor.
+ */
+const LIST_TEMPLATES = {
+  stats: { value: 0, suffix: '', label: '' } satisfies Stat,
+  testimonials: { name: '', role: '', quote: '' } satisfies Testimonial,
+  certificates: { year: '', title: '', org: '', image: '' } satisfies Credential,
+}
+const listOf = <T,>(raw: unknown, tpl: T): T[] => (Array.isArray(raw) ? raw.map((x) => mergeContent(blank(tpl), x)) : [])
+
 export function loadSaved(saved: unknown): SiteContent {
   const c = mergeContent(defaultContent, saved)
+  const s = (saved ?? {}) as { about?: { stats?: unknown }; testimonials?: { items?: unknown }; certificates?: { items?: unknown } }
+  if (s.about?.stats !== undefined) c.about.stats = listOf(s.about.stats, LIST_TEMPLATES.stats)
+  if (s.testimonials?.items !== undefined) c.testimonials.items = listOf(s.testimonials.items, LIST_TEMPLATES.testimonials)
+  if (s.certificates?.items !== undefined) c.certificates.items = listOf(s.certificates.items, LIST_TEMPLATES.certificates)
   c.blocks = normalizeBlocks((saved as { blocks?: unknown } | null)?.blocks)
   return c
 }

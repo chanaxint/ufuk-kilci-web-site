@@ -16,7 +16,7 @@ import { EditChip } from './CustomBlock'
  */
 export default function Footer() {
   const content = useContent()
-  const links = menuLinks(content.blocks)
+  const links = menuLinks(content)
   const { doctor } = content
   return (
     <footer className="relative mt-10 text-ivory-200">

@@ -47,9 +47,8 @@ npm run model      # assets/spine-draco.glb → public/models/spine.glb (Draco a
 8. **About (9)** — bento ızgara: fotoğraf, tanıtım, sayılar, yaklaşım kartları, randevu kutusu.
 9. **Certificates (10)** — prosedürel sıva dokulu loş duvar; ahşap/altın çerçeveler içinde
     sertifika görselleri, altlarında pirinç künyeler, fare hareketine bağlı CSS 3B paralaks ve
-    imleci takip eden sıcak ışık. Görseller `content.ts` içindeki `credentials[].image`
-    alanından gelir; şu an hepsi `public/images/sertifika-ornek.jpg` (örnek görsel) —
-    gerçek belgeler geldiğinde yalnızca bu alanlar değiştirilecek.
+    imleci takip eden sıcak ışık. Belgeler yönetim panelinden yüklenir; örnek belgeler
+    yayından kaldırıldı, hiç belge yokken bölüm ve menü bağlantısı görünmez.
 10. **Faq**, **Contact (11)** (WhatsApp'a hazır mesaj gönderen randevu formu), **Footer**.
 11. Mobilde ekran altına sabitlenen hızlı iletişim çubuğu.
 

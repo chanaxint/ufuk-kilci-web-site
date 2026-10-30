@@ -136,13 +136,14 @@ export default function App() {
         <SectionRule />
         <ScoliosisAngles />
         <BlocksAfter after="acilar" />
-        <SectionRule />
+        {/* Yorum ya da belge yokken bölüm görünmüyor; çizgisi de çizilmesin ki iki çizgi üst üste gelmesin */}
+        {content.testimonials.items.length > 0 && <SectionRule />}
         <Testimonials />
         <BlocksAfter after="yorumlar" />
         <SectionRule />
         <About />
         <BlocksAfter after="hakkimda" />
-        <SectionRule />
+        {content.certificates.items.length > 0 && <SectionRule />}
         <Certificates />
         <BlocksAfter after="sertifikalar" />
         <SectionRule />

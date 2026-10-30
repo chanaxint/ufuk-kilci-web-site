@@ -4,7 +4,7 @@
  * bileşenler onu `useContent()` ile okuyor.
  */
 
-import { SITE_SECTIONS, blockAnchor, blockIsEmpty, type Block } from './siteContent'
+import { SITE_SECTIONS, blockAnchor, blockIsEmpty, type SiteContent } from './siteContent'
 
 export const navLinks = [
   { label: 'Skolyoz', href: '#skolyoz', section: 'skolyoz' },
@@ -16,11 +16,14 @@ export const navLinks = [
 
 /**
  * Menü: sabit bağlantılar + panelde "menüde göster" adı verilen yeni
- * bölümler, sayfadaki sıralarına göre araya yerleşmiş.
+ * bölümler, sayfadaki sıralarına göre araya yerleşmiş. Sitede görünmeyen
+ * bölüme (ör. henüz belge yüklenmemiş Sertifikalar) bağlantı verilmiyor.
  */
-export function menuLinks(blocks: Block[]) {
+export function menuLinks({ blocks, certificates }: Pick<SiteContent, 'blocks' | 'certificates'>) {
   const order = (id: string) => SITE_SECTIONS.findIndex((s) => s.id === id)
-  const items = navLinks.map((l) => ({ label: l.label, href: l.href, rank: order(l.section) }))
+  const items = navLinks
+    .filter((l) => l.section !== 'sertifikalar' || certificates.items.length > 0)
+    .map((l) => ({ label: l.label, href: l.href, rank: order(l.section) }))
   blocks.forEach((b, i) => {
     const label = b.menuLabel.trim()
     if (label && !blockIsEmpty(b)) items.push({ label, href: `#${blockAnchor(b)}`, rank: order(b.after) + 0.5 + i / 1000 })

@@ -65,8 +65,8 @@ export default function About() {
             </div>
           </Reveal>
 
-          {/* Tanıtım */}
-          <Reveal delay={0.06} className="sm:col-span-2">
+          {/* Tanıtım — sayı yokken fotoğrafın iki satırını birlikte doldursun */}
+          <Reveal delay={0.06} className={`sm:col-span-2 ${about.stats.length === 0 ? 'lg:row-span-2' : ''}`}>
             <div className={`${tile} h-full`}>
               <span className="grid size-10 place-items-center rounded-2xl bg-brand-100 text-brand-700">
                 <Sparkle className="size-5" />

@@ -155,7 +155,10 @@ export const sections: Section[] = [
         />
         <div className="flex flex-col gap-1.5">
           <p className="font-display text-[0.95rem] font-bold text-[#2a1d12]">Sayılar</p>
-          <p className="-mt-0.5 text-[0.86rem] text-[#7a6650]">Fotoğrafın yanında büyük rakamlarla, sayarak görünür.</p>
+          <p className="-mt-0.5 text-[0.86rem] text-[#7a6650]">
+            Fotoğrafın yanında büyük rakamlarla, sayarak görünür. Yalnızca belgeleyebileceğiniz sayıları yazın (deneyim yılı,
+            seans sayısı gibi); başarı ya da memnuniyet oranı yazmayın. Boş bırakılırsa görünmez.
+          </p>
           <CardList
             items={c.about.stats}
             onChange={(stats) => set('about', { stats })}
@@ -202,7 +205,8 @@ export const sections: Section[] = [
   {
     id: 'yorumlar',
     title: 'Hasta yorumları',
-    where: 'Kaydırdıkça yere düşen kâğıtlar. Yorumları hastanın izniyle, adını kısaltarak yazın.',
+    where:
+      'Kaydırdıkça yere düşen kâğıtlar. Hiç yorum yokken bölüm sitede görünmez. Sağlık hizmetlerinde tanıtım kuralları hasta yorumu ve teşekkürüyle tanıtımı kısıtlayabilir: eklemeden önce hukuki görüş alın; yalnızca gerçek ve izinli yorum ekleyin.',
     render: (c, set) => (
       <>
         <HeadingInput value={c.headings.yorumlar} onChange={(v) => set('headings', { yorumlar: v })} />
@@ -246,7 +250,8 @@ export const sections: Section[] = [
   {
     id: 'sertifikalar',
     title: 'Sertifikalar',
-    where: 'Yere bırakılmış çerçeveler. Ziyaretçi tıklayınca belge büyüyor.',
+    where:
+      'Yere bırakılmış çerçeveler; ziyaretçi tıklayınca belge büyüyor. Yalnızca size ait gerçek belgelerin fotoğrafını ya da taramasını yükleyin. Hiç belge yokken bölüm ve menüdeki bağlantısı görünmez.',
     render: (c, set) => (
       <>
         <HeadingInput value={c.headings.sertifikalar} onChange={(v) => set('headings', { sertifikalar: v })} />

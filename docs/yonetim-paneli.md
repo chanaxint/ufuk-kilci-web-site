@@ -151,8 +151,9 @@ karşı).
 Soldaki **+ Yeni bölümler**'den ya da önizlemedeki **"+ Buraya yeni
 bölüm ekle"** çubuklarından birine tıklayın; bölüm tam o yere eklenir.
 
-- **Türler:** başlık ve yazı · fotoğraf ve yazı · fotoğraf galerisi ·
-  büyük fotoğraf · duyuru (kâğıda yazılmış kısa not: tatil, yeni hizmet…).
+- **Türler:** serbest düzen · başlık ve yazı · fotoğraf ve yazı ·
+  fotoğraf galerisi · büyük fotoğraf · duyuru (kâğıda yazılmış kısa not:
+  tatil, yeni hizmet…).
 - **Nereye?** Her bölüm sitedeki sabit bölümlerden birinin ardından gelir;
   sonradan değiştirebilirsiniz. Aynı yerdeki bölümleri **↑ ↓** ile
   sıralayın.
@@ -162,8 +163,43 @@ bölüm ekle"** çubuklarından birine tıklayın; bölüm tam o yere eklenir.
   altında o adla görünür.
 - Boş bırakılan bölüm sitede görünmez. Bir sayfada en fazla 20 yeni bölüm,
   bir galeride en fazla 12 fotoğraf olabilir.
-- Yerleşim bilerek serbest sürükle-bırak değil: her şey sitenin kendi
-  düzeninde aktığı için telefonda da bilgisayarda da düzgün durur.
+
+### Serbest düzen: önizlemede sürükle, boyutlandır
+
+"Serbest düzen" bölümünde başlık, yazı, fotoğraf ve düğmeleri
+önizlemenin içinde elinizle yerleştirirsiniz:
+
+- **Taşımak:** öğeyi tutup sürükleyin.
+- **Boyutlandırmak:** seçili öğenin köşesindeki beyaz kareden çekin.
+  Fotoğrafta boyutu, yazıda yazı büyüklüğünü değiştirir; yazının yanlarındaki
+  tutamaçlar satır genişliğini ayarlar. (Fotoğrafta Shift basılıysa oran
+  korunur.)
+- **Kılavuz çizgileri:** öğe tuvalin **tam ortasına**, **kenarına** ya da
+  başka bir öğenin kenarına/ortasına birkaç piksel yaklaşınca pembe bir
+  çizgi çıkar ve öğe tam oraya oturur. Hizada değilken çizgi görünmez.
+  Ortalamak için öğeyi ortaya doğru sürüklemeniz yeter: dikey ve yatay iki
+  çizgi birden çıkınca öğe tam ortadadır. (Alt tuşu basılıyken mıknatıs
+  kapanır.)
+- **Yazıyı yerinde değiştirmek:** yazıya çift tıklayın, yazın, Enter
+  (paragrafta dışarı tıklayın).
+- **İnce ayar:** öğe seçiliyken klavyedeki oklar (Shift ile büyük adım);
+  **Delete** siler, **Esc** seçimi bırakır.
+- **Bölümün yüksekliği:** altındaki **⇕ Bölümün yüksekliği** tutamacı. Bir
+  öğeyi alta taşırırsanız bölüm kendiliğinden uzar.
+- Öğe eklemek, fotoğraf seçmek, yazı boyu, hizalama, öne/arkaya alma,
+  kopyalama ve silme soldaki listeden de yapılır. Önizlemede tıkladığınız
+  öğe listede kendiliğinden açılır.
+- **Zemin:** sitenin ahşap zemini ya da eski kâğıt.
+- **Telefonda:** öğeler kendiliğinden yukarıdan aşağıya alt alta dizilir
+  (her telefonda okunur kalır). Telefona özel yerleşim isterseniz
+  önizlemeyi **Telefon**'a alıp bir öğeyi sürükleyin; o andan sonra telefon
+  yerleşimi ayrı ayarlanır. **Telefonda yine alt alta diz** ile geri
+  dönülür. Tablet gibi ara genişliklerde de alt alta dizilir.
+- Hazır bölümlerden birini (fotoğraf ve yazı, galeri…) **Serbest düzene
+  çevir** düğmesiyle sürüklenebilir hâle getirebilirsiniz.
+- Sitedeki sabit bölümler (giriş sahnesi, yere düşen yorum kâğıtları,
+  sertifikalar…) animasyonlarına göre elle yerleştirildiği için
+  sürüklenmez; onların yazı ve fotoğrafları kendi bölümlerinden değişir.
 
 - **Fotoğraf:** "Fotoğraf seç" → telefondan ya da bilgisayardan seçin.
   Büyük fotoğraflar otomatik küçültülür; site yavaşlamaz.

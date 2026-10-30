@@ -1,3 +1,5 @@
+import { blankCanvas, canvasIsEmpty, normalizeCanvas, type Canvas } from './canvas'
+
 /**
  * Sitenin yönetim panelinden değiştirilebilen bütün içeriği.
  *
@@ -32,9 +34,14 @@ export const SITE_SECTIONS = [
 ] as const
 export type SiteSectionId = (typeof SITE_SECTIONS)[number]['id']
 
-export type BlockKind = 'yazi' | 'fotograf-yazi' | 'galeri' | 'buyuk-fotograf' | 'duyuru'
+export type BlockKind = 'serbest' | 'yazi' | 'fotograf-yazi' | 'galeri' | 'buyuk-fotograf' | 'duyuru'
 
 export const BLOCK_KINDS: { kind: BlockKind; title: string; description: string }[] = [
+  {
+    kind: 'serbest',
+    title: 'Serbest düzen',
+    description: 'Başlık, yazı, fotoğraf ve düğmeleri önizlemede sürükleyip istediğiniz yere koyun, boyutlandırın.',
+  },
   { kind: 'yazi', title: 'Başlık ve yazı', description: 'Bir başlık ve altında birkaç paragraf. İsterseniz bir düğme.' },
   { kind: 'fotograf-yazi', title: 'Fotoğraf ve yazı', description: 'Bir yanda fotoğraf, diğer yanda başlık ve yazı.' },
   { kind: 'galeri', title: 'Fotoğraf galerisi', description: 'Birden çok fotoğraf, altlarında kısa açıklamalarla.' },
@@ -61,6 +68,8 @@ export type Block = {
   buttonHref: string
   /** Doluysa bölüm menüde ve alt bilgide bu adla görünüyor */
   menuLabel: string
+  /** Yalnızca "Serbest düzen" bölümünde: tuval ve üzerindeki öğeler */
+  canvas: Canvas
 }
 
 export type SiteContent = {
@@ -326,12 +335,15 @@ export function blankBlock(kind: BlockKind, after: SiteSectionId): Block {
     buttonLabel: '',
     buttonHref: '',
     menuLabel: '',
+    canvas: blankCanvas(),
   }
 }
 
 /** Bölümde hiçbir şey yoksa gerçek sitede (ve menüde) hiç görünmüyor */
 export const blockIsEmpty = (b: Block) =>
-  !b.heading.trim() && !b.text.trim() && !safeImage(b.image) && !b.images.some((im) => safeImage(im.src))
+  b.kind === 'serbest'
+    ? canvasIsEmpty(b.canvas)
+    : !b.heading.trim() && !b.text.trim() && !safeImage(b.image) && !b.images.some((im) => safeImage(im.src))
 
 /** Bölümün sayfadaki adresi (menüden gidilebilsin) */
 export const blockAnchor = (b: Pick<Block, 'id'>) => `bolum-${b.id}`
@@ -384,6 +396,7 @@ function normalizeBlocks(raw: unknown): Block[] {
     seen.add(b.id)
     if (b.imageSide !== 'sag') b.imageSide = 'sol'
     b.images = b.images.map((im) => mergeContent({ src: '', caption: '' }, im)).slice(0, BLOCK_LIMITS.gallery)
+    b.canvas = normalizeCanvas((x as { canvas?: unknown } | null)?.canvas)
     return [b]
   }).slice(0, BLOCK_LIMITS.blocks)
 }

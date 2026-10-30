@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { SiteContent, SiteSectionId } from '../lib/siteContent'
 import type { PanelToSite, SiteToPanel } from '../lib/preview'
+import type { CanvasPatch } from '../lib/canvas'
 
 /*
  * Canlı önizleme: site bir çerçevede `/?onizleme=1` ile açılıyor, panel
@@ -17,12 +18,16 @@ type Device = keyof typeof WIDTH
 export type PreviewHandlers = {
   onEdit: (target: string) => void
   onInsert: (after: SiteSectionId) => void
+  /** Serbest düzende sürükleme, boyut, yazı ya da silme */
+  onCanvas: (block: string, patch: CanvasPatch) => void
+  onSelect: (block: string, item: string | null) => void
 }
 
 export default function Preview({
   draft,
   target,
   jumpKey,
+  selection,
   handlers,
 }: {
   draft: SiteContent
@@ -30,6 +35,8 @@ export default function Preview({
   target: string | null
   /** Aynı bölüm yeniden seçilince de kaysın diye artan sayı */
   jumpKey: number
+  /** Panelde açılan serbest düzen öğesi: önizlemede de seçili görünsün */
+  selection: { block: string; item: string | null } | null
   handlers: PreviewHandlers
 }) {
   const frame = useRef<HTMLIFrameElement>(null)
@@ -55,6 +62,10 @@ export default function Preview({
         post({ type: 'uk-icerik', content: latest.current })
       } else if (msg?.type === 'uk-duzenle' && typeof msg.target === 'string') h.current.onEdit(msg.target)
       else if (msg?.type === 'uk-ekle' && typeof msg.after === 'string') h.current.onInsert(msg.after as SiteSectionId)
+      else if (msg?.type === 'uk-tuval' && typeof msg.block === 'string' && msg.patch && typeof msg.patch === 'object')
+        h.current.onCanvas(msg.block, msg.patch)
+      else if (msg?.type === 'uk-sec' && typeof msg.block === 'string')
+        h.current.onSelect(msg.block, typeof msg.item === 'string' ? msg.item : null)
     }
     window.addEventListener('message', onMsg)
     return () => window.removeEventListener('message', onMsg)
@@ -66,6 +77,10 @@ export default function Preview({
     const t = window.setTimeout(() => post({ type: 'uk-icerik', content: draft }), 180)
     return () => window.clearTimeout(t)
   }, [draft, ready])
+
+  useEffect(() => {
+    if (ready && selection) post({ type: 'uk-sec', block: selection.block, item: selection.item })
+  }, [ready, selection])
 
   /* Taslak gönderildikten sonra kaydır: yeni eklenen bölüm o zaman çizilmiş oluyor */
   useEffect(() => {

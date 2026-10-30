@@ -320,6 +320,11 @@
     @apply bg-gradient-to-br from-warm-100 via-warm-300 to-brand-400 bg-clip-text text-transparent;
   }
 
+  /* Kâğıt üzerinde açık altın okunmuyor: aynı vurgu, mürekkep tonunda */
+  .on-paper .gradient-text {
+    @apply from-[#9a6a2c] via-[#7d5222] to-[#5c3a17];
+  }
+
   /*
    * Kâğıt üzerindeki açılır liste. Tarayıcının kendi listesi beyaz zemin ve
    * mavi seçim çubuğuyla açılıyordu; kâğıdın üstünde yabancı duruyordu.

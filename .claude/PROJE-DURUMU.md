@@ -563,6 +563,57 @@ güncellensin.
   derlemesi 10/10 (insert `return=minimal` anon, ziyaretçi hiç GET yok,
   yönetici olmayan göremez, durum/silme, duyuru SSS'den sonra); telefonda
   panel (390 px) taşma yok.
+### Serbest düzen (önizlemede sürükle-bırak + kılavuz çizgileri)
+
+Kullanıcı isteği: önizlemede fotoğrafı/yazıyı tutup taşıyabilsin,
+boyutlandırabilsin; ortaya ya da kenara gelince (yalnızca o zaman) çizgiler
+çıksın, tam ortaya oturtabilsin.
+
+- **Kapsam kararı:** yalnızca panelden eklenen bölümler. Sabit bölümler
+  (3B giriş, yere düşen kâğıtlar, sertifika çerçeveleri) animasyona bağlı
+  elle ayarlı; serbest konumlandırma onları bozardı.
+- **Model** `lib/canvas.ts`: `Block.kind = 'serbest'`, `Block.canvas`
+  (`bg` zemin/kağıt, `hd` yükseklik, `hm` telefon yüksekliği ya da `null`,
+  `items`). Öğe: başlık / yazı / fotoğraf / düğme; `d` bilgisayar, `m`
+  telefon yerleşimi. **Bütün ölçüler tuval genişliğinin yüzdesi** (x, y,
+  en, boy, yazı boyu) → sitede `cqw` ile basılıyor, tuval
+  `container-type: inline-size` + `aspect-ratio: 100 / H`. Böylece her
+  genişlikte orantılı. Görünüm: ≥1024 px `d`; ≤639 px ve `hm` varsa `m`;
+  diğer her şey alt alta akış (`flowOrder`: y'ye, aynı hizada x'e göre).
+  `normalizeCanvas` sınırlıyor (en çok 30 öğe; `hm` varken bir öğenin `m`'si
+  eksikse hepsi otomatiğe döner). `toCanvas` hazır bölümleri çeviriyor.
+- **Site** `components/CanvasBlock.tsx` (gerçek sitede `Reveal`'li statik
+  çizim). Kâğıt zeminde `.on-paper .gradient-text` koyu altın.
+- **Düzenleyici** `components/CanvasEditor.tsx` — yalnızca önizlemede
+  `lazy` yükleniyor (site paketine girmiyor). Sürükleme pencere
+  dinleyicileriyle (alt alta akıştan serbest yerleşime geçerken DOM
+  değiştiği için öğe yakalama kullanılmıyor). Mıknatıs: 7 ekran pikseli;
+  hedefler x: 0/50/100 + diğer öğelerin sol/orta/sağı, y: 0/H÷2/H + diğer
+  öğelerin üst/orta/alt'ı; yalnızca eşik içindeyken çizgi (`#ff3d8b`, orta
+  çizgiler 2 px). Alt = mıknatıs kapalı, Shift = fotoğrafta oran. Fotoğraf
+  4 köşe; yazı yan tutamaç (genişlik) + köşe (yazı boyu, orantılı); düğme
+  köşe. Yazıların boyu DOM'dan ölçülüyor. Bırakınca `uk-tuval` yaması
+  panele gidiyor (taşan öğe yüksekliği büyütür), panel `applyCanvasPatch`
+  ile taslağa işleyip geri yolluyor; arada yerel `over` değerleri titremeyi
+  önlüyor. Çift tıklama kendimiz (basış iptal edildiği için `dblclick`
+  güvenilmez), basışta `window.focus()` (yoksa oklar panele gidiyordu).
+  Telefonda alt alta dizilimdeyken ilk sürükleme ölçülen konumlarla telefon
+  yerleşimini başlatıyor. Tutamaç/çizgi kalınlıkları `--onizleme-olcek`
+  ile küçültülmüş önizlemede de okunur.
+- **Panel:** `admin/Blocks.tsx` `CanvasFields` (zemin, yükseklik, telefon
+  durumu + "alt alta diz", öğe ekle, öğe kartları: yazı/fotoğraf/bağlantı,
+  hizalama, yazı boyu %, genişlik, yatayda ortala, öne/arkaya, kopyala,
+  sil). Seçim iki yönlü (`uk-sec`). Önizleme artık yalnızca panelde bölüm
+  seçilince kayıyor (`Editor` `scroll` durumu); önizlemenin içindeki
+  tıklamalar onu oynatmıyor.
+- **Test** (gerçek fareyle, küçültülmüş çerçevede): uzaktayken çizgi yok;
+  ortaya 3 px kala dikey orta çizgi + tam ortaya oturma (608/608); tam
+  ortada iki çizgi; bırakınca çizgiler gidiyor; fotoğraf köşeden büyüdü;
+  taşan fotoğraf bölümü uzattı; çift tıkla yazı → panel alanı; yükseklik
+  tutamacı; oklar (4 × 0,25 = 1 birim); kaydet → gerçek sitede konumlar
+  önizlemeyle birebir; telefonda sürükleme telefon yerleşimini başlattı;
+  hazır bölüm çevirme; 1440/820/390 taşma yok, düzenleme izi yok.
+
 - Konteynerdeki yazılım GPU'sunda iletişim bölümü ~2 kare/sn çiziliyor
   (kâğıt dokusu + karışım modu); önceki commit'te de aynı, gerçek
   cihazlarla ilgisi yok. Ekran görüntüsü alırken `timeout` uzun tutulmalı.
@@ -583,6 +634,9 @@ src/lib/siteContent.ts               düzenlenebilir içerik: tip, varsayılanla
 src/lib/content.ts                   panelde olmayan sabitler (menü, açı tablosu) + menuLinks
 src/lib/preview.ts                   panel ↔ önizleme mesajları
 src/components/CustomBlock.tsx       panelden eklenen bölümler, ✎ etiketleri, ekleme çubukları
+src/lib/canvas.ts                    serbest düzen modeli (yüzde ölçüler, yamalar, çevirme)
+src/components/CanvasBlock.tsx       serbest düzenin sitedeki çizimi
+src/components/CanvasEditor.tsx      önizlemede sürükle/boyutlandır + kılavuz çizgileri
 src/admin/                           yönetim paneli (Editor, Blocks, Preview, Requests, sections…)
 supabase/kurulum.sql                 tablolar + satır kuralları (içerik, yöneticiler, depo, randevular)
 public/video/masa-alti-inis.*        iniş videosu (720p mp4 · mobil mp4 · webm)

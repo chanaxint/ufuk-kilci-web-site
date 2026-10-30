@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Block, SiteContent, SiteSectionId } from '../lib/siteContent'
+import { applyCanvasPatch, type CanvasPatch } from '../lib/canvas'
 import { loadContent, mode, PanelError, saveContent, signOut, updatePassword } from './api'
 import { TextInput } from './fields'
 import { missingRequired, sections, type Setter } from './sections'
@@ -38,8 +39,14 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
   const [adding, setAdding] = useState<SiteSectionId | null>(null)
   const [requestsTick, setRequestsTick] = useState(0)
   const newRequests = useNewRequestCount(requestsTick)
-  /* Aynı bölüme ikinci kez tıklanınca da önizleme yeniden oraya gitsin */
-  const [jump, setJump] = useState(0)
+  /*
+   * Önizlemenin kayacağı yer. Yalnızca panelde bir bölüm seçilince değişiyor;
+   * önizlemenin içinde tıklanınca (✎, sürükleme) önizleme yerinden oynamıyor.
+   * `n`: aynı bölüme ikinci kez tıklanınca da gitsin diye.
+   */
+  const [scroll, setScroll] = useState<{ target: string | null; n: number }>({ target: null, n: 0 })
+  /* Serbest düzende seçili öğe — panel ile önizleme arasında ortak */
+  const [selItem, setSelItem] = useState<{ block: string; item: string | null } | null>(null)
 
   const load = useCallback(() => {
     setLoadError('')
@@ -82,12 +89,27 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
     setStatus((s) => (s.kind === 'ok' || s.kind === 'error' ? { kind: 'idle' } : s))
   }, [])
 
-  /* Bölüm seçilince önizleme de oraya kayıyor (`previewTarget`) */
+  const goPreview = (target: string | null) => setScroll((v) => ({ target, n: v.n + 1 }))
+
+  /* Bölüm seçilince önizleme de oraya kayıyor */
   const open = (id: string, block: string | null = null) => {
     setActive(id)
     setFocusBlock(block)
-    setJump((n) => n + 1)
+    goPreview(id === BLOCKS ? (block ? `blok:${block}` : null) : id === ACCOUNT || id === REQUESTS ? null : id)
   }
+
+  /* Önizlemede sürüklenen / boyutlanan / yazısı değişen öğe taslağa işleniyor */
+  const applyCanvas = useCallback((blockId: string, patch: CanvasPatch) => {
+    setDraft((d) =>
+      d
+        ? {
+            ...d,
+            blocks: d.blocks.map((b) => (b.id === blockId && b.kind === 'serbest' ? { ...b, canvas: applyCanvasPatch(b.canvas, patch) } : b)),
+          }
+        : d,
+    )
+    setStatus((s) => (s.kind === 'ok' || s.kind === 'error' ? { kind: 'idle' } : s))
+  }, [])
 
   const previewHandlers = {
     onEdit: (target: string) => {
@@ -101,6 +123,13 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
       }
     },
     onInsert: (after: SiteSectionId) => setAdding(after),
+    onCanvas: applyCanvas,
+    onSelect: (block: string, item: string | null) => {
+      setSelItem({ block, item })
+      if (!item) return
+      setActive(BLOCKS)
+      setFocusBlock(block)
+    },
   }
 
   const addBlock = (b: Block) => {
@@ -110,6 +139,7 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
     setActive(BLOCKS)
     setFocusBlock(b.id)
     setTab('duzenle')
+    goPreview(`blok:${b.id}`)
   }
 
   const togglePreview = () => {
@@ -158,7 +188,6 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
   const editing = active !== ACCOUNT && active !== REQUESTS
   /* Önizleme yalnızca site içeriği düzenlenirken; talepler ve hesap ekranında yok */
   const withPreview = editing && !!draft && showPreview
-  const previewTarget = active === BLOCKS ? (focusBlock ? `blok:${focusBlock}` : null) : editing ? active : null
   const nav = [
     { id: REQUESTS, title: 'Randevu talepleri', badge: newRequests },
     ...sections.map((s) => ({ id: s.id, title: s.title, badge: 0 })),
@@ -303,7 +332,7 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
             <>
               <h1 className="font-display text-[1.75rem] leading-tight font-extrabold text-[#2a1d12] sm:text-[2rem]">Yeni bölümler</h1>
               <p className="mt-2 max-w-2xl text-[0.98rem] leading-relaxed text-[#7a6650]">
-                Sitenin istediğiniz yerine kendi bölümünüzü ekleyin: yazı, fotoğraf, galeri ya da duyuru. Önizlemedeki
+                Sitenin istediğiniz yerine kendi bölümünüzü ekleyin: yazı, fotoğraf, galeri, duyuru ya da öğeleri önizlemede sürükleyip yerleştirdiğiniz serbest düzen. Önizlemedeki
                 “+ Buraya yeni bölüm ekle” çubuklarına tıklayarak da tam yerine ekleyebilirsiniz.
               </p>
               <div className="mt-6">
@@ -313,6 +342,8 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
                   onAdd={() => setAdding('skolyoz')}
                   focusId={focusBlock}
                   onFocus={(id) => open(BLOCKS, id)}
+                  selected={selItem}
+                  onSelectItem={(block, item) => setSelItem({ block, item })}
                 />
               </div>
             </>
@@ -334,8 +365,7 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
               tab === 'onizle' ? '' : 'max-xl:hidden'
             }`}
           >
-            <Preview draft={draft} target={previewTarget}
-              jumpKey={jump} handlers={previewHandlers} />
+            <Preview draft={draft} target={scroll.target} jumpKey={scroll.n} selection={selItem} handlers={previewHandlers} />
           </aside>
         )}
       </div>

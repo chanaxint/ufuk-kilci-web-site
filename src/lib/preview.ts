@@ -8,6 +8,8 @@
  * Önizleme yalnızca o çerçevede yaşıyor; hiçbir şey kaydedilmiyor.
  */
 
+import type { CanvasPatch } from './canvas'
+
 export const isPreview =
   typeof window !== 'undefined' &&
   window.parent !== window &&
@@ -18,11 +20,16 @@ export type PanelToSite =
   | { type: 'uk-git'; target: string }
   /** Panel siteyi küçülterek gösteriyorsa düzenleme düğmeleri o oranda büyüsün */
   | { type: 'uk-olcek'; scale: number }
+  /** Panelde bir serbest düzen öğesi seçildi (ya da seçim kalktı) */
+  | { type: 'uk-sec'; block: string; item: string | null }
 
 export type SiteToPanel =
   | { type: 'uk-hazir' }
   | { type: 'uk-duzenle'; target: string }
   | { type: 'uk-ekle'; after: string }
+  /** Önizlemede bir öğe sürüklendi, boyutlandı, yazısı değişti ya da silindi */
+  | { type: 'uk-tuval'; block: string; patch: CanvasPatch }
+  | { type: 'uk-sec'; block: string; item: string | null }
 
 export function sendToPanel(msg: SiteToPanel) {
   if (isPreview) window.parent.postMessage(msg, window.location.origin)
@@ -34,7 +41,7 @@ export function onPanelMessage(cb: (msg: PanelToSite) => void) {
   const handler = (e: MessageEvent) => {
     if (e.origin !== window.location.origin || e.source !== window.parent) return
     const msg = e.data as PanelToSite
-    if (msg && (msg.type === 'uk-icerik' || msg.type === 'uk-git' || msg.type === 'uk-olcek')) cb(msg)
+    if (msg && ['uk-icerik', 'uk-git', 'uk-olcek', 'uk-sec'].includes(msg.type)) cb(msg)
   }
   window.addEventListener('message', handler)
   return () => window.removeEventListener('message', handler)

@@ -3,6 +3,7 @@ import { GRAIN, PAPER, AGE } from '../lib/paper'
 import { isPreview, sendToPanel } from '../lib/preview'
 import { blockAnchor, blockIsEmpty as isEmpty, safeHref, safeImage, type Block, type SiteSectionId } from '../lib/siteContent'
 import Reveal from './ui/Reveal'
+import CanvasBlock from './CanvasBlock'
 import SectionRule from './ui/SectionRule'
 import { Emphasis, Paragraphs } from './ui/RichText'
 import { ArrowRight } from './ui/icons'
@@ -51,6 +52,9 @@ function Photo({ src, alt, className }: { src: string; alt: string; className: s
 
 function BlockBody({ block: b }: { block: Block }) {
   switch (b.kind) {
+    case 'serbest':
+      return <CanvasBlock block={b} />
+
     case 'yazi':
       return (
         <div className="mx-auto max-w-3xl text-center">
@@ -198,7 +202,7 @@ export function CustomBlock({ block }: { block: Block }) {
     <section id={blockAnchor(block)} data-bolum={`blok:${block.id}`} className="relative scroll-mt-28 py-20 sm:py-24">
       <EditChip target={`blok:${block.id}`} label="Bu bölümü düzenle" />
       <div className="section-shell">
-        {isEmpty(block) ? (
+        {isEmpty(block) && block.kind !== 'serbest' ? (
           <p className="rounded-2xl border-2 border-dashed border-ivory-100/30 py-14 text-center text-ivory-300">
             Boş bölüm — paneldeki alanları doldurun.
           </p>

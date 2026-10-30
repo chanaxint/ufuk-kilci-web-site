@@ -14,7 +14,7 @@ import {
   type RandevuTalebi,
   type Yontem,
 } from '../../lib/randevuKurallari'
-import { ArrowRight, ChevronDown, Send, WhatsApp } from './icons'
+import { ArrowRight, Check, ChevronDown, Send, WhatsApp } from './icons'
 import { AGE, GRAIN, PAPER } from '../../lib/paper'
 import Turnstile, { type TurnstileState } from './Turnstile'
 
@@ -371,20 +371,27 @@ export default function LetterForm() {
 
               <div className="mt-7 flex flex-col gap-1.5">
                 <label className="flex cursor-pointer items-start gap-3 text-[0.86rem] leading-snug text-[#4a3826]">
-                  <input
-                    id={`${uid}-onay`}
-                    type="checkbox"
-                    required
-                    checked={consent}
-                    aria-invalid={hatalar.onay ? true : undefined}
-                    aria-describedby={hatalar.onay ? `${uid}-onay-hata` : undefined}
-                    onChange={(e) => {
-                      setConsent(e.target.checked)
-                      if (e.target.checked) setHatalar((h) => ({ ...h, onay: undefined }))
-                    }}
-                    disabled={gonderiliyor}
-                    className="mt-0.5 size-4 shrink-0 cursor-pointer accent-[#6b4a2c]"
-                  />
+                  {/* Tarayıcının beyaz kutusu yerine kâğıda uyan koyu bej kutu */}
+                  <span className="relative mt-0.5 grid size-4 shrink-0 place-items-center">
+                    <input
+                      id={`${uid}-onay`}
+                      type="checkbox"
+                      required
+                      checked={consent}
+                      aria-invalid={hatalar.onay ? true : undefined}
+                      aria-describedby={hatalar.onay ? `${uid}-onay-hata` : undefined}
+                      onChange={(e) => {
+                        setConsent(e.target.checked)
+                        if (e.target.checked) setHatalar((h) => ({ ...h, onay: undefined }))
+                      }}
+                      disabled={gonderiliyor}
+                      className="peer absolute inset-0 size-full cursor-pointer appearance-none rounded-[3px] border border-[#6b5334]/45 bg-[#e3d3b4] transition-colors duration-200 checked:border-[#6b4a2c] checked:bg-[#6b4a2c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6b4a2c] aria-[invalid=true]:border-[#9b3b2a]/70 disabled:cursor-wait"
+                    />
+                    <Check
+                      aria-hidden
+                      className="pointer-events-none relative size-3 text-[#f4ead6] opacity-0 transition-opacity duration-200 peer-checked:opacity-100"
+                    />
+                  </span>
                   <span>
                     {content.appointment.consentText}
                     {safeLinkUrl(content.appointment.privacyUrl) && (

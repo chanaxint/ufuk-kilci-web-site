@@ -51,11 +51,17 @@ const NARROW_SPOTS: FrameSpot[] = [
   { x: 4, y: 80.5, rotate: -5, lean: 8, depth: 20, scale: 0.97, z: 5 },
 ]
 
+/** Belgenin adı (erişilebilirlik ve büyük görünüm için); boşsa genel ad */
+const docName = (item: Credential) => [item.title, item.org].filter(Boolean).join(' — ') || 'Belge'
+
 /**
  * Ahşap çerçeve, altın pervaz, paspartu ve pirinç künye.
  * Hem zemindeki küçük hâlde hem de tam ekran görünümde aynı bileşen çizilir.
+ * Fotoğrafı henüz eklenmemiş belgede paspartunun içinde boş kâğıt, künye
+ * yazısız durur.
  */
 function CertificateFrame({ item, large = false }: { item: Credential; large?: boolean }) {
+  const plate = [item.year, item.title].filter(Boolean).join(' · ')
   return (
     <>
       <div
@@ -82,15 +88,24 @@ function CertificateFrame({ item, large = false }: { item: Credential; large?: b
               boxShadow: '0 2px 10px rgba(60,44,24,0.28) inset',
             }}
           >
-            <img
-              src={item.image}
-              alt={`${item.title} — ${item.org}`}
-              loading={large ? 'eager' : 'lazy'}
-              draggable={false}
-              className={`block w-full shadow-[0_1px_4px_rgba(60,44,24,0.25)] ${
-                large ? 'max-h-[62vh] object-contain' : 'object-cover'
-              }`}
-            />
+            {item.image ? (
+              <img
+                src={item.image}
+                alt={docName(item)}
+                loading={large ? 'eager' : 'lazy'}
+                draggable={false}
+                className={`block w-full shadow-[0_1px_4px_rgba(60,44,24,0.25)] ${
+                  large ? 'max-h-[62vh] object-contain' : 'object-cover'
+                }`}
+              />
+            ) : (
+              /* Boş kâğıt: eski örnek belgeyle aynı oran (4:3) */
+              <div
+                aria-hidden="true"
+                className="aspect-[4/3] w-full shadow-[0_1px_4px_rgba(60,44,24,0.25)]"
+                style={{ background: 'linear-gradient(170deg,#fffdf8 0%,#f7f1e4 70%,#efe6d4 100%)' }}
+              />
+            )}
 
             {/*
               Yıllanma: belge kâğıdı bembeyaz parlamıyor. Sıcak bir perde,
@@ -126,7 +141,7 @@ function CertificateFrame({ item, large = false }: { item: Credential; large?: b
       {/* Çerçevenin altındaki pirinç künye */}
       <div className="mt-3 flex justify-center">
         <span
-          className={`max-w-full rounded-[2px] px-3 py-1.5 text-center font-display leading-tight font-bold tracking-[0.1em] text-[#3a2c18] uppercase ${
+          className={`max-w-full min-w-[7rem] rounded-[2px] px-3 py-1.5 text-center font-display leading-tight font-bold tracking-[0.1em] text-[#3a2c18] uppercase ${
             large ? 'text-[0.72rem] sm:px-5 sm:py-2 sm:text-[0.78rem]' : 'text-[0.66rem] lg:text-[0.68rem]'
           }`}
           style={{
@@ -134,7 +149,7 @@ function CertificateFrame({ item, large = false }: { item: Credential; large?: b
             boxShadow: '0 2px 5px rgba(30,18,6,0.4), 0 1px 0 rgba(255,255,255,0.4) inset',
           }}
         >
-          {item.year} · {item.title}
+          {plate || '\u00a0'}
         </span>
       </div>
     </>
@@ -174,12 +189,14 @@ function WallCertificate({
       <button
         type="button"
         onClick={() => onOpen(index)}
-        aria-label={`${item.title} belgesini büyüt`}
+        /* Fotoğrafı olmayan çerçeve büyütülmez */
+        disabled={!item.image}
+        aria-label={item.image ? `${docName(item)} belgesini büyüt` : 'Belge henüz eklenmedi'}
         /*
           Üzerine gelince hiçbir hareket yok: tıklanınca zaten tam ekrana
           geliyor. Yalnızca klavye odağında çerçeve dışı bir hat çıkıyor.
         */
-        className="group relative block w-full cursor-pointer rounded-[3px] text-left focus-visible:outline-2 focus-visible:outline-offset-8 focus-visible:outline-warm-300"
+        className="group relative block w-full cursor-pointer rounded-[3px] disabled:cursor-default text-left focus-visible:outline-2 focus-visible:outline-offset-8 focus-visible:outline-warm-300"
         style={{ transform: `rotate(${spot.rotate}deg) rotateX(${spot.lean}deg)` }}
       >
         {/* Zemine bırakılmış çerçeve: çivi yok, altında yere düşen temas gölgesi var */}
@@ -275,7 +292,7 @@ function Lightbox({
       style={{ perspective: '1500px' }}
       role="dialog"
       aria-modal="true"
-      aria-label={`${item.title} — ${item.org}`}
+      aria-label={docName(item)}
       onClick={(e) => {
         /* Boşluğa tıklamak kapatır; çerçevenin kendisi kapatmaz */
         if (e.target === e.currentTarget) onClose()
@@ -317,10 +334,10 @@ function Lightbox({
         </div>
 
         <figcaption className="mt-7 text-center">
-          <p className="font-display text-lg font-extrabold text-sand-50">{item.title}</p>
-          <p className="mt-1.5 text-[0.9rem] text-brand-200">
-            {item.org} · {item.year}
-          </p>
+          {item.title && <p className="font-display text-lg font-extrabold text-sand-50">{item.title}</p>}
+          {(item.org || item.year) && (
+            <p className="mt-1.5 text-[0.9rem] text-brand-200">{[item.org, item.year].filter(Boolean).join(' · ')}</p>
+          )}
           <p className="mt-5 font-display text-[0.7rem] font-bold tracking-[0.2em] text-sand-50/55 uppercase">
             Kapatmak için boşluğa tıklayın
           </p>
@@ -355,7 +372,7 @@ export default function Certificates() {
 
   const close = useCallback(() => setOpen(null), [])
 
-  /* Panelde bütün belgeler silinmişse bölüm hiç görünmüyor */
+  /* Panelde bütün çerçeveler silinmişse bölüm hiç görünmüyor */
   if (n === 0) return null
 
   /*

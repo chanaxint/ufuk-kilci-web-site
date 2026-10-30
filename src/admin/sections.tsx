@@ -260,7 +260,7 @@ export const sections: Section[] = [
     id: 'sertifikalar',
     title: 'Sertifikalar',
     where:
-      'Yere bırakılmış çerçeveler; ziyaretçi tıklayınca belge büyüyor. Yalnızca size ait gerçek belgelerin fotoğrafını ya da taramasını yükleyin. Hiç belge yokken bölüm ve menüdeki bağlantısı görünmez.',
+      'Yere bırakılmış çerçeveler; ziyaretçi tıklayınca belge büyüyor. Yalnızca size ait gerçek belgelerin fotoğrafını ya da taramasını yükleyin. Fotoğrafı eklenmemiş çerçeve sitede boş kâğıt olarak durur ve tıklanmaz. Bütün çerçeveler silinirse bölüm ve menüdeki bağlantısı görünmez.',
     render: (c, set) => (
       <>
         <HeadingInput value={c.headings.sertifikalar} onChange={(v) => set('headings', { sertifikalar: v })} />

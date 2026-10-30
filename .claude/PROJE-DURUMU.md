@@ -662,6 +662,20 @@ Ayrıntı ve Cloudflare ayarları: `docs/yayina-alma.md`.
 - Doğrulama bekleyen içerik listesi ve KVKK eksikleri kullanıcıya raporlandı
   (yayın öncesi onay listesi).
 
+### Sertifikalar boş çerçevelerle geri geldi
+
+Kullanıcı isteği: bölüm görünsün, fotoğraflar boş kalsın; doktor belgeleri
+gönderince yüklenecek. Varsayılanda 5 boş öğe (`siteContent.ts`,
+`LIMITS.certificates` kadar). Eski örnek başlıklar (2012 lisans, Schroth…)
+uydurma olduğu için geri konmadı. `Certificates.tsx`: fotoğrafsız çerçevede
+4:3 boş kâğıt, künye yazısız (`min-w-[7rem]`), düğme `disabled` (büyütülmez);
+`docName()` boş başlıkta "Belge". Menüdeki Sertifikalar bağlantısı ve ayırıcı
+çizgi öğe sayısına bağlı olduğu için kendiliğinden geri geldi.
+**Belge gelince:** görseli `public/images/sertifikalar/` altına koyup
+varsayılandaki ilgili öğenin `image`/`title`/`org`/`year` alanlarını doldur
+(ya da panelden yüklenir). Panelde kayıtlı içerik varsa varsayılan değil
+kayıtlı liste görünür.
+
 ### Güvenlik: Turnstile + sunucu fonksiyonu, panel MFA (push yok)
 
 Supabase güvenlik incelemesinin eksikleri. Gerçek Supabase / Turnstile

@@ -211,7 +211,12 @@ export const defaultContent: SiteContent = {
   },
   certificates: {
     intro: 'Tamamladığım eğitimlerin belgeleri. Büyütmek için belgenin üzerine tıklayabilirsiniz.',
-    items: [],
+    /*
+     * Beş boş çerçeve: doktorun gerçek belgeleri gelene kadar fotoğrafsız ve
+     * yazısız duruyor (boş kâğıt + yazısız künye, tıklanmaz). Belgeler
+     * panelden ya da buraya eklenir; uydurma başlık yazılmaz.
+     */
+    items: Array.from({ length: LIMITS.certificates }, () => ({ year: '', title: '', org: '', image: '' })),
   },
   faq: {
     intro:

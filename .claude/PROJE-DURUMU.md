@@ -662,6 +662,20 @@ Ayrıntı ve Cloudflare ayarları: `docs/yayina-alma.md`.
 - Doğrulama bekleyen içerik listesi ve KVKK eksikleri kullanıcıya raporlandı
   (yayın öncesi onay listesi).
 
+### Hasta yorumları yayında gizli (yayın kararı kodda)
+
+`src/lib/yayin.ts` `YORUMLAR_YAYIN_KARARI = false`: panelden/D1'den
+değiştirilemez; açmak için kodda `true` + commit + dağıtım. Tarayıcı:
+`src/lib/gorunurluk.ts` `yorumlarGorunur = import.meta.env.DEV || karar` →
+`Testimonials` null döner, `App.tsx` ayırıcı çizgisini çizmez. Sunucu:
+`functions/index.ts` ve `functions/api/icerik.ts` `yayinIcerigi()` ile
+yorum listesini/girişini/puanını boşaltır (HTML'e gömülen JSON ve herkese
+açık API'de yorum metni yok). Panel (`/api/yonetim/*`) tam veriyi görür,
+düzenler, kaydeder, geçmişe yazar; panelde "YAYINDA GİZLİ" notu; önizleme
+ziyaretçiyle aynı (gizli). `npm run dev`'de 8 kâğıt ve animasyon görünür.
+Not: yer tutucu metin varsayılan içerik olarak JS paketinde duruyor
+(HTML/DOM/SEO'da yok). Testler: `yorum-gizli-test.mjs` 32/32.
+
 ### Hasta yorumları yer tutucu kâğıtlarla geri geldi
 
 Kullanıcı isteği: bölüm görünsün, kâğıtlarda "Gerçek yorumlar eklenecektir."

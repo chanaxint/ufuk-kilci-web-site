@@ -16,6 +16,7 @@
  */
 
 import { loadSaved } from '../src/lib/siteContent'
+import { yayinIcerigi } from '../src/lib/yayin'
 import { SITE_BASLIKLARI } from './_lib/http'
 import { icerikOku } from './_lib/icerik'
 import { sayfayaYerlestir } from './_lib/sayfa'
@@ -33,7 +34,8 @@ export async function onRequestGet({ env, request, next }: PagesContext): Promis
   if (env.DB) {
     try {
       const k = await icerikOku(env.DB)
-      if (k) html = sayfayaYerlestir(html, loadSaved(k.veri))
+      /* Yayında olmayan bölümlerin (hasta yorumları) metni HTML'e hiç girmez */
+      if (k) html = sayfayaYerlestir(html, yayinIcerigi(loadSaved(k.veri)))
     } catch {
       /* Veritabanı geçici olarak yoksa site varsayılan içerikle açılır */
     }

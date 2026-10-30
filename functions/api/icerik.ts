@@ -9,6 +9,8 @@
 
 import { hata, json } from '../_lib/http'
 import { icerikOku } from '../_lib/icerik'
+import { loadSaved } from '../../src/lib/siteContent'
+import { yayinIcerigi } from '../../src/lib/yayin'
 import type { PagesContext } from '../_lib/cf'
 
 export async function onRequestGet({ env, request }: PagesContext): Promise<Response> {
@@ -22,5 +24,6 @@ export async function onRequestGet({ env, request }: PagesContext): Promise<Resp
   const etag = `"s${k?.surum ?? 0}"`
   const onbellek = { 'Cache-Control': 'no-cache', ETag: etag }
   if (request.headers.get('If-None-Match') === etag) return new Response(null, { status: 304, headers: onbellek })
-  return json(200, { surum: k?.surum ?? 0, icerik: k?.veri ?? null }, onbellek)
+  /* Yayında olmayan bölümlerin verisi herkese açık yanıtta yer almaz */
+  return json(200, { surum: k?.surum ?? 0, icerik: k ? yayinIcerigi(loadSaved(k.veri)) : null }, onbellek)
 }

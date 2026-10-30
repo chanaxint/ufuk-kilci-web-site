@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useContent } from '../lib/ContentContext'
 import { LIMITS } from '../lib/siteContent'
+import { yorumlarGorunur } from '../lib/gorunurluk'
 import Reveal from './ui/Reveal'
 import { Emphasis } from './ui/RichText'
 import { Star } from './ui/icons'
@@ -141,8 +142,8 @@ export default function Testimonials() {
 
   const spots = narrow ? NARROW : WIDE
 
-  /* Panelde bütün yorumlar silinmişse bölüm hiç görünmüyor */
-  if (count === 0) return null
+  /* Yayında değilse ya da panelde bütün yorumlar silinmişse bölüm hiç görünmüyor */
+  if (!yorumlarGorunur || count === 0) return null
 
   return (
     <section id="yorumlar" className="relative scroll-mt-28 pt-24 pb-16 sm:pt-28">

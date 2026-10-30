@@ -45,6 +45,9 @@ Bu adım hatırlatılmayı beklemez; her iş tesliminin parçasıdır.
   `BlocksAfter` ve önizleme etiketi (`EditChip`) de eklenmeli.
   İçerik şeması değişirse `loadSaved` eski kayıtları birleştirebilmeli (D1'de
   tek JSON); sunucu her kayıtta `functions/_lib/denetim.ts` ile denetler.
+- Hasta yorumları yayında gizli: `src/lib/yayin.ts` `YORUMLAR_YAYIN_KARARI`
+  (yalnızca kodla açılır; sunucu `yayinIcerigi` ile ziyaretçi içeriğinden
+  çıkarır). Sertifikalar bölümüne kullanıcı isteğiyle dokunulmaz.
 - Panel API'si (`functions/api/yonetim/*`) her istekte Access JWT'sini
   sunucuda doğrular (`functions/_lib/erisim.ts`); yazmalarda
   `X-Yonetim-Istegi: 1` + Origin denetimi. `_headers` fonksiyon yanıtlarına

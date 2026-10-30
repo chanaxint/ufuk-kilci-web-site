@@ -12,6 +12,7 @@ import Certificates from './components/Certificates'
 import ScoliosisAngles from './components/ScoliosisAngles'
 import About from './components/About'
 import Testimonials from './components/Testimonials'
+import { yorumlarGorunur } from './lib/gorunurluk'
 import Faq from './components/Faq'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
@@ -137,7 +138,7 @@ export default function App() {
         <ScoliosisAngles />
         <BlocksAfter after="acilar" />
         {/* Yorum ya da belge yokken bölüm görünmüyor; çizgisi de çizilmesin ki iki çizgi üst üste gelmesin */}
-        {content.testimonials.items.length > 0 && <SectionRule />}
+        {yorumlarGorunur && content.testimonials.items.length > 0 && <SectionRule />}
         <Testimonials />
         <BlocksAfter after="yorumlar" />
         <SectionRule />

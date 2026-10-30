@@ -215,7 +215,7 @@ export const sections: Section[] = [
     id: 'yorumlar',
     title: 'Hasta yorumları',
     where:
-      'Kaydırdıkça yere düşen kâğıtlar. İsim ve unvanı boş kâğıtta yalnızca yorum metni yazar ("Gerçek yorumlar eklenecektir."), yıldız çizilmez; gerçek yorumu, ismi ve unvanı yazınca kâğıt yorum kartına döner. Bütün kâğıtlar silinirse bölüm görünmez. Sağlık hizmetlerinde tanıtım kuralları hasta yorumu ve teşekkürüyle tanıtımı kısıtlayabilir: eklemeden önce hukuki görüş alın; yalnızca gerçek ve izinli yorum ekleyin.',
+      'YAYINDA GİZLİ: bu bölüm, gerçek ve izinli yorumların yayınlanmasına karar verilene kadar ziyaretçiye gösterilmez (önizlemede de görünmez); burada düzenleyip kaydedebilirsiniz. Kaydırdıkça yere düşen kâğıtlar. İsim ve unvanı boş kâğıtta yalnızca yorum metni yazar ("Gerçek yorumlar eklenecektir."), yıldız çizilmez; gerçek yorumu, ismi ve unvanı yazınca kâğıt yorum kartına döner. Bütün kâğıtlar silinirse bölüm görünmez. Sağlık hizmetlerinde tanıtım kuralları hasta yorumu ve teşekkürüyle tanıtımı kısıtlayabilir: eklemeden önce hukuki görüş alın; yalnızca gerçek ve izinli yorum ekleyin.',
     render: (c, set) => (
       <>
         <HeadingInput value={c.headings.yorumlar} onChange={(v) => set('headings', { yorumlar: v })} />

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { LIMITS, safeMapsUrl, type SiteContent } from '../lib/siteContent'
+import { LIMITS, safeLinkUrl, safeMapsUrl, type SiteContent } from '../lib/siteContent'
 import { CardList, HeadingInput, ImageInput, NumberInput, StringList, TextArea, TextInput } from './fields'
 
 /** Bir bölümün alanlarını değiştirmek için: `set('doctor', { phone: '…' })` */
@@ -323,16 +323,30 @@ export const sections: Section[] = [
   {
     id: 'randevu',
     title: 'Randevu formu',
-    where: 'Randevu mektubundaki "Şikâyet konusu" listesi.',
+    where:
+      'Randevu mektubunun onay kutusu ve KVKK aydınlatma bağlantısı. Form sağlık bilgisi sormuyor; yalnızca ad, telefon, isteğe bağlı e-posta ve tercih edilen gün/saat.',
     render: (c, set) => (
-      <StringList
-        label="Şikâyet konuları"
-        hint="Ziyaretçi bunlardan birini seçer. Sona bir 'Diğer' bırakmanız iyi olur."
-        items={c.appointment.complaintOptions}
-        onChange={(complaintOptions) => set('appointment', { complaintOptions })}
-        addLabel="Konu ekle"
-        itemName="Konu"
-      />
+      <>
+        <TextArea
+          label="Onay kutusunun metni"
+          hint="Hukuki metni hukuk danışmanınızın onayladığı hâliyle yazın."
+          rows={3}
+          value={c.appointment.consentText}
+          onChange={(v) => set('appointment', { consentText: v })}
+        />
+        <TextInput
+          label="KVKK aydınlatma metninin adresi"
+          hint={
+            c.appointment.privacyUrl.trim() && !safeLinkUrl(c.appointment.privacyUrl) ? (
+              <span className="text-[#9b3b2a]">Yalnızca https:// ile başlayan ya da sitede / ile başlayan bir adres kabul edilir.</span>
+            ) : (
+              'Boş bırakılırsa formda bağlantı görünmez. Metin hazır olunca adresini yazın.'
+            )
+          }
+          value={c.appointment.privacyUrl}
+          onChange={(v) => set('appointment', { privacyUrl: v })}
+        />
+      </>
     ),
   },
 ]

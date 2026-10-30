@@ -1,0 +1,26 @@
+// ufuk-kilci-randevu-eposta — randevu talebini e-postayla ileten Worker.
+// Kurulum ve gereksinimler: docs/randevu-gonderimi.md
+//
+// Yayınlamak (doktorun Cloudflare hesabında, bir kez):
+//   npx wrangler deploy --config workers/randevu-eposta/wrangler.jsonc
+//   npx wrangler secret put ALICI_EPOSTA    --config workers/randevu-eposta/wrangler.jsonc
+//   npx wrangler secret put GONDEREN_EPOSTA --config workers/randevu-eposta/wrangler.jsonc
+// Adresler bu dosyaya YAZILMAZ (depo herkese açık olabilir).
+{
+	"name": "ufuk-kilci-randevu-eposta",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-10-01",
+	// Herkese açık adres yok: yalnızca Pages fonksiyonu service binding ile çağırır
+	"workers_dev": false,
+	"preview_urls": false,
+	// Kısıtsız bağlama: yalnızca hesapta DOĞRULANMIŞ hedef adreslere gönderebilir.
+	// İsterseniz "allowed_destination_addresses": ["doktorun-adresi"] ile daha da daraltın.
+	"send_email": [{ "name": "EPOSTA" }],
+	// Yaklaşık, konum başına sınırlar (süre yalnızca 10 ya da 60 saniye olabilir).
+	// namespace_id hesap içinde benzersiz, kendi seçtiğimiz bir sayı.
+	"ratelimits": [
+		{ "name": "KISI_SINIRI", "namespace_id": "4101", "simple": { "limit": 3, "period": 60 } },
+		{ "name": "TELEFON_SINIRI", "namespace_id": "4102", "simple": { "limit": 2, "period": 60 } },
+		{ "name": "GENEL_SINIRI", "namespace_id": "4103", "simple": { "limit": 20, "period": 60 } }
+	]
+}

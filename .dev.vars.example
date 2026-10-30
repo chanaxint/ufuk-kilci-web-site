@@ -1,23 +1,22 @@
-# Sunucu tarafı gizli değerler — functions/api/randevu.ts bunları okur.
+# Randevu sunucu fonksiyonunun (functions/api/randevu.ts) gizli değerleri.
 #
-# YAYINDA: Cloudflare Pages → Settings → Variables and Secrets → her biri
-# "Secret" (şifreli) olarak eklenir. Tarayıcıya gitmez.
+# YAYINDA: Cloudflare Pages → Settings → Variables and Secrets → "Secret".
 # YERELDE (isteğe bağlı): bu dosyayı ".dev.vars" adıyla kopyalayıp doldurun ve
-# `npx wrangler pages dev` ile çalıştırın. ".dev.vars" git'e girmez.
+# `npx wrangler pages dev dist --service RANDEVU_EPOSTA=ufuk-kilci-randevu-eposta`
+# ile çalıştırın (e-posta Worker'ı ayrı bir `wrangler dev` ile açık olmalı).
+# ".dev.vars" git'e girmez.
 #
 # ASLA VITE_ ile başlayan bir değişkene ya da ön yüz koduna konmaz:
 # VITE_* değerleri derlemede sitenin JavaScript'ine gömülür, herkes görür.
 
-# Cloudflare → Turnstile → site → Secret Key
+# Cloudflare → Turnstile → widget → Secret Key
 TURNSTILE_SECRET_KEY=""
-
-# Supabase → Project Settings → Data API → Project URL
-SUPABASE_URL=""
-
-# Supabase → Project Settings → API Keys → Secret key (sb_secret_…)
-# ya da Legacy API keys → service_role. Satır kurallarını aşar: yalnızca burada.
-SUPABASE_SECRET_KEY=""
 
 # Önerilir: belirtecin üretilebileceği alan adları (virgülle)
 # ör. ufukkilci.com,www.ufukkilci.com
 TURNSTILE_HOSTNAMES=""
+
+# E-posta ayarları bu dosyada DEĞİL, e-posta Worker'ında durur:
+#   workers/randevu-eposta/wrangler.jsonc + `wrangler secret put ALICI_EPOSTA` / `GONDEREN_EPOSTA`
+# Pages ile Worker arasındaki bağ bir değişken değil, "Service binding":
+#   Pages → Settings → Bindings → Service binding → RANDEVU_EPOSTA → ufuk-kilci-randevu-eposta

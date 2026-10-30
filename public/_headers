@@ -28,9 +28,9 @@
 #                           yalnızca kendi alan adımız çerçeveleyebilir, başka siteler
 #                           çerçeveleyemez (tıklama tuzağına karşı).
 #
-# Randevu talebi ayrıca bir e-posta servisine gidecekse (VITE_APPOINTMENT_ENDPOINT,
-# ör. https://api.web3forms.com) o adres connect-src'ye eklenmeli; yoksa tarayıcı
-# isteği engeller ve talep yalnızca panele düşer.
+# Randevu formu dışarıya istek atmaz: e-posta talebi aynı adresteki /api/randevu'ya
+# gider ('self'), e-postayı Cloudflare sunucuda gönderir; WhatsApp yalnızca wa.me
+# bağlantısı açar (gezinme, CSP izni gerektirmez).
 
 /*
   Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self'; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://lottie.host https://challenges.cloudflare.com; worker-src 'self' blob:; frame-src 'self' https://challenges.cloudflare.com; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests

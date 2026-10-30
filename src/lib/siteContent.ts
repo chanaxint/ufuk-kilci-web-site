@@ -135,7 +135,10 @@ export type SiteContent = {
     hours: Hours[]
   }
   appointment: {
-    complaintOptions: string[]
+    /** Formdaki onay kutusunun metni */
+    consentText: string
+    /** KVKK aydınlatma metninin adresi (https:// ya da sitede / ile başlayan yol); boşsa bağlantı görünmez */
+    privacyUrl: string
   }
   /** Panelden eklenen bölümler */
   blocks: Block[]
@@ -254,14 +257,10 @@ export const defaultContent: SiteContent = {
     ],
   },
   appointment: {
-    complaintOptions: [
-      'Bel ağrısı / bel fıtığı',
-      'Boyun ağrısı / boyun düzleşmesi',
-      'Sırt ve duruş problemleri',
-      'Spor yaralanması',
-      'Ameliyat sonrası rehabilitasyon',
-      'Diğer',
-    ],
+    consentText:
+      'Bilgilerimin yalnızca randevu planlaması için kullanılmasını ve bu numaradan aranmayı kabul ediyorum.',
+    /* Hukuki metin uydurulmuyor: doktorun KVKK aydınlatma metni hazır olunca adresi buraya ya da panele */
+    privacyUrl: '',
   },
   blocks: [],
 }
@@ -400,6 +399,14 @@ export function safeMapsUrl(raw: string): string {
   } catch {
     return ''
   }
+}
+
+/** Aydınlatma metni gibi bağlantılar: yalnızca https:// ya da sitenin kendi yolu (/…) */
+export function safeLinkUrl(raw: string): string {
+  const v = raw.trim()
+  if (!v) return ''
+  if (/^\/(?!\/)/.test(v)) return v
+  return safeMapsUrl(v)
 }
 
 /** Geçerli bir harita bağlantısı yoksa adresten bir Google Haritalar araması */

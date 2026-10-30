@@ -14,5 +14,5 @@
     "skipLibCheck": true,
     "types": []
   },
-  "include": ["functions"]
+  "include": ["functions", "workers"]
 }

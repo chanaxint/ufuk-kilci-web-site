@@ -1,123 +1,186 @@
-# Randevu talebinin doktora ulaşması
+# Randevu talebi — WhatsApp ve e-posta
 
-> **Güncel durum:** Yönetim paneli kurulduysa (`docs/yonetim-paneli.md`)
-> talepler zaten panelde **"Randevu talepleri"** ekranına düşüyor; bunun
-> için aşağıdakilerin hiçbiri gerekmiyor. Aşağıdaki yollar, talebin
-> **ayrıca** e-posta ya da WhatsApp bildirimi olarak gelmesi istenirse
-> geçerli; ikisi birlikte de çalışır.
+Sitedeki randevu mektubu **randevu oluşturmaz, yalnızca talep alır.** Form
+yalnızca iletişim için gerekenleri sorar: ad soyad, telefon, isteğe bağlı
+e-posta, tercih edilen gün ve iletişim zamanı. Şikâyet, teşhis, tedavi
+geçmişi ya da serbest mesaj alanı **bilerek yok**; sunucu da listede olmayan
+bir alan gelirse isteği reddeder.
 
-Form artık kullanıcıyı siteden çıkarmıyor: "Zarfa koy ve gönder" denince
-kâğıt katlanıp zarfa giriyor ve talep arka planda gönderiliyor.
+Talep **hiçbir yerde saklanmaz**: veritabanı yok, tarayıcı hafızasına da
+yazılmaz. İki gönderim yolu var:
 
-**Ama tarayıcı tek başına WhatsApp mesajı gönderemez.** WhatsApp'ın resmî
-API'si bir erişim anahtarı istiyor; o anahtar tarayıcıya konulamaz, çünkü
-siteyi açan herkes görür ve numarayı kullanabilir. Bu yüzden araya küçük bir
-"gönderici" gerekiyor. Aşağıda iki yol var; hangisini seçerseniz bana söyleyin,
-kurulumu birlikte tamamlayalım.
+| | WhatsApp | E-posta |
+|---|---|---|
+| Ne olur | Hazır mesajla WhatsApp açılır, **ziyaretçi kendisi gönderir** | Talep sitenin sunucusundan doktorun e-postasına gider |
+| Kurulum | Yok (doktorun WhatsApp numarası panelde) | Cloudflare'de bir kez (aşağıda) |
+| Site ne der | "Mesajınız WhatsApp'ta hazır; gönder tuşuna basmadan talebiniz bize ulaşmaz" — **başarı demez**, çünkü gönderildiğini bilemeyiz | Sunucu kabul ederse "talebiniz gönderildi"; hata olursa hata ve WhatsApp seçeneği. Teslim garanti edilmez |
+| Ücret | Yok | Yok (aşağıdaki koşullarla) |
 
-Site tarafında yapılacak tek şey, gönderici hazır olduğunda adresini `.env`
-dosyasına yazmak:
+E-posta kurulmadıysa (`VITE_TURNSTILE_SITE_KEY` boş) formda yalnızca
+WhatsApp yolu görünür; site yine eksiksiz çalışır.
+
+---
+
+## E-posta yolu nasıl çalışıyor
+
+```
+Ziyaretçinin tarayıcısı
+  │  Cloudflare Turnstile (bot doğrulaması, belirteç)
+  ▼
+POST /api/randevu  ── Cloudflare Pages Function (functions/api/randevu.ts)
+  │  • yalnızca POST, aynı siteden, JSON, en fazla 4 KB
+  │  • alan denetimi (src/lib/randevuKurallari.ts), fazladan alan → red
+  │  • Turnstile belirteci Cloudflare'de doğrulanır
+  ▼  service binding (internetten geçmez)
+ufuk-kilci-randevu-eposta ── Worker (workers/randevu-eposta/)
+  │  • alanlar bir kez daha denetlenir
+  │  • oran sınırı: aynı ziyaretçi (IP özeti) 3, aynı telefon 2,
+  │    toplam 20 talep / dakika (Cloudflare Rate Limiting, yaklaşık)
+  ▼  send_email bağlaması
+Cloudflare Email Service ──► doktorun DOĞRULANMIŞ e-posta adresi
+```
+
+**Neden iki parça:** Cloudflare'in resmî belgelerine göre Pages Functions'ın
+desteklediği bağlamalar KV, Durable Objects, R2, D1, Vectorize, Workers AI,
+Service bindings, Queues, Hyperdrive, Analytics Engine, ortam değişkenleri ve
+gizli değerlerdir; **`send_email` bu listede yok.** `send_email` yalnızca
+Worker'larda var. Pages Functions ise "service binding" ile bir Worker'ı
+çağırabiliyor. Bu yüzden e-postayı gönderen küçük bir Worker var; herkese açık
+adresi yok (`workers_dev: false`), yalnızca sitenin fonksiyonu ona ulaşabiliyor.
+
+**Neden ücretsiz:** Email Service belgelerine göre hesaptaki **doğrulanmış hedef
+adreslere** gönderim her planda (Workers Free dahil) ücretsiz; aylık kotaya ve
+günlük gönderim sınırına sayılmaz; yalnızca Email Routing kurulu olması
+yeterli. Gönderen adres ise Email Routing açık alan adından olmalı. Herhangi
+bir adrese (ör. ziyaretçiye onay e-postası) göndermek Workers Paid ister; bu
+sistem bunu **yapmıyor**, yalnızca doktora gönderiyor.
+
+---
+
+## Kurulum (doktorun Cloudflare hesabında, bir kez)
+
+Hiçbir adres ya da anahtar bu depoya yazılmaz; hepsi Cloudflare'de durur.
+
+### Ön koşul: alan adı Cloudflare'de
+
+Email Routing, alan adının DNS'i Cloudflare'de olduğunda çalışır (alan adının
+nameserver'ları Cloudflare'i gösterir). Site de zaten Cloudflare Pages'te
+yayınlanacak.
+
+> **Dikkat — mevcut e-posta:** Email Routing, alan adının gelen posta
+> (MX) kayıtlarını Cloudflare'e yönlendirir. Doktor alan adında **başka bir
+> sağlayıcıyla** e-posta kullanıyorsa (ör. `info@alanadi` için Google
+> Workspace, Yandex, hosting firmasının postası), Email Routing'i kök alan
+> adında açmak o posta kutusunu bozabilir. Bu durumda Email Routing'i bir alt
+> alan adında (ör. `bildirim.alanadi`) açmak ya da önce mevcut posta
+> düzenini kontrol etmek gerekir. **Bu karar alan adı belli olunca birlikte
+> verilmeli.**
+
+### 1. Email Routing ve alıcı adres
+
+1. Cloudflare → **Compute** → **Email Service** → **Email Routing** → alan
+   adını seçip Email Routing'i etkinleştirin (gerekli DNS kayıtlarını
+   Cloudflare ekler).
+2. **Destination Addresses** → talepleri alacak adresi (doktorun kendi
+   e-postası) ekleyin. O adrese gelen e-postadaki **Verify email address**
+   bağlantısına tıklayın. Doğrulanmadan hiçbir şey gönderilmez.
+3. Gönderen adres için bir ad seçin, ör. `randevu@alanadi` (Email Routing açık
+   alan adından olmalı; gerçek bir posta kutusu olması gerekmez).
+
+### 2. E-posta Worker'ını yayınlayın
+
+Bilgisayarda proje klasöründe (Cloudflare hesabıyla giriş yapılmış olarak):
 
 ```bash
-VITE_APPOINTMENT_ENDPOINT="https://.../api/randevu"
+npx wrangler login
+npx wrangler deploy --config workers/randevu-eposta/wrangler.jsonc
+npx wrangler secret put ALICI_EPOSTA    --config workers/randevu-eposta/wrangler.jsonc
+npx wrangler secret put GONDEREN_EPOSTA --config workers/randevu-eposta/wrangler.jsonc
 ```
 
-Adres tanımlı değilken form yine çalışıyor; sonunda "talebiniz hazırlandı"
-diyor ve kullanıcıya WhatsApp bağlantısını gösteriyor — yani kimseye yalan
-söylemiyor.
+`ALICI_EPOSTA` = 1. adımda doğrulanan adres, `GONDEREN_EPOSTA` = ör.
+`randevu@alanadi`. İsterseniz `wrangler.jsonc` içindeki `send_email`
+bağlamasına `"allowed_destination_addresses": ["…"]` ekleyerek Worker'ı
+yalnızca o adrese gönderebilir hâle getirebilirsiniz (adres o zaman bu
+dosyada, yani depoda görünür).
+
+### 3. Turnstile
+
+Cloudflare → **Turnstile** → **Add widget** → Hostnames: sitenin alan
+adları; Widget mode: **Managed**. **Site Key** ve **Secret Key** alınır.
+
+### 4. Pages projesini bağlayın
+
+Cloudflare Pages → proje → **Settings**:
+
+| Nerede | Ad | Değer |
+|---|---|---|
+| Variables and Secrets | `VITE_TURNSTILE_SITE_KEY` (düz metin) | Turnstile **Site Key** |
+| Variables and Secrets | `TURNSTILE_SECRET_KEY` (**Secret**) | Turnstile **Secret Key** |
+| Variables and Secrets | `TURNSTILE_HOSTNAMES` (önerilir) | `alanadi,www.alanadi` |
+| Bindings → **Service binding** | `RANDEVU_EPOSTA` | Worker: `ufuk-kilci-randevu-eposta` |
+
+Sonra **Retry deployment** (site anahtarı derlemede koda girer).
+
+### 5. Deneyin
+
+Yayındaki sitede "E-posta ile" seçip kendi bilgilerinizle bir talep gönderin;
+doktorun gelen kutusuna (gerekirse istenmeyen klasörüne) bakın. Gelmezse:
+Worker → **Logs** (yalnızca hata kodu yazılır, ör. `E_SENDER_NOT_VERIFIED`) ve
+Email Service → gönderim günlükleri.
 
 ---
 
-## Yol 1 — E-posta olarak gelsin (en hızlı, ücretsiz)
+## Kişisel veriler ve KVKK
 
-[Web3Forms](https://web3forms.com) gibi bir form servisi, sunucu yazmadan
-çalışır: e-posta adresinizi verirsiniz, size bir anahtar (access key) verir,
-talepler e-posta olarak düşer. Telefonda WhatsApp bildirimi yerine e-posta
-bildirimi alırsınız.
+- **Toplanan:** ad soyad, telefon, isteğe bağlı e-posta, tercih edilen gün ve
+  zaman aralığı. Sağlık bilgisi yok.
+- **Saklanan:** hiçbir şey. Talep yalnızca e-postayla iletilir; site, sunucu
+  ve tarayıcı kaydetmez. Hata günlüklerine yalnızca hata kodu yazılır.
+  Oran sınırı için IP'nin kendisi değil kısaltılmış özeti kullanılır.
+- **Veri hangi sağlayıcılardan geçer:**
+  - E-posta yolu: **Cloudflare** (Pages, Turnstile, Worker, Email Service) →
+    doktorun e-posta sağlayıcısı (doğrulanan adres hangi hizmetteyse; ör.
+    Gmail ise Google). Cloudflare ve o sağlayıcının sunucuları yurt dışında
+    olabilir.
+  - WhatsApp yolu: bilgiler ziyaretçinin kendi cihazından **WhatsApp
+    (Meta)** üzerinden gönderilir; site sunucusuna hiç gelmez.
+  - Turnstile, bot doğrulaması için ziyaretçinin tarayıcısından Cloudflare'e
+    teknik bilgi gönderir (yalnızca "E-posta ile" seçilince yüklenir).
+- **Aydınlatma metni:** hukuki metin uydurulmadı. Formdaki onay kutusunun
+  metni ve "Aydınlatma metni" bağlantısı panelde **Randevu formu**
+  bölümünden değiştirilir (`appointment.consentText`, `appointment.privacyUrl`).
+  Bağlantı boşken görünmez. Metni doktorun hukuk danışmanı hazırlamalı; yurt
+  dışına aktarım (Cloudflare, e-posta sağlayıcısı, WhatsApp) metinde ele
+  alınmalı.
 
-1. web3forms.com üzerinden e-posta adresinizle anahtar alın.
-2. `.env` dosyasına iki satır yazın — **kod değişikliği gerekmiyor**:
-   ```bash
-   VITE_APPOINTMENT_ENDPOINT="https://api.web3forms.com/submit"
-   VITE_APPOINTMENT_KEY="doktorun-aldığı-anahtar"
-   ```
-3. `npm run build` ile yeniden yayına alın. Form artık "talebiniz iletildi"
-   diyecek ve talepler doktorun e-postasına düşecek.
+## Ücretsiz plan sınırları (resmî belgelere göre, Ekim 2026)
 
-**Anahtar kimin olmalı?** Doktorun. Forma ad, telefon ve şikâyet yazılıyor;
-bu sağlıkla ilgili kişisel veri ve KVKK açısından veri sorumlusu klinik
-olmalı. Ayrıca anahtar hangi e-posta adresine bağlıysa talepler oraya
-düşer — başkasının hesabıyla kurulursa hasta bilgileri yanlış gelen kutuda
-birikir ve o hesap kapandığında form sessizce ölür.
+- **Email Service:** doğrulanmış hedef adrese gönderim her planda ücretsiz,
+  kotaya ve günlük sınıra sayılmaz. Hesapta en fazla 200 doğrulanmış hedef
+  adres. Bir e-posta en fazla 25 MiB. Email Sending (herhangi bir alıcıya)
+  hâlâ **beta** ve Workers Paid ister (aylık 3.000 e-posta dahil) — bu
+  sistem kullanmıyor.
+- **Workers / Pages Functions:** ücretsiz planda günde 100.000 istek
+  (fonksiyon + Worker ortak). Randevu formu için fazlasıyla yeterli.
+- **Rate Limiting bağlaması:** süre yalnızca 10 ya da 60 saniye; sayım
+  Cloudflare konumu başına ve **yaklaşık**. Uzun süreli (ör. günlük)
+  sınır için Durable Objects gerekir; veritabanı istenmediği için
+  kurulmadı. Asıl koruma Turnstile; gerekirse Cloudflare → WAF →
+  **Rate limiting rules** ile `/api/randevu` için ek kural eklenebilir.
+- Plan ve fiyatlar değişebilir; kurulumdan önce Cloudflare'in güncel
+  belgelerine bakılmalı.
 
-**Artısı:** on dakikada biter, bedava. **Eksisi:** WhatsApp'a değil,
-e-postaya düşer.
+## Yerelde denemek
 
----
-
-## Yol 2 — Doğrudan WhatsApp'a düşsün (resmî API)
-
-WhatsApp Cloud API (Meta) ile talep doğrudan WhatsApp'ınıza gelir. Gereken:
-
-- Meta Business hesabı ve doğrulanmış bir **gönderici numara** (kliniğin
-  kendi numarası bu iş için API'ye kaydedilir; o numara artık normal
-  WhatsApp uygulamasında kullanılamaz, bu yüzden genelde ikinci bir numara
-  alınır),
-- bir erişim anahtarı (token),
-- ve anahtarın saklanacağı küçük bir sunucu işlevi (Vercel/Netlify'da tek
-  dosya).
-
-Site Vercel'de yayına alınırsa dosya şudur — `api/randevu.ts`:
-
-```ts
-export const config = { runtime: 'edge' }
-
-export default async function handler(req: Request) {
-  if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 })
-  const { name, phone, topic, message } = await req.json()
-
-  const govde = {
-    messaging_product: 'whatsapp',
-    to: process.env.DOKTOR_WHATSAPP,        // ör. 905437805050
-    type: 'text',
-    text: {
-      body: `Yeni randevu talebi\n\nAd Soyad: ${name}\nTelefon: ${phone}\nKonu: ${topic}\n${message ?? ''}`,
-    },
-  }
-
-  const r = await fetch(
-    `https://graph.facebook.com/v21.0/${process.env.WHATSAPP_PHONE_ID}/messages`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(govde),
-    },
-  )
-
-  return new Response(null, { status: r.ok ? 204 : 502 })
-}
-```
-
-Sonra `.env` içine:
+`npm run dev` altında e-posta seçeneği görünmez (Turnstile anahtarı yok),
+WhatsApp yolu denenebilir. Fonksiyon ve Worker'ı birlikte denemek için
+`wrangler` gerekir (projeye eklenmedi):
 
 ```bash
-VITE_APPOINTMENT_ENDPOINT="/api/randevu"
+npx wrangler dev --config workers/randevu-eposta/wrangler.jsonc   # e-postayı göndermez, konsola yazar
+npx wrangler pages dev dist --service RANDEVU_EPOSTA=ufuk-kilci-randevu-eposta
 ```
 
-**Dikkat:** Meta, işletmenin kendi başlattığı mesajlarda onaylı şablon
-istiyor. Mesaj kendi numaranıza gideceği için pratikte sorun çıkmaz ama
-hesabın ilk kurulumunda şablon onayı beklemek gerekebilir.
-
-**Artısı:** talep gerçekten WhatsApp'a düşer. **Eksisi:** kurulum yarım gün
-sürer, ikinci numara gerekebilir.
-
----
-
-## Yol 3 — Şimdilik böyle kalsın
-
-Hiçbir şey kurulmazsa form yine çalışır: kâğıt katlanır, zarf kapanır ve
-kullanıcıya "talebiniz hazırlandı, isterseniz WhatsApp'tan iletin" denir.
-Tek fark, gönderme adımını kullanıcının kendisinin tamamlaması.
+`wrangler dev` `send_email` bağlamasını varsayılan olarak taklit eder:
+e-posta gönderilmez, içeriği konsola ve yerel dosyaya yazılır.

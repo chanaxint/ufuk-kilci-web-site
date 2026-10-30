@@ -1,92 +1,146 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useContent } from '../../lib/ContentContext'
+import { emailAvailable, sendByEmail, TURNSTILE_SITE_KEY, whatsappHref } from '../../lib/appointment'
+import { isPreview } from '../../lib/preview'
+import { safeLinkUrl } from '../../lib/siteContent'
 import {
-  canDeliver,
-  serverFlow,
-  TURNSTILE_SITE_KEY,
-  sendAppointment,
-  whatsappHref,
-  REQUEST_LIMITS,
-  type AppointmentForm as Form,
-} from '../../lib/appointment'
-import { ArrowRight, ChevronDown, Send } from './icons'
-import { AGE, GRAIN, PAPER, RULED } from '../../lib/paper'
+  GUNLER,
+  randevuDenetle,
+  SINIR,
+  ZAMANLAR,
+  type Alan,
+  type RandevuGirdisi,
+  type RandevuTalebi,
+  type Yontem,
+} from '../../lib/randevuKurallari'
+import { ArrowRight, ChevronDown, Send, WhatsApp } from './icons'
+import { AGE, GRAIN, PAPER } from '../../lib/paper'
 import Turnstile, { type TurnstileState } from './Turnstile'
 
 const fieldRow =
-  'w-full border-0 border-b border-[#6b5334]/35 bg-transparent px-1 pt-1 pb-1.5 font-sans text-[0.98rem] text-[#3b2c1d] outline-none transition-colors duration-300 placeholder:text-[#9a866a] focus:border-[#6b4a2c]'
+  'w-full border-0 border-b border-[#6b5334]/35 bg-transparent px-1 pt-1 pb-1.5 font-sans text-[0.98rem] text-[#3b2c1d] outline-none transition-colors duration-300 placeholder:text-[#9a866a] focus:border-[#6b4a2c] aria-[invalid=true]:border-[#9b3b2a]/70 disabled:opacity-60'
 
 const labelRow =
   'font-display text-[0.7rem] font-bold tracking-[0.16em] text-[#7a6446] uppercase'
 
+const errorText = 'text-[0.8rem] leading-snug text-[#8c3320]'
+
+type Hatalar = Partial<Record<Alan | 'onay', string>>
+
+const BOS: RandevuGirdisi = { ad: '', telefon: '', eposta: '', gun: GUNLER[0], zaman: ZAMANLAR[0] }
+
 /**
  * Randevu talebi — mektup ve zarf.
  *
- * Form gerçek bir kâğıt: alanlar kâğıdın üzerine çizilmiş satırlar. Gönder
- * denince kullanıcı siteden çıkmıyor — talep arka planda uç noktaya
- * gönderiliyor, kâğıt önce alttan sonra üstten katlanıp zarfa giriyor,
- * kapak kapanıyor ve mühür basılıyor.
+ * Form gerçek bir kâğıt: alanlar kâğıdın üzerine çizilmiş satırlar. Yalnızca
+ * randevu için gereken iletişim bilgisi isteniyor (şikâyet ya da sağlık
+ * bilgisi yok). İki gönderim yolu var:
  *
- * Animasyon işin önüne geçmiyor: alanlar normal form alanları, klavyeyle
- * gezilebiliyor; "azaltılmış hareket" tercihinde katlanma atlanıp doğrudan
- * kapalı zarf gösteriliyor.
+ * - WhatsApp: mesaj hazırlanıp WhatsApp açılır, ziyaretçi kendisi gönderir.
+ *   Gönderildiğini bilemediğimiz için "iletildi" denmez; kâğıt yerinde
+ *   kalır, altında ne yapılacağı yazar.
+ * - E-posta: talep sunucuya gider, yanıt beklenir ("Gönderiliyor…"). Ancak
+ *   sunucu kabul ederse kâğıt katlanıp zarfa girer; hata olursa kâğıt
+ *   yerinde kalır, hata iletisi ve WhatsApp seçeneği gösterilir.
+ *
+ * Alanlar normal form alanları, klavyeyle gezilebiliyor; hatalar alanın
+ * altında yazıyor ve ekran okuyucuya bağlı. "Azaltılmış hareket"
+ * tercihinde katlanma atlanıp doğrudan kapalı zarf gösteriliyor.
  */
 export default function LetterForm() {
   const content = useContent()
   const { doctor } = content
-  const complaintOptions = content.appointment.complaintOptions
-  const [form, setForm] = useState<Form>({
-    name: '',
-    phone: '',
-    topic: complaintOptions[0] ?? '',
-    message: '',
-  })
+  const uid = useId()
+  const [form, setForm] = useState<RandevuGirdisi>(BOS)
+  const [yontem, setYontem] = useState<Yontem>('whatsapp')
   const [consent, setConsent] = useState(false)
+  const [hatalar, setHatalar] = useState<Hatalar>({})
   /* Görünmez tuzak alan: insanlar görmüyor, formu dolduran botlar dolduruyor */
   const [trap, setTrap] = useState('')
-  /* Turnstile (yalnızca sunucu akışında): tek kullanımlık belirteç */
+  /* Turnstile (yalnızca e-posta yolunda): tek kullanımlık belirteç */
   const [token, setToken] = useState<string | null>(null)
   const [tsState, setTsState] = useState<TurnstileState>('bekliyor')
   const [tsReset, setTsReset] = useState(0)
   const [uyari, setUyari] = useState('')
-  /*
-   * Seçenekler panelden değişebilir (ve kayıtlı içerik sayfa açıldıktan
-   * kısa süre sonra gelir): seçili konu listede yoksa ilkine geç.
-   */
-  useEffect(() => {
-    if (!complaintOptions.includes(form.topic)) setForm((f) => ({ ...f, topic: complaintOptions[0] ?? '' }))
-  }, [complaintOptions, form.topic])
+  const [sunucuHatasi, setSunucuHatasi] = useState('')
+  /** WhatsApp açıldıysa: tekrar açmak için bağlantı */
+  const [waAcildi, setWaAcildi] = useState<string | null>(null)
+  const [gonderiliyor, setGonderiliyor] = useState(false)
   const [phase, setPhase] = useState<'yazi' | 'katlaniyor' | 'gonderildi'>('yazi')
-  /** 'iletildi' uç noktaya ulaştı · 'hazir' uç nokta yok · 'hata' denendi olmadı */
-  const [sonuc, setSonuc] = useState<'iletildi' | 'hazir' | 'hata'>('hazir')
+  /** Zarfa giren talebin özeti (alanlar sıfırlansa da zarf aynı kalsın) */
+  const [gonderilen, setGonderilen] = useState<RandevuTalebi | null>(null)
   const timers = useRef<number[]>([])
+  const formRef = useRef<HTMLFormElement>(null)
   const reduce = useReducedMotion()
+  const epostaSecili = emailAvailable && yontem === 'eposta'
 
-  const waHref = useMemo(() => whatsappHref(form, content), [form, content])
+  const alan = (k: Alan) => ({
+    id: `${uid}-${k}`,
+    'aria-invalid': hatalar[k] ? true : undefined,
+    'aria-describedby': hatalar[k] ? `${uid}-${k}-hata` : undefined,
+  })
+  const degistir = (k: Alan, v: string) => {
+    setForm((f) => ({ ...f, [k]: v }))
+    if (hatalar[k]) setHatalar((h) => ({ ...h, [k]: undefined }))
+  }
+  const hataYaz = (k: Alan | 'onay') =>
+    hatalar[k] ? (
+      <span id={`${uid}-${k}-hata`} className={errorText}>
+        {hatalar[k]}
+      </span>
+    ) : null
 
-  const send = (e: React.FormEvent) => {
+  const send = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (gonderiliyor) return
+    setUyari('')
+    setSunucuHatasi('')
+    if (isPreview) {
+      setUyari('Önizlemede gönderim yapılmaz.')
+      return
+    }
+    const d = randevuDenetle(form)
+    const yeni: Hatalar = 'hatalar' in d ? { ...d.hatalar } : {}
+    if (!consent) yeni.onay = 'Devam etmek için onay kutusunu işaretleyin.'
+    setHatalar(yeni)
+    if ('hatalar' in d || !consent) {
+      /* İlk hatalı alana odaklan */
+      const ilk = (['ad', 'telefon', 'eposta', 'gun', 'zaman', 'onay'] as const).find((k) => yeni[k])
+      if (ilk) formRef.current?.querySelector<HTMLElement>(`#${CSS.escape(`${uid}-${ilk}`)}`)?.focus()
+      return
+    }
+    const talep = d.talep
+
+    if (!epostaSecili) {
+      /* WhatsApp: mesajı ziyaretçi gönderir; burada yalnızca açıyoruz */
+      const href = whatsappHref(talep, content)
+      window.open(href, '_blank', 'noopener,noreferrer')
+      setWaAcildi(href)
+      return
+    }
+
     /* Güvenlik doğrulaması bitmeden gönderme: belirteçsiz talebi sunucu reddeder */
-    if (serverFlow && !trap && !token) {
+    if (!token) {
       setUyari(
         tsState === 'hata'
-          ? 'Güvenlik doğrulaması yüklenemedi. Sayfayı yenileyin ya da WhatsApp üzerinden yazın.'
+          ? 'Güvenlik doğrulaması yüklenemedi. Sayfayı yenileyin ya da WhatsApp ile gönderin.'
           : 'Güvenlik doğrulaması tamamlanıyor; birkaç saniye sonra tekrar deneyin.',
       )
       return
     }
-    setUyari('')
-    /* Kullanıcı sitede kalıyor; talep arka planda gidiyor */
-    setSonuc('hazir')
-    if (trap) setSonuc('iletildi')
-    else if (canDeliver) {
-      sendAppointment(form, content, token)
-        .then((ok) => setSonuc(ok ? 'iletildi' : 'hazir'))
-        .catch(() => setSonuc('hata'))
-      /* Belirteç tek kullanımlık: bir sonraki talep için yenisini üret */
-      if (serverFlow) setTsReset((n) => n + 1)
+    setGonderiliyor(true)
+    try {
+      await sendByEmail(talep, token, trap)
+    } catch (err) {
+      setSunucuHatasi(err instanceof Error ? err.message : 'Talebiniz şu an iletilemedi.')
+      return
+    } finally {
+      setGonderiliyor(false)
+      /* Belirteç tek kullanımlık: bir sonraki deneme için yenisini üret */
+      setTsReset((n) => n + 1)
     }
+    setGonderilen(talep)
     if (reduce) {
       setPhase('gonderildi')
       return
@@ -98,8 +152,11 @@ export default function LetterForm() {
   const reset = () => {
     timers.current.forEach(window.clearTimeout)
     timers.current = []
-    setForm({ name: '', phone: '', topic: complaintOptions[0] ?? '', message: '' })
+    setForm(BOS)
     setConsent(false)
+    setHatalar({})
+    setWaAcildi(null)
+    setGonderilen(null)
     setPhase('yazi')
   }
 
@@ -112,9 +169,10 @@ export default function LetterForm() {
       </p>
       <dl className="mt-5 space-y-2 text-[0.9rem]">
         {[
-          ['Ad Soyad', form.name || '—'],
-          ['Telefon', form.phone || '—'],
-          ['Konu', form.topic],
+          ['Ad Soyad', gonderilen?.ad || '—'],
+          ['Telefon', gonderilen?.telefon || '—'],
+          ['Gün', gonderilen?.gun ?? '—'],
+          ['Zaman', gonderilen?.zaman ?? '—'],
         ].map(([k, v]) => (
           <div key={k} className="flex gap-2">
             <dt className="w-24 shrink-0 text-[#7a6446]">{k}</dt>
@@ -122,11 +180,6 @@ export default function LetterForm() {
           </div>
         ))}
       </dl>
-      {form.message && (
-        <p className="mt-4 line-clamp-3 text-[0.88rem] leading-relaxed text-[#4a3826]">
-          {form.message}
-        </p>
-      )}
       <p className="mt-auto font-display text-[0.6rem] font-bold tracking-[0.2em] text-[#8a765a] uppercase">
         {doctor.phone}
       </p>
@@ -151,7 +204,10 @@ export default function LetterForm() {
         }`}
       >
           <form
+            ref={formRef}
             onSubmit={send}
+            noValidate
+            aria-busy={gonderiliyor}
             className="relative overflow-hidden rounded-[3px] shadow-[0_2px_6px_-2px_rgb(12_7_3/0.5),0_30px_64px_-30px_rgb(12_7_3/0.85),inset_0_0_30px_rgb(126_96_52/0.18)]"
             style={{ background: PAPER }}
           >
@@ -164,72 +220,142 @@ export default function LetterForm() {
                 Randevu talebi
               </p>
               <p className="mt-2 text-[0.9rem] leading-relaxed text-[#6b5334]">
-                Bilgilerinizi yazın; gönderdiğinizde talebiniz doğrudan iletilir.
-                Siteden ayrılmanıza gerek yok.
+                İletişim bilgilerinizi bırakın; size uygun zamanda dönüş yapılsın. Bu bir randevu
+                talebidir, kesin randevu değildir.
               </p>
 
               <div className="mt-7 grid gap-x-8 gap-y-6 sm:grid-cols-2">
-                <label className="flex flex-col gap-1.5">
-                  <span className={labelRow}>Ad Soyad</span>
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor={`${uid}-ad`} className={labelRow}>
+                    Ad Soyad
+                  </label>
                   <input
+                    {...alan('ad')}
                     required
-                    maxLength={REQUEST_LIMITS.name}
+                    maxLength={SINIR.ad}
                     autoComplete="name"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    value={form.ad}
+                    onChange={(e) => degistir('ad', e.target.value)}
                     placeholder="Adınız ve soyadınız"
+                    disabled={gonderiliyor}
                     className={fieldRow}
                   />
-                </label>
+                  {hataYaz('ad')}
+                </div>
 
-                <label className="flex flex-col gap-1.5">
-                  <span className={labelRow}>Telefon</span>
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor={`${uid}-telefon`} className={labelRow}>
+                    Telefon
+                  </label>
                   <input
+                    {...alan('telefon')}
                     required
                     type="tel"
-                    maxLength={REQUEST_LIMITS.phone}
+                    inputMode="tel"
+                    maxLength={SINIR.telefon}
                     autoComplete="tel"
-                    pattern="(?:\D*\d){7,15}\D*"
-                    title="Telefon numaranızı en az 7 rakamla yazın"
-                    value={form.phone}
-                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    value={form.telefon}
+                    onChange={(e) => degistir('telefon', e.target.value)}
                     placeholder="05__ ___ __ __"
+                    disabled={gonderiliyor}
                     className={fieldRow}
                   />
-                </label>
+                  {hataYaz('telefon')}
+                </div>
 
-                <label className="flex flex-col gap-1.5 sm:col-span-2">
-                  <span className={labelRow}>Şikâyet konusu</span>
-                  <span className="relative block">
-                    <select
-                      value={form.topic}
-                      onChange={(e) => setForm({ ...form, topic: e.target.value })}
-                      className={`${fieldRow} paper-select cursor-pointer appearance-none pr-7`}
-                    >
-                      {complaintOptions.map((option, i) => (
-                        <option key={i}>{option}</option>
-                      ))}
-                    </select>
-                    <ChevronDown
-                      aria-hidden
-                      className="pointer-events-none absolute top-1/2 right-1 size-4 -translate-y-1/2 text-[#7a6446]"
-                    />
-                  </span>
-                </label>
-
-                <label className="flex flex-col gap-2 sm:col-span-2">
-                  <span className={labelRow}>Kısaca anlatın</span>
-                  <textarea
-                    rows={4}
-                    maxLength={REQUEST_LIMITS.message}
-                    value={form.message}
-                    onChange={(e) => setForm({ ...form, message: e.target.value })}
-                    placeholder="Şikâyetiniz ne zaman başladı, hangi hareketlerde artıyor?"
-                    className="w-full resize-none rounded-[2px] border border-[#6b5334]/25 bg-transparent px-3 py-2 font-sans text-[0.95rem] leading-7 text-[#3b2c1d] outline-none transition-colors duration-300 placeholder:text-[#9a866a] focus:border-[#6b4a2c]"
-                    style={{ backgroundImage: RULED, backgroundPosition: '0 6px' }}
+                <div className="flex flex-col gap-1.5 sm:col-span-2">
+                  <label htmlFor={`${uid}-eposta`} className={labelRow}>
+                    E-posta <span className="font-sans font-normal tracking-normal normal-case">(isteğe bağlı)</span>
+                  </label>
+                  <input
+                    {...alan('eposta')}
+                    type="email"
+                    inputMode="email"
+                    maxLength={SINIR.eposta}
+                    autoComplete="email"
+                    value={form.eposta}
+                    onChange={(e) => degistir('eposta', e.target.value)}
+                    placeholder="ornek@eposta.com"
+                    disabled={gonderiliyor}
+                    className={fieldRow}
                   />
-                </label>
+                  {hataYaz('eposta')}
+                </div>
+
+                {(
+                  [
+                    ['gun', 'Tercih edilen gün', GUNLER],
+                    ['zaman', 'İletişim zamanı', ZAMANLAR],
+                  ] as const
+                ).map(([k, etiket, secenekler]) => (
+                  <div key={k} className="flex flex-col gap-1.5">
+                    <label htmlFor={`${uid}-${k}`} className={labelRow}>
+                      {etiket}
+                    </label>
+                    <span className="relative block">
+                      <select
+                        {...alan(k)}
+                        value={form[k]}
+                        onChange={(e) => degistir(k, e.target.value)}
+                        disabled={gonderiliyor}
+                        className={`${fieldRow} paper-select cursor-pointer appearance-none pr-7`}
+                      >
+                        {secenekler.map((o) => (
+                          <option key={o}>{o}</option>
+                        ))}
+                      </select>
+                      <ChevronDown
+                        aria-hidden
+                        className="pointer-events-none absolute top-1/2 right-1 size-4 -translate-y-1/2 text-[#7a6446]"
+                      />
+                    </span>
+                    {hataYaz(k)}
+                  </div>
+                ))}
               </div>
+
+              {emailAvailable ? (
+                <fieldset className="mt-7" disabled={gonderiliyor}>
+                  <legend className={labelRow}>Nasıl gönderilsin?</legend>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    {(
+                      [
+                        ['whatsapp', 'WhatsApp ile', 'WhatsApp açılır, hazır mesajı siz gönderirsiniz.'],
+                        ['eposta', 'E-posta ile', 'Talebiniz buradan doğrudan e-postayla iletilir.'],
+                      ] as const
+                    ).map(([v, baslik, aciklama]) => (
+                      <label
+                        key={v}
+                        className={`flex cursor-pointer items-start gap-3 rounded-[3px] border px-3.5 py-3 transition-colors duration-300 ${
+                          yontem === v ? 'border-[#6b4a2c]/70 bg-[#6b4a2c]/[0.07]' : 'border-[#6b5334]/25 hover:border-[#6b5334]/50'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name={`${uid}-yontem`}
+                          value={v}
+                          checked={yontem === v}
+                          onChange={() => {
+                            setYontem(v)
+                            setUyari('')
+                            setSunucuHatasi('')
+                            setWaAcildi(null)
+                          }}
+                          className="mt-1 size-4 shrink-0 cursor-pointer accent-[#6b4a2c]"
+                        />
+                        <span className="flex flex-col gap-0.5">
+                          <span className="font-display text-[0.92rem] font-bold text-[#31241a]">{baslik}</span>
+                          <span className="text-[0.82rem] leading-snug text-[#6b5334]">{aciklama}</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              ) : (
+                <p className="mt-7 text-[0.86rem] leading-snug text-[#6b5334]">
+                  Gönder dediğinizde WhatsApp açılır; hazır mesajı siz gönderirsiniz.
+                </p>
+              )}
 
               {/* Tuzak alan: ekran okuyucudan ve klavyeden de gizli */}
               <input
@@ -243,21 +369,43 @@ export default function LetterForm() {
                 className="pointer-events-none absolute -left-[9999px] h-0 w-0 opacity-0"
               />
 
-              <label className="mt-7 flex cursor-pointer items-start gap-3 text-[0.86rem] leading-snug text-[#4a3826]">
-                <input
-                  type="checkbox"
-                  required
-                  checked={consent}
-                  onChange={(e) => setConsent(e.target.checked)}
-                  className="mt-0.5 size-4 shrink-0 cursor-pointer accent-[#6b4a2c]"
-                />
-                <span>
-                  Bilgilerimin yalnızca randevu planlaması için kullanılmasını ve bu
-                  numaradan aranmayı kabul ediyorum.
-                </span>
-              </label>
+              <div className="mt-7 flex flex-col gap-1.5">
+                <label className="flex cursor-pointer items-start gap-3 text-[0.86rem] leading-snug text-[#4a3826]">
+                  <input
+                    id={`${uid}-onay`}
+                    type="checkbox"
+                    required
+                    checked={consent}
+                    aria-invalid={hatalar.onay ? true : undefined}
+                    aria-describedby={hatalar.onay ? `${uid}-onay-hata` : undefined}
+                    onChange={(e) => {
+                      setConsent(e.target.checked)
+                      if (e.target.checked) setHatalar((h) => ({ ...h, onay: undefined }))
+                    }}
+                    disabled={gonderiliyor}
+                    className="mt-0.5 size-4 shrink-0 cursor-pointer accent-[#6b4a2c]"
+                  />
+                  <span>
+                    {content.appointment.consentText}
+                    {safeLinkUrl(content.appointment.privacyUrl) && (
+                      <>
+                        {' '}
+                        <a
+                          href={safeLinkUrl(content.appointment.privacyUrl)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-semibold underline decoration-[#6b4a2c]/40 underline-offset-4 hover:text-[#2a1d12]"
+                        >
+                          Aydınlatma metni
+                        </a>
+                      </>
+                    )}
+                  </span>
+                </label>
+                {hataYaz('onay')}
+              </div>
 
-              {serverFlow && (
+              {epostaSecili && (
                 <Turnstile
                   siteKey={TURNSTILE_SITE_KEY}
                   onToken={(t) => {
@@ -272,11 +420,31 @@ export default function LetterForm() {
               <div className="mt-6 flex flex-wrap items-center gap-4">
                 <button
                   type="submit"
-                  className="group inline-flex items-center gap-2 rounded-full bg-[#2a1d12] px-7 py-3.5 font-display text-[0.95rem] font-bold text-[#f4ead6] shadow-[0_14px_30px_-16px_rgb(12_7_3/0.9)] transition-colors duration-300 hover:bg-[#3b2a1a]"
+                  disabled={gonderiliyor}
+                  aria-busy={gonderiliyor}
+                  className="group inline-flex items-center gap-2 rounded-full bg-[#2a1d12] px-7 py-3.5 font-display text-[0.95rem] font-bold text-[#f4ead6] shadow-[0_14px_30px_-16px_rgb(12_7_3/0.9)] transition-colors duration-300 hover:bg-[#3b2a1a] disabled:cursor-wait disabled:opacity-75"
                 >
-                  <Send className="size-4.5" />
-                  Zarfa koy ve gönder
-                  <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                  {gonderiliyor ? (
+                    <>
+                      <span
+                        aria-hidden
+                        className="size-4 animate-spin rounded-full border-2 border-[#f4ead6]/30 border-t-[#f4ead6] motion-reduce:animate-none"
+                      />
+                      Gönderiliyor…
+                    </>
+                  ) : epostaSecili ? (
+                    <>
+                      <Send className="size-4.5" />
+                      Zarfa koy ve gönder
+                      <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                    </>
+                  ) : (
+                    <>
+                      <WhatsApp className="size-4.5" />
+                      WhatsApp’ta mesajı hazırla
+                      <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                    </>
+                  )}
                 </button>
                 {uyari && (
                   <p role="status" className="max-w-xs text-[0.82rem] leading-snug text-[#7d3a24]">
@@ -284,6 +452,39 @@ export default function LetterForm() {
                   </p>
                 )}
               </div>
+
+              {sunucuHatasi && (
+                <div role="alert" className="mt-5 rounded-[3px] border border-[#9b3b2a]/30 bg-[#9b3b2a]/[0.06] px-4 py-3 text-[0.86rem] leading-snug text-[#6e2a1a]">
+                  <p className="font-semibold">Talebiniz iletilemedi.</p>
+                  <p className="mt-1">{sunucuHatasi}</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setYontem('whatsapp')
+                      setSunucuHatasi('')
+                    }}
+                    className="mt-2 font-display font-bold underline decoration-[#6e2a1a]/40 underline-offset-4"
+                  >
+                    WhatsApp ile göndermeyi seç
+                  </button>
+                </div>
+              )}
+
+              {waAcildi && !epostaSecili && (
+                <div role="status" className="mt-5 rounded-[3px] border border-[#6b5334]/25 bg-[#6b4a2c]/[0.05] px-4 py-3 text-[0.86rem] leading-snug text-[#4a3826]">
+                  <p>
+                    Mesajınız WhatsApp’ta hazır. <strong>WhatsApp’taki gönder tuşuna basmadan talebiniz bize ulaşmaz.</strong>
+                  </p>
+                  <a
+                    href={waAcildi}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 inline-block font-display font-bold underline decoration-[#6b4a2c]/40 underline-offset-4 hover:text-[#2a1d12]"
+                  >
+                    WhatsApp açılmadıysa buraya dokunun
+                  </a>
+                </div>
+              )}
             </div>
           </form>
       </div>
@@ -419,34 +620,11 @@ export default function LetterForm() {
                   transition={{ duration: 0.4, delay: 0.15 }}
                   className="mt-10 text-center"
                 >
-                  <p className="font-display text-lg font-extrabold text-ivory-50">
-                    {sonuc === 'iletildi'
-                      ? 'Zarf kapandı, talebiniz iletildi.'
-                      : sonuc === 'hata'
-                        ? 'Talebiniz şu an iletilemedi.'
-                        : 'Zarf kapandı.'}
-                  </p>
-                  <p className="mt-2 text-[0.92rem] leading-relaxed text-ivory-300">
-                    {sonuc === 'iletildi' ? (
-                      <>
-                        Talebiniz ulaştı. Mesai saatleri içinde
-                        {' '}
-                        {form.phone || 'verdiğiniz numara'} üzerinden dönüş yapılacak.
-                      </>
-                    ) : (
-                      <>
-                        {sonuc === 'hata' ? 'Aynı bilgileri' : 'Talebiniz hazırlandı. Dilerseniz aynı bilgileri'}
-                        <a
-                          href={waHref}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="mx-1 underline decoration-warm-300/60 underline-offset-4 hover:text-warm-300"
-                        >
-                          WhatsApp üzerinden
-                        </a>
-                        da iletebilirsiniz.
-                      </>
-                    )}
+                  <p className="font-display text-lg font-extrabold text-ivory-50">Zarf kapandı, talebiniz gönderildi.</p>
+                  <p className="mx-auto mt-2 max-w-sm text-[0.92rem] leading-relaxed text-ivory-300">
+                    Talebiniz e-postayla iletildi. Mesai saatleri içinde {gonderilen?.telefon || 'verdiğiniz numara'}{' '}
+                    üzerinden dönüş yapılması planlanır. Birkaç gün içinde dönüş almazsanız lütfen telefonla ya da
+                    WhatsApp’tan ulaşın.
                   </p>
                   <button
                     type="button"

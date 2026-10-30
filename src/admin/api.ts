@@ -15,7 +15,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { BUCKET, configured, DEMO_KEY, demoMode, SUPABASE_ANON_KEY, SUPABASE_URL } from '../lib/backend'
 import { defaultContent, loadSaved, type SiteContent } from '../lib/siteContent'
-import { DEMO_REQUESTS_KEY } from '../lib/appointment'
 
 export type Mode = 'supabase' | 'deneme' | 'kurulmamis'
 export const mode: Mode = configured ? 'supabase' : demoMode ? 'deneme' : 'kurulmamis'
@@ -311,6 +310,13 @@ export type AppointmentRequest = {
   mesaj: string
   durum: RequestStatus
 }
+
+/*
+ * Eski randevu talepleri listesi (Supabase `randevu_talepleri` / deneme
+ * modunda tarayıcı). Yeni randevu sistemi talepleri saklamıyor, e-postayla
+ * iletiyor; bu ekran panelin kalan Supabase işleriyle birlikte ele alınacak.
+ */
+const DEMO_REQUESTS_KEY = 'uk-deneme-randevular'
 
 const demoRequests = (): AppointmentRequest[] => {
   try {

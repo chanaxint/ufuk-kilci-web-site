@@ -1,10 +1,12 @@
 # Yayına alma — Cloudflare Pages
 
-Site statik; tek sunucu parçası randevu formunun Cloudflare Pages Function'ı
-(`functions/api/randevu.ts` → `/api/randevu`). Derleme çıktısı (`dist/`)
-Cloudflare Pages'in ücretsiz planına sığıyor (≈11 MB, ~50 dosya, en büyük
-dosya ~2 MB). Fonksiyon ücretsiz planda günde 100.000 isteğe kadar
-Workers kotasından yer; randevu formu için fazlasıyla yeterli.
+Site statik; tek sunucu parçası randevu formunun "E-posta ile" seçeneği:
+Cloudflare Pages Function (`functions/api/randevu.ts` → `/api/randevu`) ve
+e-postayı gönderen küçük Worker (`workers/randevu-eposta/`, ayrı yayınlanır,
+`docs/randevu-gonderimi.md`). Derleme çıktısı (`dist/`) Cloudflare Pages'in
+ücretsiz planına sığıyor (≈11 MB, ~50 dosya, en büyük dosya ~2 MB). Fonksiyon
+ve Worker ücretsiz planda ortak günlük 100.000 istek kotasından yer; statik
+dosyalar kotaya sayılmaz. Randevu formu için fazlasıyla yeterli.
 Bu belge, yayına almak için gereken ayarları toplar. **Hiçbir adım otomatik
 yapılmadı; her biri sizin onayınızla yapılacak.**
 
@@ -18,7 +20,8 @@ yapılmadı; her biri sizin onayınızla yapılacak.**
 | robots.txt | derlemede üretilir (`vite/site-seo.ts`) | Her şeye izin verir. Panel robots.txt ile kapatılmadı; kapatılsaydı arama motoru `noindex`'i hiç göremezdi. |
 | sitemap.xml, canonical, og:url, tam adresli og:image ve JSON-LD | derlemede, **yalnızca `SITE_URL` verilince** | Alan adı belli olmadan adres uydurulmuyor. `SITE_URL` yoksa derleme bir uyarı verir ve bunları üretmez. |
 | Derlenen JS/CSS önbelleği | `public/_headers` → `/assets/*` | Dosya adları içeriğe göre değiştiği için bir yıl, `immutable`. |
-| Randevu sunucu fonksiyonu | `functions/api/randevu.ts` (+ `functions/_lib/`) | Cloudflare `functions/` klasörünü kendiliğinden tanır; ayrı derleme ayarı gerekmez. Turnstile belirtecini sunucuda doğrular, talebi Supabase'e gizli anahtarla yazar. `_lib` alt çizgiyle başladığı için adres olarak yayınlanmaz. Tür denetimi `tsconfig.functions.json` (`npx tsc -b`). |
+| Randevu sunucu fonksiyonu | `functions/api/randevu.ts` (+ `functions/_lib/`) | Cloudflare `functions/` klasörünü kendiliğinden tanır; ayrı derleme ayarı gerekmez. Alanları ve Turnstile belirtecini sunucuda doğrular, talebi service binding ile e-posta Worker'ına iletir; hiçbir şey saklamaz. `_lib` alt çizgiyle başladığı için adres olarak yayınlanmaz. Tür denetimi `tsconfig.functions.json` (`npx tsc -b`). |
+| Randevu e-posta Worker'ı | `workers/randevu-eposta/` | Pages'in derlemesine girmez; `wrangler deploy` ile bir kez ayrı yayınlanır. `send_email` + oran sınırı bağlamaları. |
 
 ## Cloudflare Pages proje ayarları
 
@@ -41,17 +44,16 @@ Workers & Pages → Create → Pages → **Connect to Git** → `chanaxint/ufuk-
 | `VITE_SUPABASE_ANON_KEY` | düz metin | Supabase kurulunca | **anon public** (Legacy API keys) ya da **Publishable key** — asla `service_role` / secret değil |
 | `VITE_TURNSTILE_SITE_KEY` | düz metin | Turnstile kurulunca | Cloudflare → Turnstile → Site Key (herkese açık) |
 | `TURNSTILE_SECRET_KEY` | **Secret** | Turnstile kurulunca | Cloudflare → Turnstile → Secret Key |
-| `SUPABASE_URL` | düz metin | Turnstile kurulunca | `VITE_SUPABASE_URL` ile aynı adres (fonksiyon `VITE_` değişkenlerini görmez) |
-| `SUPABASE_SECRET_KEY` | **Secret** | Turnstile kurulunca | Supabase → API Keys → Secret key (`sb_secret_…`) ya da Legacy → `service_role` |
+| `RANDEVU_EPOSTA` | **Service binding** (Settings → Bindings) | e-posta kurulunca | Worker `ufuk-kilci-randevu-eposta` (`workers/randevu-eposta/`) |
 | `TURNSTILE_HOSTNAMES` | düz metin | önerilir | `ufukkilci.com,www.ufukkilci.com` — belirteç başka bir alan adında üretildiyse reddedilir |
-| `VITE_APPOINTMENT_ENDPOINT`, `VITE_APPOINTMENT_KEY` | düz metin | isteğe bağlı | talep ayrıca e-postaya gidecekse (`docs/randevu-gonderimi.md`) |
 | `NODE_VERSION` | — | gerekmez | `.nvmrc` yeterli; derleme eski Node ile başlarsa `22` yazın |
 
-**Gizli anahtarlar (`TURNSTILE_SECRET_KEY`, `SUPABASE_SECRET_KEY`) yalnızca
+**Gizli anahtar (`TURNSTILE_SECRET_KEY`) yalnızca
 "Secret" türünde eklenir ve asla `VITE_` ile başlamaz**: `VITE_` değerleri
 sitenin JavaScript'ine gömülür. Yerelde fonksiyonu denemek için
 `.dev.vars.example` → `.dev.vars` (git'e girmez) ve `npx wrangler pages dev
-dist`. Kurulum sırası ve deneme adımları: `docs/yonetim-paneli.md`, 7. adım.
+dist --service RANDEVU_EPOSTA=ufuk-kilci-randevu-eposta`. Kurulum sırası ve
+deneme adımları: `docs/randevu-gonderimi.md`.
 
 Önizleme dallarında (`*.pages.dev`) Turnstile, alan adı Turnstile'a
 eklenmediği sürece belirteç üretmez; `TURNSTILE_HOSTNAMES` de o adresleri
@@ -61,11 +63,11 @@ reddeder. Bu bilerek böyle: önizleme adresleri gerçek talep almaz.
 **yeniden derleme** (Retry deployment) gerekir.
 
 Supabase değişkenleri boş bırakılırsa site varsayılan içerikle açılır, panel
-"Panel henüz kurulmadı" der, randevu formu talebi hiçbir yere göndermez
-(ziyaretçiye yalnızca WhatsApp bağlantısı gösterilir).
-`VITE_TURNSTILE_SITE_KEY` verilince form talebi yalnızca `/api/randevu`'ya
-gönderir; fonksiyonun gizli değerleri eksikse talep alınmaz (503) ve
-ziyaretçiye yine WhatsApp bağlantısı gösterilir.
+"Panel henüz kurulmadı" der. Randevu formu Supabase'e bağlı değil:
+`VITE_TURNSTILE_SITE_KEY` boşsa formda yalnızca WhatsApp yolu görünür;
+verilince "E-posta ile" seçeneği de çıkar. Fonksiyonun gizli değeri ya da
+service binding eksikse e-posta talebi alınmaz (503), ziyaretçiye hata ve
+WhatsApp seçeneği gösterilir (sahte başarı yok).
 
 ## CSP'ye dokunmanız gereken durumlar
 
@@ -74,8 +76,8 @@ Turnstile için `https://challenges.cloudflare.com` `script-src`,
 
 - **Kedi animasyonu projeye alınırsa** (`src/components/ui/LottieCat.tsx`
   içindeki not): `connect-src` içinden `https://lottie.host` silinir.
-- **Talep e-posta servisine de gidecekse:** servisin adresi (ör.
-  `https://api.web3forms.com`) `connect-src`'ye eklenir.
+- Randevu formu dışarıya istek atmaz (e-posta sunucuda gönderilir, WhatsApp
+  yalnızca bağlantı); onun için CSP'ye bir şey eklenmez.
 - **Sitede başka bir dış kaynak kullanılırsa** (harita gömme, video servisi,
   analiz aracı): ilgili yönerge (`frame-src`, `script-src`, `connect-src`…)
   genişletilmeli; yoksa tarayıcı engeller.

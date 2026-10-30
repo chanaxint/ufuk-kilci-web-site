@@ -3,53 +3,57 @@
  * başlayan klasör Cloudflare Pages tarafından adres olarak yayınlanmaz.
  */
 
+import { randevuDenetle, type RandevuTalebi } from '../../src/lib/randevuKurallari'
+
+/** Cloudflare'in "service binding" nesnesi: başka bir Worker'a internetsiz istek */
+export type Fetcher = { fetch(input: Request | string, init?: RequestInit): Promise<Response> }
+
 export interface Env {
+  /** Cloudflare → Turnstile → site → Secret key (Pages "Secret") */
   TURNSTILE_SECRET_KEY?: string
-  SUPABASE_URL?: string
-  SUPABASE_SECRET_KEY?: string
+  /** Önerilir: belirtecin üretilebileceği alan adları, virgülle */
   TURNSTILE_HOSTNAMES?: string
+  /** Pages → Settings → Bindings → Service binding → `ufuk-kilci-randevu-eposta` Worker'ı */
+  RANDEVU_EPOSTA?: Fetcher
 }
 
-/* `supabase/kurulum.sql` içindeki kısıtlarla aynı */
-const LIMITS = { name: 120, phone: 40, topic: 200, message: 2000 }
-export const MAX_BODY = 16_000
+/* Gövde ~300 bayt; 4 KB fazlasıyla yeter */
+export const MAX_BODY = 4_096
 const SITEVERIFY = 'https://challenges.cloudflare.com/turnstile/v0/siteverify'
 /* Ön yüzdeki widget `action: 'randevu'` ile çiziliyor */
 const ACTION = 'randevu'
+/* Gövdede bulunabilecek alanların tamamı; başka bir alan (ör. mesaj) gelirse istek reddedilir */
+const IZINLI = new Set(['ad', 'telefon', 'eposta', 'gun', 'zaman', 'onay', 'token', 'web_sitesi'])
 
-export const json = (status: number, body: Record<string, unknown>) =>
+export const json = (status: number, body: Record<string, unknown>, extra: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), {
     status,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
       'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff',
+      ...extra,
     },
   })
 
-export const fail = (status: number, hata: string) => json(status, { ok: false, hata })
-
-type Talep = { ad: string; telefon: string; konu: string; mesaj: string }
+export const fail = (status: number, hata: string, extra?: Record<string, string>) => json(status, { ok: false, hata }, extra)
 
 /** Gövdeyi denetler; geçerliyse temizlenmiş talep, değilse hata iletisi */
-export function denetle(body: unknown): { talep: Talep; token: string; tuzak: boolean } | { hata: string } {
+export function denetle(body: unknown): { talep: RandevuTalebi; token: string; tuzak: boolean } | { hata: string } {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return { hata: 'Geçersiz istek.' }
   const b = body as Record<string, unknown>
-  const str = (v: unknown) => (typeof v === 'string' ? v.trim() : '')
-  const ad = str(b.ad)
-  const telefon = str(b.telefon)
-  const konu = str(b.konu)
-  const mesaj = str(b.mesaj)
-  const token = str(b.token)
+  if (Object.keys(b).some((k) => !IZINLI.has(k))) return { hata: 'Geçersiz istek.' }
+  for (const k of ['ad', 'telefon', 'eposta', 'gun', 'zaman', 'token', 'web_sitesi'])
+    if (b[k] !== undefined && typeof b[k] !== 'string') return { hata: 'Geçersiz istek.' }
+  const str = (v: unknown) => (typeof v === 'string' ? v : '')
   /* Görünmez tuzak alan: insanlar doldurmuyor */
-  const tuzak = str(b.web_sitesi).length > 0
+  const tuzak = str(b.web_sitesi).trim().length > 0
   if (b.onay !== true) return { hata: 'Bilgilerinizin kullanımına onay vermeniz gerekiyor.' }
-  if (ad.length < 2 || ad.length > LIMITS.name) return { hata: 'Adınızı ve soyadınızı yazın.' }
-  const rakam = telefon.replace(/\D/g, '').length
-  if (telefon.length > LIMITS.phone || rakam < 7 || rakam > 15) return { hata: 'Telefon numaranızı kontrol edin.' }
-  if (konu.length > LIMITS.topic || mesaj.length > LIMITS.message) return { hata: 'Mesaj çok uzun.' }
-  if (!token || token.length > 4096) return { hata: 'Güvenlik doğrulaması eksik. Sayfayı yenileyip tekrar deneyin.' }
-  return { talep: { ad, telefon, konu, mesaj }, token, tuzak }
+  const d = randevuDenetle({ ad: str(b.ad), telefon: str(b.telefon), eposta: str(b.eposta), gun: str(b.gun), zaman: str(b.zaman) })
+  if ('hatalar' in d) return { hata: Object.values(d.hatalar)[0] ?? 'Bilgilerinizi kontrol edin.' }
+  const token = str(b.token).trim()
+  if (!token || token.length > 2048) return { hata: 'Güvenlik doğrulaması eksik. Sayfayı yenileyip tekrar deneyin.' }
+  return { talep: d.talep, token, tuzak }
 }
 
 /** Turnstile belirtecini Cloudflare'de doğrular */
@@ -79,32 +83,37 @@ export async function turnstileDogrula(env: Env, token: string, ip: string | nul
 }
 
 /**
- * Talebi Supabase'e yazar. Sunucu anahtarı satır kurallarını aşar; tetikleyici
- * (aynı numaradan / toplam talep freni) yine çalışır.
+ * Ziyaretçinin IP'si oran sınırı için yalnızca özet (SHA-256, kısaltılmış)
+ * olarak e-posta Worker'ına gider; IP'nin kendisi hiçbir yere yazılmaz.
  */
-export async function kaydet(env: Env, talep: Talep): Promise<Response> {
-  const key = env.SUPABASE_SECRET_KEY ?? ''
-  const headers: Record<string, string> = {
-    apikey: key,
-    'Content-Type': 'application/json',
-    Prefer: 'return=minimal',
-  }
-  /* Eski service_role anahtarı bir JWT; yeni sb_secret_ anahtarı JWT değil, yalnızca apikey başlığında gider */
-  if (key.startsWith('eyJ')) headers.Authorization = `Bearer ${key}`
+export async function ozet(deger: string): Promise<string> {
+  const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(deger))
+  return [...new Uint8Array(h).slice(0, 12)].map((x) => x.toString(16).padStart(2, '0')).join('')
+}
+
+/**
+ * Talebi e-posta Worker'ına iletir (service binding, internet üzerinden
+ * gitmez). Worker oran sınırını uygular ve Cloudflare Email Service ile
+ * doktorun doğrulanmış adresine gönderir.
+ */
+export async function epostayaIlet(env: Env, talep: RandevuTalebi, ip: string | null): Promise<Response> {
   let res: Response
   try {
-    res = await fetch(`${env.SUPABASE_URL!.replace(/\/$/, '')}/rest/v1/randevu_talepleri`, {
+    res = await env.RANDEVU_EPOSTA!.fetch('https://randevu-eposta.ic/gonder', {
       method: 'POST',
-      headers,
-      body: JSON.stringify({ ...talep, onay: true }),
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Istemci': ip ? await ozet(ip) : 'bilinmiyor',
+      },
+      body: JSON.stringify({ talep }),
     })
   } catch {
-    return fail(502, 'Talep kaydedilemedi. Lütfen biraz sonra tekrar deneyin.')
+    return fail(502, 'Talebiniz şu an iletilemedi. Lütfen biraz sonra tekrar deneyin ya da WhatsApp’tan yazın.')
   }
-  if (res.ok) return json(201, { ok: true })
-  const err = (await res.json().catch(() => null)) as { code?: string; message?: string } | null
-  /* Veritabanı freni (raise exception) */
-  if (err?.code === 'P0001') return fail(429, err.message || 'Çok fazla talep geldi, biraz sonra tekrar deneyin.')
-  if (err?.code === '23514') return fail(400, 'Bilgilerinizi kontrol edin.')
-  return fail(502, 'Talep kaydedilemedi. Lütfen biraz sonra tekrar deneyin.')
+  if (res.ok) return json(202, { ok: true })
+  if (res.status === 429)
+    return fail(429, 'Kısa sürede çok fazla talep geldi. Birkaç dakika sonra tekrar deneyin ya da WhatsApp’tan yazın.', {
+      'Retry-After': '60',
+    })
+  return fail(502, 'Talebiniz şu an iletilemedi. Lütfen biraz sonra tekrar deneyin ya da WhatsApp’tan yazın.')
 }

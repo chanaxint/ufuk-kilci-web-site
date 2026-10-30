@@ -662,6 +662,49 @@ Ayrıntı ve Cloudflare ayarları: `docs/yayina-alma.md`.
 - Doğrulama bekleyen içerik listesi ve KVKK eksikleri kullanıcıya raporlandı
   (yayın öncesi onay listesi).
 
+### Randevu sistemi: WhatsApp + e-posta, veritabanı yok (push yok)
+
+Kullanıcı isteği ("Sandy Labs özel randevu sistemi"): hazır form servisi ve
+Supabase olmadan; sağlık bilgisi toplanmadan; yalnızca talep.
+
+- **Alanlar** (`src/lib/randevuKurallari.ts`, form + fonksiyon + Worker ortak):
+  ad (2–80), telefon (10–15 rakam), isteğe bağlı e-posta, gün (`GUNLER`),
+  zaman (`ZAMANLAR`). Şikâyet seçimi ve serbest mesaj kaldırıldı; sunucu
+  izinli liste dışındaki her alanı 400 ile reddeder (`IZINLI`).
+- **WhatsApp:** `whatsappHref` → `wa.me/<numara>?text=…` (encodeURIComponent),
+  `window.open`; site "iletildi" DEMEZ, "gönder tuşuna basmadan ulaşmaz"
+  notu + yeniden açma bağlantısı. Sunucuya istek yok, Turnstile yüklenmez.
+- **E-posta:** yalnızca `VITE_TURNSTILE_SITE_KEY` varsa seçenek görünür
+  (`emailAvailable`). Turnstile yalnızca "E-posta ile" seçilince çizilir.
+  Gönderirken "Gönderiliyor…" (alanlar kilitli); ancak 2xx gelirse zarf
+  animasyonu + "talebiniz gönderildi" (teslim garanti değil metni); hata →
+  form yerinde, `role="alert"` kutu + "WhatsApp ile göndermeyi seç".
+- **Sunucu:** `functions/api/randevu.ts` — POST dışı 405 (`onRequest`),
+  Origin, JSON, 4 KB, `denetle`, tuzak alan (202, gönderim yok), Turnstile,
+  sonra `RANDEVU_EPOSTA` service binding (`epostayaIlet`, IP yalnızca SHA-256
+  özeti olarak). **Pages Functions `send_email` desteklemiyor** (resmî Pages
+  bindings listesinde yok) → `workers/randevu-eposta/` (workers_dev false):
+  ikinci denetim, `ratelimits` (IP 3/60 sn, telefon 2/60 sn, genel 20/60 sn;
+  yaklaşık, konum başına), `env.EPOSTA.send({to: ALICI_EPOSTA, from:
+  GONDEREN_EPOSTA, replyTo})`. Hata kodları 429/502'ye çevrilir, günlüğe
+  yalnızca kod. Doğrulanmış hedef adrese gönderim her planda ücretsiz.
+- **Panel:** Randevu formu bölümü artık onay metni (`appointment.consentText`)
+  ve KVKK aydınlatma bağlantısı (`appointment.privacyUrl`, `safeLinkUrl`:
+  https ya da `/yol`). `complaintOptions` kaldırıldı (kayıtlı içerikte
+  kalsa `mergeContent` yok sayar).
+- **Kaldırılan:** doğrudan Supabase insert, deneme modunda tarayıcıya talep
+  yazma, `VITE_APPOINTMENT_ENDPOINT/KEY` (Web3Forms), fonksiyonun
+  `SUPABASE_URL`/`SUPABASE_SECRET_KEY` kullanımı.
+- **Bilerek bırakılan (panel ayrıca çözülecek):** `admin/Requests.tsx` +
+  `api.ts` talep fonksiyonları (artık hep boş), `kurulum.sql` içindeki
+  `randevu_talepleri` tablosu ve anon ekleme politikası (belge: kurulumdan
+  hemen sonra `dogrudan-eklemeyi-kapat.sql`), `dogrudan-eklemeyi-kapat.sql`.
+- **Testler (scratchpad):** `eposta-test.mjs` 48/48 (fonksiyon + Worker,
+  sahte siteverify/send_email/ratelimit), `randevu-e2e.mjs` 30/30 (dist +
+  `_headers` + gerçek fonksiyon/Worker kodu, sahte Turnstile betiği;
+  masaüstü + 390 px). Gerçek Email Service / Turnstile / Pages ile
+  denenmedi.
+
 ### Sertifikalar boş çerçevelerle geri geldi
 
 Kullanıcı isteği: bölüm görünsün, fotoğraflar boş kalsın; doktor belgeleri
@@ -758,9 +801,12 @@ src/components/CanvasEditor.tsx      önizlemede sürükle/boyutlandır + kılav
 src/admin/                           yönetim paneli (Editor, Blocks, Preview, Requests, sections…)
 supabase/kurulum.sql                 tablolar + satır kuralları (içerik, yöneticiler+MFA, depo, randevular)
 supabase/dogrudan-eklemeyi-kapat.sql sunucu akışı denendikten sonra ziyaretçinin doğrudan eklemesini kapatır
-functions/api/randevu.ts             Pages Function: Turnstile doğrula → Supabase'e gizli anahtarla yaz
+functions/api/randevu.ts             Pages Function: alan + Turnstile doğrula → e-posta Worker'ına ilet
 src/components/ui/Turnstile.tsx      Turnstile widget'ı (tembel yükleme)
 src/admin/Mfa.tsx                    panel iki adımlı doğrulama (TOTP)
+src/lib/randevuKurallari.ts          randevu alanları ve denetimi (form + sunucu ortak)
+workers/randevu-eposta/              randevu e-postasını gönderen Worker (send_email, oran sınırı)
+docs/randevu-gonderimi.md            randevu sistemi kurulumu, KVKK notları, ücretsiz plan sınırları
 public/_headers                      Cloudflare yanıt başlıkları (CSP, çerçeveleme, panel noindex, önbellek)
 vite/site-seo.ts                     robots.txt; SITE_URL ile sitemap.xml, canonical, og:url
 docs/yayina-alma.md                  Cloudflare Pages ayarları ve yayın sonrası adımlar

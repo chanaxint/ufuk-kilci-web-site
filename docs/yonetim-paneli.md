@@ -2,8 +2,8 @@
 
 Panel, sitenin yazılarını, fotoğraflarını, yorumlarını, sertifikalarını ve
 iletişim bilgilerini kod bilmeden değiştirmenizi; siteye kendi
-bölümlerinizi eklemenizi ve sitedeki formdan gelen **randevu taleplerini**
-görmenizi sağlar. Değişiklikleri kaydetmeden önce yan taraftaki
+bölümlerinizi eklemenizi sağlar. (Randevu talepleri artık panele değil,
+WhatsApp'a ya da e-postanıza gelir: `docs/randevu-gonderimi.md`.) Değişiklikleri kaydetmeden önce yan taraftaki
 önizlemede görürsünüz. Adresi:
 
 ```
@@ -128,50 +128,15 @@ Başka adres eklemeyin; joker (`*`) adresler kullanmayın.
 4. Siteyi yeniden derleyip yayına alın (`npm run build`). Bilgisayarınızda
    deniyorsanız `npm run dev` yeterli.
 
-### 7. Randevu formunu bot korumasıyla sunucuya bağlayın (Turnstile)
+### 7. Randevu tablosunu kapatın
 
-İlk kurulumda form, talebi doğrudan Supabase'e yazar (**geçiş dönemi**).
-Formu otomatik programlara karşı korumak için talep, Cloudflare
-Turnstile doğrulamasından geçip sitenin kendi sunucu fonksiyonu
-(`/api/randevu`, `functions/api/randevu.ts`) üzerinden kaydedilmeli.
-Bunun için site Cloudflare Pages'te yayında olmalı.
-
-1. **Cloudflare** → **Turnstile** → **Add widget**:
-   - **Hostnames:** sitenin alan adları (ör. `ufukkilci.com`,
-     `www.ufukkilci.com`).
-   - **Widget mode:** **Managed**.
-   - Size iki anahtar verir: **Site Key** (herkese açık) ve **Secret Key**
-     (gizli).
-2. **Cloudflare Pages** → proje → **Settings** → **Variables and Secrets**
-   (Production):
-
-   | Ad | Tür | Değer |
-   |---|---|---|
-   | `VITE_TURNSTILE_SITE_KEY` | düz metin | Turnstile **Site Key** |
-   | `TURNSTILE_SECRET_KEY` | **Secret** | Turnstile **Secret Key** |
-   | `SUPABASE_URL` | düz metin ya da Secret | Supabase Project URL |
-   | `SUPABASE_SECRET_KEY` | **Secret** | Supabase → API Keys → **Secret key** (`sb_secret_…`) ya da Legacy → **service_role** |
-   | `TURNSTILE_HOSTNAMES` | düz metin (önerilir) | `ufukkilci.com,www.ufukkilci.com` |
-
-   Gizli değerler yalnızca sunucu fonksiyonunda okunur, tarayıcıya hiç
-   gitmez. Eksik biri varsa fonksiyon talebi almaz (503) ve ziyaretçiye
-   WhatsApp bağlantısı gösterilir.
-3. **Retry deployment** ile yeniden derleyin (`VITE_TURNSTILE_SITE_KEY`
-   derlemede koda girer).
-4. **Deneyin:** yayındaki siteden bir deneme talebi gönderin → panelde
-   **Randevu talepleri**'nde görünmeli. Görünmüyorsa Pages →
-   **Functions** → günlüklere bakın; 5. adıma geçmeyin.
-5. **Doğrudan eklemeyi kapatın:** Supabase → **SQL Editor** →
-   `supabase/dogrudan-eklemeyi-kapat.sql` dosyasının tamamı → **Run**.
-   Artık talep yalnızca Turnstile'dan geçip sunucu üzerinden kaydedilir;
-   herkese açık anahtarla doğrudan talep yazılamaz.
-6. Bir deneme talebi daha gönderip panelde gördüğünüzü doğrulayın.
-
-> Sunucu akışında sorun çıkarsa kapıyı geçici olarak yeniden açmak için:
-> SQL Editor'de
-> `delete from public.kurulum_ayarlari where anahtar = 'dogrudan_randevu';`
-> ve ardından `kurulum.sql`'i yeniden çalıştırın; Pages'ten
-> `VITE_TURNSTILE_SITE_KEY`'i silip yeniden derleyin.
+Randevu formu artık talepleri Supabase'e yazmıyor (WhatsApp ya da e-posta:
+`docs/randevu-gonderimi.md`). `kurulum.sql` eski randevu tablosunu ve
+ziyaretçinin oraya ekleme iznini hâlâ kuruyor; kullanılmayan bu kapı açık
+kalmasın diye kurulumdan hemen sonra Supabase → **SQL Editor** →
+`supabase/dogrudan-eklemeyi-kapat.sql` dosyasının tamamı → **Run**.
+(Tablo ve paneldeki eski "Randevu talepleri" ekranı, panelin kalan Supabase
+işleri ele alınırken kaldırılacak.)
 
 ### 8. İlk giriş ve iki adımlı doğrulama
 
@@ -218,19 +183,14 @@ Bunun için site Cloudflare Pages'te yayında olmalı.
 
 ### Randevu talepleri
 
-Panel açılınca ilk bu ekran gelir. Sitedeki randevu mektubunu dolduran
-her hasta burada görünür; yeni talep sayısı menüde rozetle yazar.
+Yeni randevu sistemi talepleri saklamıyor: ziyaretçi ya WhatsApp'tan size
+kendisi yazıyor ya da talep e-postanıza geliyor (`docs/randevu-gonderimi.md`).
+Paneldeki **Randevu talepleri** ekranı eski sistemden kaldı ve boş görünür;
+panelin kalan Supabase işleriyle birlikte kaldırılacak.
 
-- **Ara** telefonu açar, **WhatsApp'tan yaz** hastaya WhatsApp'ta yazar.
-- Aradıktan sonra **Arandı**, iş bitince **Tamamlandı** deyin; üstteki
-  düğmelerle yalnızca yenileri ya da tamamlananları görebilirsiniz.
-- İşi biten talebi **Sil** ile kaldırabilirsiniz (geri alınamaz).
-- Liste açıkken dakikada bir kendiliğinden yenilenir.
-
-Formda hastanın "bilgilerimin randevu için kullanılmasını kabul ediyorum"
-kutusunu işaretlemesi zorunludur. Aynı numaradan kısa sürede çok sayıda
-talep gelirse sistem fazlasını kabul etmez; Turnstile kuruluysa (7. adım)
-formu dolduran programlar da sunucuda elenir.
+Formdaki onay kutusunun metni ve KVKK **aydınlatma metni** bağlantısı
+**Randevu formu** bölümünden değiştirilir. Hukuki metni hukuk danışmanınızın
+onayladığı hâliyle yazın; bağlantı boşken formda görünmez.
 
 ### Yazıları ve fotoğrafları değiştirmek
 

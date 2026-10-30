@@ -1,196 +1,249 @@
 # Yönetim paneli — kurulum ve kullanım
 
-Panel, sitenin yazılarını, fotoğraflarını, yorumlarını, sertifikalarını ve
-iletişim bilgilerini kod bilmeden değiştirmenizi; siteye kendi
-bölümlerinizi eklemenizi sağlar. (Randevu talepleri artık panele değil,
-WhatsApp'a ya da e-postanıza gelir: `docs/randevu-gonderimi.md`.) Değişiklikleri kaydetmeden önce yan taraftaki
-önizlemede görürsünüz. Adresi:
+Panel, sitenin yazılarını, fotoğraflarını, sertifikalarını, iletişim
+bilgilerini, çalışma saatlerini ve arama motorlarında görünen başlığı kod
+bilmeden değiştirmenizi; siteye kendi bölümlerinizi eklemenizi sağlar.
+Değişiklikleri kaydetmeden önce yan taraftaki önizlemede görürsünüz;
+**Kaydet**'e basınca site hemen güncellenir (yeniden yayınlama gerekmez).
+Adresi:
 
 ```
 https://sitenizin-adresi.com/yonetim/
 ```
 
-Panel yalnızca **sizin e-postanız ve şifrenizle** açılır. Bilgiler
-[Supabase](https://supabase.com) adlı ücretsiz bir hizmette saklanır: giriş,
-yazılar ve fotoğraflar orada durur. Hesabı **kendi e-postanızla** açın —
-hem siteyi değiştirme yetkisi hem de veriler sizin olur.
+Randevu talepleri panele değil, WhatsApp'a ya da e-postanıza gelir
+(`docs/randevu-gonderimi.md`); panelde hasta verisi tutulmaz.
+
+## Nasıl çalışıyor
+
+Her şey sitenin yayınlandığı **Cloudflare** hesabında; başka bir hizmete
+abonelik gerekmez.
+
+| Parça | Cloudflare hizmeti | Ne tutar |
+|---|---|---|
+| Site ve panel sayfaları | Pages | derlenmiş site (`dist/`) |
+| Sunucu işleri | Pages Functions (`functions/`) | içeriği okur/yazar, fotoğraf alır, girişi denetler |
+| İçerik | **D1** (veritabanı) `DB` | bütün yazılar tek kayıt + son 50 sürüm |
+| Fotoğraflar | **R2** (depo) `MEDYA` | panelden yüklenen fotoğraflar |
+| Yönetici girişi | **Access** (Zero Trust) | yalnızca izinli e-postalar panele girer |
+
+- Ziyaretçi ana sayfayı açınca sunucu D1'deki içeriği sayfanın içine
+  yerleştirir; fotoğraflar `/medya/…` adresinden R2'den gelir.
+- Panel sayfası ve panel API'leri Access'in arkasında. Access önce
+  e-postanıza tek kullanımlık bir kod gönderir; kodla girersiniz. Ayrıca
+  sunucu her istekte Access'in imzalı belirtecini kendisi doğrular (imza,
+  yayıncı, uygulama etiketi, süre, izinli e-posta). Panelde ayrı bir şifre
+  yok.
+- Tarayıcıda hiçbir anahtar yok; veritabanına ve depoya yalnızca sunucu
+  erişir.
 
 > Kurulum bitene kadar site bugünkü yazı ve fotoğraflarla çalışmaya devam
 > eder. Panel adresine girilirse "Panel henüz kurulmadı" yazar.
 
 ---
 
-## Kurulum (bir kez, yaklaşık 30 dakika)
+## Kurulum (doktorun Cloudflare hesabında, bir kez)
 
-Adımları **bu sırayla** yapın: önce kapılar kapanır, sonra tablolar ve
-hesap kurulur, en son site bağlanır.
+Sırayla yapın. Hiçbir adres, anahtar ya da e-posta bu depoya yazılmaz.
 
-### 1. Supabase hesabı ve proje
+### 0. Ön koşullar
 
-1. [supabase.com](https://supabase.com) → **Start your project** → kendi
-   e-postanızla kaydolun. Supabase'in kendi hesap ayarlarında da iki
-   adımlı doğrulamayı açın: Supabase hesabını ele geçiren, panelin bütün
-   kurallarını aşabilir.
-2. **New project** deyin:
-   - **Name:** `ufuk-kilci-site` (ne isterseniz)
-   - **Database Password:** güçlü bir şifre üretin ve bir yere not edin
-     (panele girerken bu şifreyi kullanmayacaksınız; yalnızca Supabase'in
-     kendi veritabanı şifresi).
-   - **Region:** **Central EU (Frankfurt)** — veriler Avrupa'da kalsın.
-3. **Create new project** → proje bir iki dakikada hazırlanır.
+1. Site Cloudflare Pages'te yayında olmalı (`docs/yayina-alma.md`).
+2. Özel alan adı (ör. `ufukkilci.com`) Pages projesine **Access'ten önce**
+   eklenmeli: Cloudflare'in bilinen bir kısıtı, Access politikası olan bir
+   alan adının sonradan Pages'e eklenememesi.
+3. Cloudflare hesabında iki adımlı doğrulama açık olsun (hesabı ele geçiren
+   her şeyi değiştirebilir).
 
-### 2. Önce kapıları kapatın (giriş ayarları)
+### 1. İçerik veritabanı (D1)
 
-Tabloları kurmadan **önce**:
+1. **Storage & databases** → **D1** → **Create database**.
+2. Ad: `ufuk-kilci-icerik` (başka bir ad da olur). Konum ipucu: **Western
+   Europe** ya da **Eastern Europe**.
+3. Tablolar ilk kayıtta kendiliğinden kurulur. Elle kurmak isterseniz:
+   `npx wrangler d1 execute ufuk-kilci-icerik --remote --file=migrations/0001_icerik.sql`
 
-1. **Authentication** → **Sign In / Providers** (bazı sürümlerde
-   **Settings**):
-   - **Allow new users to sign up** → **kapalı**. Kimse kendine hesap
-     açamaz. (Açsa bile yönetici listesinde olmadığı için hiçbir şeyi
-     değiştiremez; bu ikinci kilit.)
-   - **Email** sağlayıcısında **Confirm email** → **açık**.
-   - **Minimum password length** → en az **12**; varsa "harf + rakam"
-     zorunluluğunu da seçin.
-2. **Authentication** → **Multi-Factor** (bazı sürümlerde **Sign In /
-   Providers** altında): **TOTP (Authenticator app)** → **Enabled**.
-   Yeni projelerde zaten açıktır; kapalıysa açın. Panelde iki adımlı
-   doğrulama bunun üzerine çalışır.
+Veritabanı boşken site varsayılan içerikle açılır; panelde ilk **Kaydet**
+bunların üzerine yazar. Boş ya da bozuk sayfa oluşmaz.
 
-### 3. Tabloları ve kuralları kurun
+### 2. Fotoğraf deposu (R2)
 
-1. Soldaki menüden **SQL Editor** → **New query**.
-2. Projedeki `supabase/kurulum.sql` dosyasının **tamamını** kopyalayıp
-   yapıştırın.
-3. En alttaki `BURAYA-E-POSTANIZ@ornek.com` yazısını **panele giriş
-   yapacağınız e-posta** ile değiştirin. Gerçek adresi **yalnızca SQL
-   Editor'de** yazın; projedeki dosyaya yazıp kaydetmeyin (depo herkese
-   açık olabilir).
-4. **Run** deyin. "Success" yazısını görmelisiniz.
+1. **Storage & databases** → **R2** → **Overview**. R2 ilk kez
+   kullanılıyorsa Cloudflare bir **abonelik/ödeme adımı** ister (resmî
+   belge: "checkout flow"); ücretsiz kotayı aşmadıkça ücret alınmaz, ama
+   bu adımda ödeme yöntemi istenebilir.
+2. **Create bucket** → ad: `ufuk-kilci-medya`; **Public access kapalı
+   kalsın** (r2.dev adresi açılmaz). Fotoğraflar yalnızca sitenin
+   `/medya/` adresinden, yalnızca `gorsel/` klasöründen sunulur.
+3. Bu depoya hasta belgesi ya da kişisel veri içeren dosya koymayın.
 
-Bu adım şunları kurar: sitenin yazılarının saklandığı tablo, yönetici
-listesi, fotoğraf deposu, randevu talepleri tablosu ve kurallar —
-**herkes siteyi okuyabilir, yalnızca yönetici listesindeki e-posta
-değiştirebilir; randevu taleplerini yalnızca yönetici görür ve
-siler.** Yönetici iki adımlı doğrulamayı açtıysa, kod girilmeden açılan
-bir oturum hiçbir şeyi değiştiremez ve talepleri göremez. (Bu kurallar
-Supabase benzeri yerel bir PostgreSQL'de tek tek denendi; gerçek bir
-Supabase projesinde henüz denenmedi.)
+### 3. Pages'e bağlayın
 
-> Paneli daha önce kurduysanız: `supabase/kurulum.sql` dosyasını **bir kez
-> daha** aynı şekilde çalıştırın (e-postanızı yine yazarak). Tekrar
-> çalıştırmak zararsızdır; yazılarınız ve talepler silinmez, kapattığınız
-> kapılar kapalı kalır.
+Pages → proje → **Settings** → **Bindings** (Production):
 
-### 4. Giriş hesabınızı açın
+| Tür | Ad | Hedef |
+|---|---|---|
+| D1 database | `DB` | `ufuk-kilci-icerik` |
+| R2 bucket | `MEDYA` | `ufuk-kilci-medya` |
 
-1. **Authentication** → **Users** → **Add user** → **Create new user**.
-2. E-posta: 3. adımda yazdığınız adresin **aynısı**. Şifre: panele
-   girerken kullanacağınız, başka hiçbir yerde kullanmadığınız şifre
-   (en az 12 karakter; bir şifre yöneticisi üretsin).
-3. **Auto Confirm User** kutusu işaretli olsun → **Create user**.
+Önizleme (Preview) ortamına bağlamayın: önizleme dağıtımları gerçek
+içeriği değiştiremesin.
 
-### 5. Şifre sıfırlama adresini tanıtın
+### 4. Yönetici girişi (Cloudflare Access)
 
-1. **Authentication** → **URL Configuration**.
-2. **Site URL:** sitenizin adresi, ör. `https://ufukkilci.com`
-3. **Redirect URLs** → **Add URL:** `https://ufukkilci.com/yonetim/`
-   (Bilgisayarınızda denemek için ayrıca `http://localhost:5173/yonetim/`)
+1. **Zero Trust** panelini açın; ilk kez açılıyorsa bir **takım adı**
+   seçin (ör. `ufukkilci`) ve **Free** planı seçin (50 kullanıcıya kadar
+   ücretsiz). Takım adresi: `https://<takim>.cloudflareaccess.com`.
+2. **Settings** → **Authentication**: **One-time PIN** (e-postaya kod)
+   açık olsun. (İsterseniz Google hesabıyla giriş de eklenebilir; o
+   zaman Google hesabında iki adımlı doğrulama açık olmalı.)
+3. **Access controls** → **Applications** → **Create new application** →
+   **Self-hosted**:
+   - Ad: `Ufuk Kilci yönetim paneli`
+   - **Public hostnames** (her biri ayrı satır; Cloudflare'in yol kuralına
+     göre `yonetim` alt yolları da kapsar, `yonetim/*` yine de açıkça
+     eklensin):
+     - `alanadi` + yol `yonetim` ve `alanadi` + yol `yonetim/*`
+     - `alanadi` + yol `api/yonetim` ve `alanadi` + yol `api/yonetim/*`
+     - `www` kullanılıyorsa aynı dördü `www.alanadi` için
+   - **Session duration:** 24 saat (ya da daha kısa).
+   - **Policy:** Action **Allow**, Include → **Emails**: doktorun e-postası
+     (ve gerekiyorsa Sandy Labs geliştirici hesabı). Başka kural eklemeyin.
+4. `*.pages.dev` adresi ve önizlemeler: Pages → proje → **Settings** →
+   **Enable access policy**, ardından Cloudflare'in belgesindeki adımlarla
+   (`pages/platform/known-issues`, "Enable Access on your *.pages.dev
+   domain") hem `proje.pages.dev` hem `*.proje.pages.dev` için politika
+   oluşturup aynı e-posta kuralını verin. Bu uygulamaların AUD etiketlerini
+   de not edin.
+   > Bu adım atlansa bile panel API'si `pages.dev` üzerinden açılmaz: sunucu
+   > yalnızca bizim Access uygulamalarımızın imzalı belirtecini kabul eder.
+   > Ama panel sayfasının kendisini de gizlemek için yapılmalı.
+5. Her uygulamanın **Additional settings** → **Application Audience (AUD)
+   Tag** değerini kopyalayın.
 
-"Şifremi unuttum" e-postasındaki bağlantı sizi buraya geri getirir.
-Başka adres eklemeyin; joker (`*`) adresler kullanmayın.
+### 5. Pages ortam değişkenleri
 
-### 6. Siteyi Supabase'e bağlayın (herkese açık anahtar)
+Pages → **Settings** → **Variables and Secrets** (Production):
 
-1. **Project Settings** → **API Keys** (eski arayüzde **API**).
-2. İki değeri kopyalayın:
-   - **Project URL** — `https://xxxxxxxx.supabase.co`
-     (**Project Settings → Data API**'de de yazar)
-   - **herkese açık anahtar:** **Legacy API keys** sekmesindeki
-     **anon public** anahtar (`eyJ…` ile başlar). Yeni **Publishable key**
-     (`sb_publishable_…`) de kullanılabilir; site ikisini de tanır, ama bu
-     proje gerçek bir Supabase hesabında yalnızca eski `anon` anahtarının
-     davranışına göre hazırlandı.
-3. Cloudflare Pages'te (`docs/yayina-alma.md`) ya da bilgisayarınızda
-   `.env` dosyasında (yoksa `.env.example`'ı kopyalayıp adını `.env`
-   yapın):
+| Ad | Değer |
+|---|---|
+| `ACCESS_TEAM_DOMAIN` | `https://<takim>.cloudflareaccess.com` |
+| `ACCESS_AUD` | AUD etiketi; birden fazla uygulama varsa virgülle |
+| `YONETICI_EPOSTALARI` | Access politikasındaki e-postalar, virgülle |
 
-   ```bash
-   VITE_SUPABASE_URL="https://xxxxxxxx.supabase.co"
-   VITE_SUPABASE_ANON_KEY="kopyaladığınız-anon-anahtar"
-   ```
+İkisi gizli değil ama "Secret" olarak da eklenebilir. Biri eksikse panel
+API'si hiçbir isteği kabul etmez ("Panel henüz kurulmadı"). Sonra
+**Retry deployment**.
 
-> **`service_role` ya da `secret` (`sb_secret_…`) anahtarını ASLA buraya,
-> `VITE_` ile başlayan bir değişkene ya da sitenin koduna yazmayın.** O
-> anahtar bütün kuralları aşar; `VITE_` değerleri ise sitenin
-> JavaScript'ine gömülür ve herkes görür. O anahtarın tek yeri 7. adımdaki
-> Cloudflare **Secret** değişkenidir.
+### 6. Deneyin
 
-4. Siteyi yeniden derleyip yayına alın (`npm run build`). Bilgisayarınızda
-   deniyorsanız `npm run dev` yeterli.
+1. `https://alanadi/yonetim/` → Access e-posta kodu → panel açılır.
+2. Bir yazıyı değiştirip **Kaydet** → siteyi yeni sekmede açın: değişiklik
+   orada.
+3. Bir fotoğraf yükleyip kaydedin → sitede görünüyor mu.
+4. Aşağıdaki "Gerçek ortamda güvenlik testleri"ni yapın.
 
-### 7. Randevu tablosunu kapatın
+---
 
-Randevu formu artık talepleri Supabase'e yazmıyor (WhatsApp ya da e-posta:
-`docs/randevu-gonderimi.md`). `kurulum.sql` eski randevu tablosunu ve
-ziyaretçinin oraya ekleme iznini hâlâ kuruyor; kullanılmayan bu kapı açık
-kalmasın diye kurulumdan hemen sonra Supabase → **SQL Editor** →
-`supabase/dogrudan-eklemeyi-kapat.sql` dosyasının tamamı → **Run**.
-(Tablo ve paneldeki eski "Randevu talepleri" ekranı, panelin kalan Supabase
-işleri ele alınırken kaldırılacak.)
+## Gerçek ortamda güvenlik testleri
 
-### 8. İlk giriş ve iki adımlı doğrulama
+Bunlar yerelde taklit ortamla denendi; gerçek Cloudflare'de bir kez elle
+doğrulanmalı:
 
-1. `https://sitenizin-adresi.com/yonetim/` → e-posta ve şifrenizle girin.
-   Sitenin bugünkü bütün yazıları panelde hazır gelir; ilk **Kaydet**'te
-   Supabase'e yazılır.
-2. **Hesabım** → **İki adımlı doğrulama** → **İki adımlı doğrulamayı aç**.
-   Telefonunuzdaki doğrulama uygulamasıyla (Google Authenticator,
-   Microsoft Authenticator, 1Password…) QR kodu okutun, uygulamanın
-   gösterdiği 6 haneli kodu yazın. Bundan sonra her girişte şifreden sonra
-   kod istenir. Panelde hasta bilgileri olduğu için **açmanız güçlü
-   biçimde önerilir**; açılana kadar panelin üstünde bir hatırlatma durur.
-3. Kodun **zorunlu** olması için (önerilir) Supabase → SQL Editor:
+1. Gizli pencerede `https://alanadi/yonetim/` → Access giriş sayfası
+   çıkmalı, panel görünmemeli.
+2. İzinli olmayan bir e-postayla kod istenince kod gelmemeli / giriş
+   reddedilmeli.
+3. Gizli pencerede `https://alanadi/api/yonetim/oturum` → Access giriş
+   sayfası ya da 401; asla e-posta dönmemeli.
+4. Aynısı `https://proje.pages.dev/yonetim/`, `…/api/yonetim/oturum` ve bir
+   önizleme adresi için.
+5. `curl -X PUT https://proje.pages.dev/api/yonetim/icerik -H 'Content-Type: application/json' -H 'X-Yonetim-Istegi: 1' -d '{}'`
+   → 401/403 (Access'in önünden geçse bile sunucu reddetmeli).
+6. `curl -H 'Cf-Access-Jwt-Assertion: uydurma' https://alanadi/api/yonetim/oturum` → 401.
+7. Panelden çıkış (`/cdn-cgi/access/logout`) sonrası panel yeniden kod
+   istemeli.
+8. Ana sayfa yanıt başlıklarında `Content-Security-Policy`,
+   `X-Frame-Options: SAMEORIGIN` olmalı (tarayıcı geliştirici araçları →
+   Ağ).
+9. `https://alanadi/medya/gorsel/…` görseli açılmalı; `…/medya/baska/x`
+   404 vermeli.
 
-   ```sql
-   update public.yoneticiler set mfa_zorunlu = true
-   where lower(email) = lower('panele-giris-epostaniz');
-   ```
+---
 
-   Bunu yapmadan da, doğrulamayı bir kez açtığınızda kodsuz oturumlar
-   hiçbir şeyi değiştiremez (Supabase kodsuz bir oturumun doğrulamayı
-   kapatmasına da izin vermez). `mfa_zorunlu` ek bir kilittir: doğrulama
-   herhangi bir yoldan silinse bile kodsuz giriş işe yaramaz. **Önce 2.
-   adımı bitirin:** doğrulama açılmadan `mfa_zorunlu` açılırsa panelde
-   hiçbir şey kaydedilemez.
+## Erişimi geri alma ve kurtarma
 
-> **Telefonunuzu kaybederseniz:** Supabase'e (kendi hesabınızla) girip
-> **SQL Editor**'de eski doğrulamayı silin ve zorunluluğu geçici olarak
-> kaldırın:
->
-> ```sql
-> delete from auth.mfa_factors
-> where user_id = (select id from auth.users where lower(email) = lower('panele-giris-epostaniz'));
-> update public.yoneticiler set mfa_zorunlu = false
-> where lower(email) = lower('panele-giris-epostaniz');
-> ```
->
-> Sonra panele girip doğrulamayı yeni telefonla yeniden açın ve
-> `mfa_zorunlu`'yu tekrar `true` yapın.
+- **Birinin erişimini kaldırmak:** Zero Trust → Access → uygulama →
+  politika → e-postayı silin **ve** Pages'teki `YONETICI_EPOSTALARI`'ndan
+  çıkarın (ikisi ayrı kilit). Açık oturumları hemen kapatmak için Zero
+  Trust → **Users** → kişi → **Revoke session**.
+- **Geliştirici hesabı (Sandy Labs):** yalnızca iş sürerken listede
+  tutun; iş bitince yukarıdaki gibi çıkarın.
+- **Doktor e-postasına erişemiyorsa:** Cloudflare hesabına giren kişi
+  politikaya yeni e-postayı ekler, `YONETICI_EPOSTALARI`'nı günceller,
+  yeniden dağıtır.
+- **Cloudflare hesabına erişim kaybı:** Cloudflare'in hesap kurtarma
+  süreci (iki adımlı doğrulamanın yedek kodlarını saklayın).
+- **Şüpheli durum:** Zero Trust → Access → **Revoke existing tokens**;
+  gerekirse Access imza anahtarını Cloudflare API'siyle döndürün. Panelde
+  **Hesap ve yedekler → Sürüm geçmişi**'nden hangi e-postanın ne zaman
+  kaydettiğini görün, gerekirse eski sürüme dönün.
+
+## Yedekleme ve geri yükleme
+
+- **Panelden:** **Hesap ve yedekler → Yedek → Yedeği indir** bütün
+  yazıları tek JSON dosyası olarak indirir; **Yedekten geri yükle** aynı
+  dosyayı yeni sürüm olarak yükler (önce denetlenir).
+- **Sürüm geçmişi:** her kayıt saklanır (son 50); **Bu sürüme dön** eski
+  hâli yeni bir sürüm olarak yayınlar — o da geri alınabilir.
+- **D1 Time Travel:** veritabanını son 7 gün (ücretsiz plan; ücretli 30
+  gün) içindeki herhangi bir dakikaya döndürür:
+  `npx wrangler d1 time-travel restore ufuk-kilci-icerik --timestamp=<UNIX zaman>`
+- **Dosyaya döküm:** `npx wrangler d1 export ufuk-kilci-icerik --remote --output=icerik-yedegi.sql`
+- **Fotoğraflar:** R2'de kalır. Temizlik yalnızca hiçbir sürümde
+  kullanılmayan ve 24 saatten eski fotoğrafları siler. Toplu indirme için
+  Cloudflare panelinden ya da R2'nin S3 uyumlu araçlarıyla (ör. `rclone`).
+
+## Ücretsiz plan sınırları (resmî belgelere göre, Ekim 2026)
+
+| Hizmet | Ücretsiz | Bu site için |
+|---|---|---|
+| Pages statik dosyalar | sınırsız | — |
+| Pages Functions + Workers | günde 100.000 istek, istek başına 10 ms işlemci | her sayfa açılışı 1 istek (+ yüklenen fotoğraf başına, önbellekten önce) |
+| D1 | günde 5 milyon satır okuma, 100.000 satır yazma; veritabanı en fazla 500 MB, hesapta 5 GB; Time Travel 7 gün | açılış başına ~1 satır okuma, kayıt başına ~3 yazma |
+| R2 | ayda 10 GB depolama, 1 milyon yazma, 10 milyon okuma; çıkış trafiği ücretsiz | yüzlerce fotoğraf birkaç yüz MB |
+| Access (Zero Trust Free) | 50 kullanıcı | 1–2 kişi |
+
+- Sınır aşılırsa ücretsiz planda o günün istekleri başarısız olur (D1
+  için 1 Eylül 2026'dan beri katı uygulanıyor); ana sayfa yine açılır ama
+  varsayılan içerikle. Kötü niyetli yoğun trafikte Cloudflare **WAF →
+  Rate limiting rules** ile bir kural eklenebilir.
+- Büyürse **Workers Paid** (aylık 5 $) bütün sınırları çok yükseltir.
+- R2 için ödeme yöntemi istenebilir (yukarıda); kota aşılmadıkça ücret
+  yok.
 
 ---
 
 ## Günlük kullanım
 
-### Randevu talepleri
+### Kaydet ve yayın
 
-Yeni randevu sistemi talepleri saklamıyor: ziyaretçi ya WhatsApp'tan size
-kendisi yazıyor ya da talep e-postanıza geliyor (`docs/randevu-gonderimi.md`).
-Paneldeki **Randevu talepleri** ekranı eski sistemden kaldı ve boş görünür;
-panelin kalan Supabase işleriyle birlikte kaldırılacak.
+**Kaydet**'e basınca içerik sunucuda denetlenip veritabanına yazılır ve
+site hemen güncellenir; ziyaretçi sayfayı açtığında yeni hâlini görür.
+İki kişi aynı anda düzenleyip ikisi de kaydederse, ikincisi "İçerik siz
+düzenlerken başka bir yerden kaydedildi" uyarısı alır; değişikliğini not
+edip sayfayı yeniler.
 
-Formdaki onay kutusunun metni ve KVKK **aydınlatma metni** bağlantısı
-**Randevu formu** bölümünden değiştirilir. Hukuki metni hukuk danışmanınızın
-onayladığı hâliyle yazın; bağlantı boşken formda görünmez.
+### Arama motorları (SEO)
+
+**Arama motorları (SEO)** bölümünden sayfa başlığı (en fazla ~70
+karakter) ve açıklama (~170 karakter) değişir; kaydedince sitenin HTML'ine
+sunucuda yazılır.
+
+### Hesap ve yedekler
+
+Giriş yapılan e-posta, çıkış, sürüm geçmişi, yedek indirme/yükleme ve
+kullanılmayan fotoğrafların temizliği bu ekranda.
 
 ### Yazıları ve fotoğrafları değiştirmek
 
@@ -270,9 +323,6 @@ bölüm ekle"** çubuklarından birine tıklayın; bölüm tam o yere eklenir.
   **↑ ↓** ile sıralama, **✕** ile silme.
 - **Vazgeçmek:** kaydetmeden önce **Geri al** her şeyi son kayda döndürür.
 - Kaydetmeden sayfadan çıkmaya kalkarsanız tarayıcı uyarır.
-- **Şifre değiştirmek:** **Hesabım** bölümü. Unutursanız giriş ekranında
-  **Şifremi unuttum**. İki adımlı doğrulama da **Hesabım**'dan açılır ve
-  kapatılır.
 - **Harita bağlantısı** (İletişim): yalnızca `https://` ile başlayan bir
   adres kabul edilir (Google Haritalar'da **Paylaş → Bağlantıyı kopyala**).
   Geçersiz bir adres yazılırsa panel kırmızıyla uyarır ve site
@@ -286,27 +336,27 @@ bölüm ekle"** çubuklarından birine tıklayın; bölüm tam o yere eklenir.
 - **Skolyoz açı tablosu** panelde yok: klinik bir ölçek.
 - **Giriş videoları ve masadaki fotoğraf** panelden değiştirilemez; 3B
   omurga o fotoğrafa göre yerleştirildi.
-- Arama motorlarının okuduğu künye (`index.html` içindeki yapısal veri)
-  panelden değişmez; telefon ya da adres değişirse orası da elle
-  güncellenmeli.
+- Arama motorlarının okuduğu künye (`index.html` içindeki yapısal veri:
+  telefon, adres, çalışma saatleri) panelden değişmez; bunlar değişirse
+  orası da elle güncellenmeli. Sayfa başlığı ve açıklaması ise panelden
+  (**Arama motorları (SEO)**) değişir.
 
 ### Bilmekte fayda var
 
-- Supabase'in ücretsiz planında proje **uzun süre hiç kullanılmazsa**
-  uykuya alınır. Sitenize ziyaretçi geldikçe bu olmaz. Olursa Supabase
-  panelinde projeyi açıp **Restore** demek yeter; o sürede site varsayılan
-  yazılarla açılır, bozulmaz.
-- Silinen fotoğraflar depoda kalır (yer kaplar ama sitede görünmez).
-  Ücretsiz planın 1 GB alanı yüzlerce fotoğrafa yeter.
+- Değiştirilen ya da kaldırılan fotoğraflar, geri alınabilsin diye depoda
+  kalır. Ara sıra **Hesap ve yedekler → Kullanılmayan fotoğraflar**'dan
+  temizleyebilirsiniz.
+- Cloudflare'in ücretsiz planlarında proje uykuya alınmaz; uzun süre
+  girilmese de site ve panel çalışır.
 
 ---
 
-## Bilgisayarınızda denemek (Supabase olmadan)
+## Bilgisayarınızda denemek
 
-`npm run dev` ile açıp `http://localhost:5173/yonetim/` adresine girin.
-Supabase bağlı değilken panel **deneme modunda** açılır: herhangi bir
-e-posta ve şifreyle girilir, değişiklikler (ve sitedeki formdan
-gönderilen randevu talepleri) yalnızca o tarayıcıda saklanır ve yalnızca
-o bilgisayardaki sitede görünür. Panelin nasıl çalıştığını
-görmek için birebir. Bu mod yalnızca `npm run dev` altında var; yayına
-alınan sitede asla açılmaz.
+- `npm run dev` → `http://localhost:5173/yonetim/`: panel **deneme
+  modunda** açılır (giriş yok, değişiklikler yalnızca o tarayıcıda). Bu mod
+  yalnızca `npm run dev` altında var; yayına alınan sitede asla açılmaz.
+- Sunucu fonksiyonlarıyla birlikte (yerel D1/R2): `npm run build` sonra
+  `npm run cf:yerel` → `http://localhost:8788`. Panel API'si Access
+  ayarları olmadan kapalıdır (503); site yerel veritabanındaki içerikle
+  açılır.

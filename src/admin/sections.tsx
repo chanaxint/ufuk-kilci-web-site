@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { LIMITS, safeLinkUrl, safeMapsUrl, type SiteContent } from '../lib/siteContent'
+import { LIMITS, safeLinkUrl, safeMapsUrl, SEO_LIMITS, type SiteContent } from '../lib/siteContent'
 import { CardList, HeadingInput, ImageInput, NumberInput, StringList, TextArea, TextInput } from './fields'
 
 /** Bir bölümün alanlarını değiştirmek için: `set('doctor', { phone: '…' })` */
@@ -155,8 +155,8 @@ export const sections: Section[] = [
           multiline
         />
         <StringList
-          label="Uzmanlık etiketleri"
-          hint="Yazının altında küçük kutucuklar hâlinde görünür. Örnek: Manuel Terapi"
+          label="Hizmetler ve uzmanlık etiketleri"
+          hint="Yazının altında küçük kutucuklar hâlinde görünür. Örnek: Manuel Terapi. Bir hizmeti ayrıntılı anlatmak için “+ Yeni bölümler”den bölüm ekleyin."
           items={c.about.chips}
           onChange={(chips) => set('about', { chips })}
           addLabel="Etiket ekle"
@@ -349,6 +349,29 @@ export const sections: Section[] = [
       </>
     ),
   },
+  {
+    id: 'seo',
+    title: 'Arama motorları (SEO)',
+    where:
+      'Google gibi arama motorlarında ve sitenin bağlantısı paylaşıldığında görünen başlık ve açıklama. Kaydedince sitenin sayfa başlığına yazılır.',
+    render: (c, set) => (
+      <>
+        <TextInput
+          label="Sayfa başlığı"
+          hint={`Arama sonucundaki mavi başlık. En fazla ${SEO_LIMITS.title} karakter önerilir (şu an ${c.seo.title.length}).`}
+          value={c.seo.title}
+          onChange={(v) => set('seo', { title: v })}
+        />
+        <TextArea
+          label="Açıklama"
+          hint={`Başlığın altındaki iki satırlık yazı. En fazla ${SEO_LIMITS.description} karakter önerilir (şu an ${c.seo.description.length}).`}
+          rows={3}
+          value={c.seo.description}
+          onChange={(v) => set('seo', { description: v })}
+        />
+      </>
+    ),
+  },
 ]
 
 /** Kaydetmeden önce boş bırakılmaması gerekenler */
@@ -356,5 +379,6 @@ export function missingRequired(c: SiteContent): { section: string; label: strin
   if (!c.doctor.name.trim()) return { section: 'genel', label: 'Ad soyad' }
   if (!c.doctor.titles.trim()) return { section: 'genel', label: 'Unvan' }
   if (!c.doctor.phone.trim()) return { section: 'iletisim', label: 'Telefon' }
+  if (!c.seo.title.trim()) return { section: 'seo', label: 'Sayfa başlığı' }
   return null
 }

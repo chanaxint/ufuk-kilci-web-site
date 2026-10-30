@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { defaultContent, loadSaved, type SiteContent } from './siteContent'
-import { DEMO_KEY, demoMode, fetchSavedContent } from './backend'
+import { DEMO_KEY, demoMode, embeddedContent, fetchSavedContent } from './backend'
 import { isPreview, onPanelMessage, sendToPanel } from './preview'
 
 const ContentCtx = createContext<SiteContent>(defaultContent)
@@ -15,14 +15,19 @@ export const useContent = () => useContext(ContentCtx)
 /** Kayıtlı içerik bu kadar sürede gelmezse site varsayılanlarla açılıyor */
 const WAIT_MS = 4000
 
+/* Sunucunun HTML'e gömdüğü içerik: ilk çizimden itibaren doğru metin */
+const gomulu = !isPreview && !demoMode ? embeddedContent() : null
+
 /**
  * İçeriği bir kez yükler. `ready`, içerik geldiğinde ya da bekleme süresi
  * dolduğunda `true` oluyor; yükleme ekranı bunu bekliyor ki ziyaretçi önce
- * eski metni görüp sonra değiştiğini görmesin.
+ * eski metni görüp sonra değiştiğini görmesin. İçerik HTML'e gömülüyse
+ * beklenecek bir şey yok.
  */
+
 export function useLoadedContent() {
-  const [content, setContent] = useState<SiteContent>(defaultContent)
-  const [ready, setReady] = useState(isPreview)
+  const [content, setContent] = useState<SiteContent>(() => (gomulu ? loadSaved(gomulu) : defaultContent))
+  const [ready, setReady] = useState(isPreview || !!gomulu)
 
   useEffect(() => {
     /* Paneldeki önizleme: kayıtlı içerik yerine panelin taslağını göster */
@@ -34,6 +39,7 @@ export function useLoadedContent() {
       return stop
     }
 
+    if (gomulu) return
     const ctrl = new AbortController()
     const timer = window.setTimeout(() => setReady(true), WAIT_MS)
     fetchSavedContent(ctrl.signal).then((saved) => {

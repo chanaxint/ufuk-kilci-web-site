@@ -1,244 +1,155 @@
 /**
- * Yönetim panelinin bütün sunucu işleri: giriş, çıkış, şifre, kaydetme,
- * fotoğraf yükleme, randevu talepleri.
+ * Yönetim panelinin bütün sunucu işleri: oturum, içerik okuma/kaydetme,
+ * sürüm geçmişi, yedek, fotoğraf yükleme ve temizlik.
  *
- * Supabase bağlıysa gerçek işlemler; geliştirmede bağlı değilse "deneme
- * modu" (her şey bu tarayıcıda). Deneme modunda giriş bilgisi KONTROL
- * EDİLMİYOR — bu yüzden yalnızca `npm run dev` altında açılıyor: yayın
- * derlemesinde `import.meta.env.DEV` sabit `false`, `mode` hiçbir zaman
- * 'deneme' olamıyor ve ziyaretçi sitesi tarayıcı hafızasını hiç okumuyor.
+ * Yayında (Cloudflare Pages): istekler sitenin kendi `/api/yonetim/*`
+ * fonksiyonlarına gider. Giriş Cloudflare Access ile yapılır: panel
+ * sayfası açılmadan önce Access e-posta doğrulaması ister, her API
+ * isteğinde de Access'in imzalı belirteci sunucuda denetlenir
+ * (`functions/api/yonetim/_middleware.ts`). Panel şifre ya da oturum
+ * anahtarı tutmaz; veritabanına ve depoya yalnızca sunucu erişir.
  *
- * Asıl güvenlik Supabase'deki satır kurallarında (supabase/kurulum.sql):
- * panelin kendisi kandırılsa bile yönetici listesinde olmayan biri tek
- * bir kelimeyi bile değiştiremiyor.
+ * `npm run dev` altında (sunucu fonksiyonları yok) "deneme modu": giriş
+ * yok, değişiklikler yalnızca bu tarayıcıda saklanır. Yayın derlemesinde
+ * `import.meta.env.DEV` sabit `false`, deneme modu hiç açılmaz.
  */
-import type { SupabaseClient } from '@supabase/supabase-js'
-import { BUCKET, configured, DEMO_KEY, demoMode, SUPABASE_ANON_KEY, SUPABASE_URL } from '../lib/backend'
+import { DEMO_KEY, demoMode } from '../lib/backend'
 import { defaultContent, loadSaved, type SiteContent } from '../lib/siteContent'
 
-export type Mode = 'supabase' | 'deneme' | 'kurulmamis'
-export const mode: Mode = configured ? 'supabase' : demoMode ? 'deneme' : 'kurulmamis'
+export type Mode = 'cloudflare' | 'deneme'
+export const mode: Mode = demoMode ? 'deneme' : 'cloudflare'
 
-let client: SupabaseClient | null = null
-async function sb() {
-  if (!client) {
-    const { createClient } = await import('@supabase/supabase-js')
-    client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
-    })
+export class PanelError extends Error {
+  constructor(
+    message: string,
+    /** HTTP durum kodu (0: ağ hatası) */
+    readonly status = 0,
+    /** 409 çakışmada sunucudaki güncel sürüm */
+    readonly surum?: number,
+  ) {
+    super(message)
   }
-  return client
 }
 
-/* ——— Türkçe hata iletileri ——— */
+/* Değiştiren her istekte: çapraz site isteklerine karşı özel başlık (sunucu arar) */
+const YAZ = { 'X-Yonetim-Istegi': '1' }
 
-export class PanelError extends Error {}
-
-function turkce(err: unknown): string {
-  const raw = err instanceof Error ? err.message : typeof err === 'object' && err && 'message' in err ? String((err as { message: unknown }).message) : String(err)
-  const m = raw.toLowerCase()
-  if (m.includes('invalid login credentials')) return 'E-posta ya da şifre hatalı.'
-  if (m.includes('email not confirmed')) return 'Bu e-posta adresi henüz onaylanmamış.'
-  if (m.includes('rate limit') || m.includes('too many')) return 'Çok fazla deneme yapıldı. Birkaç dakika bekleyip tekrar deneyin.'
-  if (m.includes('row-level security') || m.includes('permission denied') || m.includes('42501') || m.includes('unauthorized'))
-    return 'Bu hesabın siteyi değiştirme yetkisi yok. Kurulumdaki yönetici e-postasını kontrol edin.'
-  if (m.includes('password should be') || m.includes('weak password')) return 'Şifre en az 8 karakter olmalı.'
-  if (m.includes('same password') || m.includes('different from the old')) return 'Yeni şifre eskisiyle aynı olamaz.'
-  if (m.includes('invalid totp') || m.includes('invalid code') || m.includes('mfa_verification_failed') || m.includes('challenge') && m.includes('expired'))
-    return 'Kod hatalı ya da süresi geçti. Uygulamadaki güncel kodu girin.'
-  if (m.includes('aal2') || m.includes('insufficient_aal')) return 'Bu işlem için önce doğrulama kodunuzu girin (çıkış yapıp yeniden girin).'
-  if (m.includes('mfa') && m.includes('disabled')) return 'İki adımlı doğrulama bu projede kapalı. Supabase → Authentication → Multi-Factor ayarını açın.'
-  if (m.includes('payload too large') || m.includes('exceeded the maximum')) return 'Fotoğraf çok büyük.'
-  if (m.includes('mime') || m.includes('invalid file type')) return 'Bu dosya türü yüklenemiyor. JPG, PNG ya da WEBP seçin.'
-  if (m.includes('failed to fetch') || m.includes('network') || m.includes('load failed'))
-    return 'Sunucuya ulaşılamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.'
-  return 'Beklenmeyen bir hata oldu. Lütfen tekrar deneyin.'
+async function istek<T>(yol: string, init: RequestInit = {}): Promise<T> {
+  let res: Response
+  try {
+    res = await fetch(yol, { credentials: 'same-origin', cache: 'no-store', ...init })
+  } catch {
+    throw new PanelError('Sunucuya ulaşılamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.')
+  }
+  /* Access oturumu bittiyse istek giriş sayfasına yönlenir: JSON gelmez */
+  if (!(res.headers.get('Content-Type') ?? '').includes('application/json')) {
+    if (res.ok || res.redirected) throw new PanelError('Oturumunuzun süresi doldu. Sayfayı yenileyip yeniden giriş yapın.', 401)
+    throw new PanelError('Beklenmeyen bir hata oldu. Lütfen tekrar deneyin.', res.status)
+  }
+  const veri = (await res.json().catch(() => null)) as (T & { ok?: boolean; hata?: string; surum?: number }) | null
+  if (!res.ok || !veri || veri.ok === false)
+    throw new PanelError(veri?.hata || 'Beklenmeyen bir hata oldu. Lütfen tekrar deneyin.', res.status, veri?.surum)
+  return veri
 }
+
+const jsonYaz = (method: string, govde: unknown): RequestInit => ({
+  method,
+  headers: { 'Content-Type': 'application/json', ...YAZ },
+  body: JSON.stringify(govde),
+})
 
 /* ——— Oturum ——— */
 
-const DEMO_SESSION = 'uk-deneme-oturum'
-
-export async function currentEmail(): Promise<string | null> {
-  if (mode === 'supabase') {
-    const { data } = await (await sb()).auth.getSession()
-    return data.session?.user.email ?? null
-  }
-  if (mode === 'deneme') return sessionStorage.getItem(DEMO_SESSION)
-  return null
+/** Giriş yapan yöneticinin e-postası (Access belirtecinden, sunucu söyler) */
+export async function currentEmail(): Promise<string> {
+  if (mode === 'deneme') return 'deneme modu'
+  return (await istek<{ email: string }>('/api/yonetim/oturum')).email
 }
 
-/**
- * Oturum olaylarını dinler. Şifre sıfırlama bağlantısıyla gelinince
- * `recovery` çağrılıyor: panel o zaman "yeni şifre belirle" ekranını açıyor.
- */
-export async function watchAuth(handlers: { recovery: () => void; signedOut: () => void }) {
-  if (mode !== 'supabase') return () => {}
-  const { data } = (await sb()).auth.onAuthStateChange((event) => {
-    if (event === 'PASSWORD_RECOVERY') handlers.recovery()
-    if (event === 'SIGNED_OUT') handlers.signedOut()
-  })
-  return () => data.subscription.unsubscribe()
-}
-
-export async function signIn(email: string, password: string) {
-  email = email.trim()
-  if (!email || !password) throw new PanelError('E-posta ve şifrenizi yazın.')
-  if (mode === 'supabase') {
-    const { error } = await (await sb()).auth.signInWithPassword({ email, password })
-    if (error) throw new PanelError(turkce(error))
-    return
-  }
-  if (mode === 'deneme') {
-    sessionStorage.setItem(DEMO_SESSION, email)
-    return
-  }
-  throw new PanelError('Panel henüz kurulmadı.')
-}
-
-export async function signOut() {
-  if (mode === 'supabase') await (await sb()).auth.signOut()
-  if (mode === 'deneme') sessionStorage.removeItem(DEMO_SESSION)
-}
-
-export async function sendReset(email: string) {
-  email = email.trim()
-  if (!email) throw new PanelError('Önce e-posta adresinizi yazın.')
-  if (mode !== 'supabase') throw new PanelError('Şifre sıfırlama, panel kurulduktan sonra çalışır.')
-  const { error } = await (await sb()).auth.resetPasswordForEmail(email, {
-    redirectTo: `${location.origin}/yonetim/`,
-  })
-  if (error) throw new PanelError(turkce(error))
-}
-
-export async function updatePassword(password: string) {
-  if (password.length < 8) throw new PanelError('Şifre en az 8 karakter olmalı.')
-  if (mode !== 'supabase') return
-  const { error } = await (await sb()).auth.updateUser({ password })
-  if (error) throw new PanelError(turkce(error))
-}
-
-/* ——— İki adımlı doğrulama (TOTP) ———
- *
- * Doğrulama uygulaması (Google Authenticator, Microsoft Authenticator,
- * 1Password…) her 30 saniyede yeni bir 6 haneli kod üretir. Kurulduktan sonra
- * yalnızca şifreyle açılan oturum (aal1) veritabanında hiçbir şeyi
- * değiştiremez; kod girilince oturum aal2 olur (supabase/kurulum.sql,
- * yonetici_mi). Deneme modunda yoktur.
- */
-
-export type MfaFactor = { id: string; name: string; created: string }
-export type MfaState = {
-  /** Bu projede kullanılabilir mi (Supabase modu) */
-  available: boolean
-  /** Doğrulanmış uygulama kaydı var mı */
-  enabled: boolean
-  /** Şifreyle girildi, kod bekleniyor */
-  needsCode: boolean
-  factors: MfaFactor[]
-}
-
-export async function mfaState(): Promise<MfaState> {
-  if (mode !== 'supabase') return { available: false, enabled: false, needsCode: false, factors: [] }
-  const auth = (await sb()).auth
-  const [{ data: aal, error: e1 }, { data: list, error: e2 }] = await Promise.all([auth.mfa.getAuthenticatorAssuranceLevel(), auth.mfa.listFactors()])
-  if (e1 || e2) throw new PanelError(turkce(e1 ?? e2))
-  const factors = (list?.totp ?? []).map((f) => ({ id: f.id, name: f.friendly_name ?? 'Doğrulama uygulaması', created: f.created_at }))
-  return {
-    available: true,
-    enabled: factors.length > 0,
-    needsCode: aal?.nextLevel === 'aal2' && aal?.currentLevel !== 'aal2',
-    factors,
-  }
-}
-
-const cleanCode = (code: string) => {
-  const c = code.replace(/\s/g, '')
-  if (!/^\d{6}$/.test(c)) throw new PanelError('Uygulamadaki 6 haneli kodu yazın.')
-  return c
-}
-
-/** Girişten sonra: uygulamadaki kodla oturumu iki adımlı (aal2) yap */
-export async function mfaVerifyLogin(code: string) {
-  const c = cleanCode(code)
-  const auth = (await sb()).auth
-  const { data: list, error } = await auth.mfa.listFactors()
-  if (error) throw new PanelError(turkce(error))
-  const factor = list?.totp?.[0]
-  if (!factor) throw new PanelError('Doğrulama uygulaması kaydı bulunamadı.')
-  const { error: e2 } = await auth.mfa.challengeAndVerify({ factorId: factor.id, code: c })
-  if (e2) throw new PanelError(turkce(e2))
-}
-
-/** Kurulum 1: yarım kalmış kayıtları temizle, yeni kayıt aç; QR ve gizli anahtar döner */
-export async function mfaEnrollStart(): Promise<{ factorId: string; qr: string; secret: string }> {
-  const auth = (await sb()).auth
-  const { data: list } = await auth.mfa.listFactors()
-  for (const f of list?.all ?? []) if (f.factor_type === 'totp' && f.status !== 'verified') await auth.mfa.unenroll({ factorId: f.id })
-  const { data, error } = await auth.mfa.enroll({
-    factorType: 'totp',
-    friendlyName: `Panel ${new Date().toLocaleDateString('tr-TR')}`,
-    issuer: 'Ufuk Kilci Site',
-  })
-  if (error || !data) throw new PanelError(turkce(error ?? 'enroll'))
-  return { factorId: data.id, qr: data.totp.qr_code, secret: data.totp.secret }
-}
-
-/** Kurulum 2: uygulamadaki ilk kodla kaydı doğrula (oturum aal2 olur) */
-export async function mfaEnrollFinish(factorId: string, code: string) {
-  const c = cleanCode(code)
-  const { error } = await (await sb()).auth.mfa.challengeAndVerify({ factorId, code: c })
-  if (error) throw new PanelError(turkce(error))
-}
-
-/** Kaldır (Supabase bunun için oturumun aal2 olmasını ister) */
-export async function mfaRemove(factorId: string) {
-  const { error } = await (await sb()).auth.mfa.unenroll({ factorId })
-  if (error) throw new PanelError(turkce(error))
+/** Cloudflare Access oturumunu kapatır */
+export function signOut() {
+  location.href = mode === 'deneme' ? '/' : '/cdn-cgi/access/logout'
 }
 
 /* ——— İçerik ——— */
 
-export async function loadContent(): Promise<SiteContent> {
-  if (mode === 'supabase') {
-    const { data, error } = await (await sb()).from('site_content').select('data').eq('id', 1).maybeSingle()
-    if (error) throw new PanelError(turkce(error))
-    return loadSaved(data?.data ?? null)
-  }
+export type Kayit = { content: SiteContent; surum: number; guncellendi: string | null; guncelleyen: string | null }
+
+export async function loadContent(): Promise<Kayit> {
   if (mode === 'deneme') {
     try {
       const raw = localStorage.getItem(DEMO_KEY)
-      return loadSaved(raw ? JSON.parse(raw) : null)
+      return { content: loadSaved(raw ? JSON.parse(raw) : null), surum: 0, guncellendi: null, guncelleyen: null }
     } catch {
-      return defaultContent
+      return { content: defaultContent, surum: 0, guncellendi: null, guncelleyen: null }
     }
   }
-  return defaultContent
+  const r = await istek<{ icerik: unknown; surum: number; guncellendi: string | null; guncelleyen: string | null }>('/api/yonetim/icerik')
+  return { content: loadSaved(r.icerik), surum: r.surum, guncellendi: r.guncellendi, guncelleyen: r.guncelleyen }
 }
 
-export async function saveContent(content: SiteContent) {
-  if (mode === 'supabase') {
-    /*
-     * `select()` olmadan satır kuralı reddi sessiz kalabiliyor (0 satır
-     * güncellendi); geri dönen satırı isteyerek yetki sorununu yakalıyoruz.
-     */
-    const { data, error } = await (await sb())
-      .from('site_content')
-      .upsert({ id: 1, data: content, updated_at: new Date().toISOString() })
-      .select('id')
-    if (error) throw new PanelError(turkce(error))
-    if (!data?.length) throw new PanelError(turkce('row-level security'))
-    return
-  }
+/**
+ * `surum` üzerine kaydeder. Arada başka biri kaydettiyse 409 ile
+ * `PanelError` fırlatır (sunucudaki sürüm `surum` alanında).
+ */
+export async function saveContent(content: SiteContent, surum: number): Promise<{ content: SiteContent; surum: number }> {
   if (mode === 'deneme') {
     try {
       localStorage.setItem(DEMO_KEY, JSON.stringify(content))
     } catch {
       throw new PanelError('Deneme modunda tarayıcı hafızası doldu. Birkaç fotoğrafı daha küçük seçip tekrar deneyin.')
     }
-    return
+    return { content, surum: surum + 1 }
   }
-  throw new PanelError('Panel henüz kurulmadı.')
+  const r = await istek<{ surum: number; icerik: unknown }>('/api/yonetim/icerik', jsonYaz('PUT', { surum, icerik: content }))
+  return { content: loadSaved(r.icerik), surum: r.surum }
+}
+
+/* ——— Sürüm geçmişi ——— */
+
+export type Surum = { surum: number; guncellendi: string; guncelleyen: string; aciklama: string }
+
+export async function listVersions(): Promise<Surum[]> {
+  if (mode === 'deneme') return []
+  return (await istek<{ surumler: Surum[] }>('/api/yonetim/gecmis')).surumler
+}
+
+export async function loadVersion(n: number): Promise<SiteContent> {
+  return loadSaved((await istek<{ icerik: unknown }>(`/api/yonetim/gecmis/${n}`)).icerik)
+}
+
+/** Eski bir sürümü yeni sürüm olarak geri yükler */
+export async function restoreVersion(n: number, surum: number): Promise<{ content: SiteContent; surum: number }> {
+  const r = await istek<{ surum: number; icerik: unknown }>(`/api/yonetim/gecmis/${n}`, jsonYaz('POST', { surum }))
+  return { content: loadSaved(r.icerik), surum: r.surum }
+}
+
+/* ——— Yedek ——— */
+
+/** Güncel içeriğin yedeğini dosya olarak indirir */
+export async function downloadBackup() {
+  if (mode === 'deneme') throw new PanelError('Deneme modunda yedek yok.')
+  const veri = await istek<Record<string, unknown>>('/api/yonetim/yedek')
+  const blob = new Blob([JSON.stringify(veri, null, 2)], { type: 'application/json' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = `site-yedegi-${new Date().toISOString().slice(0, 10)}.json`
+  document.body.append(a)
+  a.click()
+  a.remove()
+  window.setTimeout(() => URL.revokeObjectURL(a.href), 1000)
+}
+
+export async function restoreBackup(file: File, surum: number): Promise<{ content: SiteContent; surum: number }> {
+  if (file.size > 1_500_000) throw new PanelError('Bu dosya bir site yedeği olamayacak kadar büyük.')
+  let yedek: unknown
+  try {
+    yedek = JSON.parse(await file.text())
+  } catch {
+    throw new PanelError('Dosya okunamadı. Panelden indirilen bir yedek dosyası seçin.')
+  }
+  const r = await istek<{ surum: number; icerik: unknown }>('/api/yonetim/yedek', jsonYaz('POST', { surum, yedek }))
+  return { content: loadSaved(r.icerik), surum: r.surum }
 }
 
 /* ——— Fotoğraflar ——— */
@@ -250,7 +161,8 @@ export type ImageKind = keyof typeof MAX_SIDE
 /**
  * Fotoğrafı tarayıcıda küçültüp sıkıştırır (WEBP, desteklenmiyorsa JPEG).
  * Yükleme hızlanıyor, site de ağırlaşmıyor. Telefonun yan çevirme bilgisi
- * (EXIF) `createImageBitmap` tarafından uygulanıyor.
+ * (EXIF) `createImageBitmap` tarafından uygulanıyor; yeniden kodlama konum
+ * gibi üst verileri de siliyor.
  */
 async function shrink(file: File, maxSide: number, quality: number): Promise<Blob> {
   const bmp = await createImageBitmap(file)
@@ -280,85 +192,26 @@ const blobToDataUrl = (b: Blob) =>
 
 /** Fotoğrafı yükler, sitede kullanılacak adresi döndürür */
 export async function uploadImage(file: File, kind: ImageKind): Promise<string> {
-  if (!file.type.startsWith('image/')) throw new PanelError('Lütfen bir fotoğraf dosyası seçin (JPG, PNG ya da WEBP).')
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new PanelError('Lütfen bir fotoğraf dosyası seçin (JPG, PNG ya da WEBP).')
   if (file.size > 25 * 1024 * 1024) throw new PanelError('Fotoğraf 25 MB’tan büyük. Daha küçük bir fotoğraf seçin.')
-
-  if (mode === 'deneme') {
-    /* Tarayıcı hafızası küçük; deneme modunda daha sıkı küçültülüyor */
-    return blobToDataUrl(await shrink(file, 1000, 0.8))
-  }
-  if (mode !== 'supabase') throw new PanelError('Panel henüz kurulmadı.')
-
-  const blob = await shrink(file, MAX_SIDE[kind], 0.86)
-  const ext = blob.type === 'image/webp' ? 'webp' : 'jpg'
-  const path = `${kind}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-  const store = (await sb()).storage.from(BUCKET)
-  const { error } = await store.upload(path, blob, { contentType: blob.type, cacheControl: '31536000', upsert: false })
-  if (error) throw new PanelError(turkce(error))
-  return store.getPublicUrl(path).data.publicUrl
-}
-
-/* ——— Randevu talepleri ——— */
-
-export type RequestStatus = 'yeni' | 'arandi' | 'tamamlandi'
-export type AppointmentRequest = {
-  id: number
-  created_at: string
-  ad: string
-  telefon: string
-  konu: string
-  mesaj: string
-  durum: RequestStatus
-}
-
-/*
- * Eski randevu talepleri listesi (Supabase `randevu_talepleri` / deneme
- * modunda tarayıcı). Yeni randevu sistemi talepleri saklamıyor, e-postayla
- * iletiyor; bu ekran panelin kalan Supabase işleriyle birlikte ele alınacak.
- */
-const DEMO_REQUESTS_KEY = 'uk-deneme-randevular'
-
-const demoRequests = (): AppointmentRequest[] => {
+  let blob: Blob
   try {
-    const raw = JSON.parse(localStorage.getItem(DEMO_REQUESTS_KEY) ?? '[]')
-    return Array.isArray(raw) ? raw : []
-  } catch {
-    return []
+    blob = await shrink(file, mode === 'deneme' ? 1000 : MAX_SIDE[kind], mode === 'deneme' ? 0.8 : 0.86)
+  } catch (e) {
+    throw e instanceof PanelError ? e : new PanelError('Fotoğraf açılamadı. Başka bir fotoğraf deneyin.')
   }
-}
-const setDemoRequests = (list: AppointmentRequest[]) => localStorage.setItem(DEMO_REQUESTS_KEY, JSON.stringify(list))
-
-/** En yeni talep en üstte; çok eski kayıtlar listeyi şişirmesin diye son 300 */
-export async function listRequests(): Promise<AppointmentRequest[]> {
-  if (mode === 'supabase') {
-    const { data, error } = await (await sb())
-      .from('randevu_talepleri')
-      .select('id, created_at, ad, telefon, konu, mesaj, durum')
-      .order('created_at', { ascending: false })
-      .limit(300)
-    if (error) throw new PanelError(turkce(error))
-    return (data ?? []) as AppointmentRequest[]
-  }
-  if (mode === 'deneme') return demoRequests().sort((a, b) => b.created_at.localeCompare(a.created_at))
-  return []
+  /* Tarayıcı hafızası küçük; deneme modunda fotoğraf içeriğe gömülüyor */
+  if (mode === 'deneme') return blobToDataUrl(blob)
+  const r = await istek<{ url: string }>(`/api/yonetim/gorsel?tur=${kind}`, {
+    method: 'POST',
+    headers: { 'Content-Type': blob.type, ...YAZ },
+    body: blob,
+  })
+  return r.url
 }
 
-export async function setRequestStatus(id: number, durum: RequestStatus) {
-  if (mode === 'supabase') {
-    const { data, error } = await (await sb()).from('randevu_talepleri').update({ durum }).eq('id', id).select('id')
-    if (error) throw new PanelError(turkce(error))
-    if (!data?.length) throw new PanelError(turkce('row-level security'))
-    return
-  }
-  if (mode === 'deneme') setDemoRequests(demoRequests().map((r) => (r.id === id ? { ...r, durum } : r)))
-}
-
-export async function deleteRequest(id: number) {
-  if (mode === 'supabase') {
-    const { data, error } = await (await sb()).from('randevu_talepleri').delete().eq('id', id).select('id')
-    if (error) throw new PanelError(turkce(error))
-    if (!data?.length) throw new PanelError(turkce('row-level security'))
-    return
-  }
-  if (mode === 'deneme') setDemoRequests(demoRequests().filter((r) => r.id !== id))
+/** Hiçbir sürümde kullanılmayan fotoğrafları sayar; `uygula` ise siler */
+export async function cleanImages(uygula: boolean): Promise<{ toplam: number; silinecek: number; silindi: number }> {
+  if (mode === 'deneme') return { toplam: 0, silinecek: 0, silindi: 0 }
+  return istek('/api/yonetim/temizlik', jsonYaz('POST', { uygula }))
 }

@@ -1,6 +1,12 @@
 # Cloudflare Pages yanıt başlıkları. Derlemede dist/_headers olarak kopyalanır;
 # yerel `npm run dev` / `npm run preview` bu dosyayı okumaz.
 #
+# DİKKAT: Bu dosya yalnızca statik dosyalara uygulanır; Pages Functions
+# yanıtlarına (ana sayfa `/`, `/api/*`, `/medya/*`) uygulanmaz. Onlar
+# başlıklarını functions/_lib/http.ts'ten alır. Aşağıdaki CSP orada
+# SITE_CSP ile birebir aynı olmalı; derleme ikisini karşılaştırır
+# (vite/baslik-denetimi.ts) ve farklıysa durur.
+#
 # İçerik Güvenlik Politikası (CSP) — neye neden izin verildiği:
 #   script-src 'self'       Yalnızca sitenin kendi derlenmiş JS dosyaları. Satır içi
 #                           çalışan script yok (index.html'deki JSON-LD bir veri
@@ -11,13 +17,11 @@
 #   style-src 'unsafe-inline'  React ve animasyonlar (GSAP, Motion) stil özniteliği
 #                           yazıyor; bunsuz animasyonlar ve 3B sahne bozulur.
 #   img-src data: blob:     Gömülü küçük görseller, 3B modelin dokuları (blob),
-#                           panelin deneme modundaki fotoğraflar.
-#   *.supabase.co           İçerik, randevu talepleri, panel girişi ve yüklenen
-#                           fotoğraflar (img-src + connect-src).
+#                           panelin deneme modundaki fotoğraflar. Panelden yüklenen
+#                           fotoğraflar sitenin kendi adresinden (/medya/…) gelir ('self').
 #   lottie.host             Kedi animasyonunun JSON dosyası. Dosya projeye alınırsa
 #                           bu adres connect-src'den çıkarılmalı.
-#   worker-src blob:        Lottie ve Supabase istemcisi arka plan işçisini blob
-#                           adresinden başlatıyor.
+#   worker-src blob:        Lottie arka plan işçisini blob adresinden başlatıyor.
 #   challenges.cloudflare.com  Randevu formundaki Cloudflare Turnstile doğrulaması
 #                           (betik + çerçeve). VITE_TURNSTILE_SITE_KEY verilmezse
 #                           hiç yüklenmez.
@@ -33,7 +37,7 @@
 # bağlantısı açar (gezinme, CSP izni gerektirmez).
 
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self'; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://lottie.host https://challenges.cloudflare.com; worker-src 'self' blob:; frame-src 'self' https://challenges.cloudflare.com; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self'; font-src 'self' data:; connect-src 'self' https://lottie.host https://challenges.cloudflare.com; worker-src 'self' blob:; frame-src 'self' https://challenges.cloudflare.com; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests
   X-Frame-Options: SAMEORIGIN
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin

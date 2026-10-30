@@ -32,7 +32,8 @@ Bu adım hatırlatılmayı beklemez; her iş tesliminin parçasıdır.
   kendi bilgisayarında çalıştırılır.
 - Sitenin düzenlenebilir içeriği (iletişim, yazılar, yorumlar, sertifikalar, SSS…)
   `src/lib/siteContent.ts` içindeki varsayılanlar + yönetim paneli (`/yonetim/`,
-  Supabase). Kurulum: `docs/yonetim-paneli.md`. Yayından önce örnek veriler
+  Cloudflare: D1 içerik + sürüm geçmişi, R2 fotoğraf, Access giriş).
+  Kurulum: `docs/yonetim-paneli.md`. Supabase kaldırıldı. Yayından önce örnek veriler
   (e-posta, yorumlar, "4.9 / 120+" puanı, sertifikalar) panelden ya da
   varsayılanlardan gerçekleriyle değiştirilmeli; `index.html` içindeki JSON-LD
   panelden değişmez, elle güncellenir.
@@ -42,7 +43,13 @@ Bu adım hatırlatılmayı beklemez; her iş tesliminin parçasıdır.
   (`/?onizleme=1`, `lib/preview.ts`) için ayrıntılar `.claude/PROJE-DURUMU.md`.
   Yeni bir sabit bölüm eklenirse `SITE_SECTIONS`, `App.tsx` içindeki
   `BlocksAfter` ve önizleme etiketi (`EditChip`) de eklenmeli.
-  `supabase/kurulum.sql` değişirse doktorun betiği yeniden çalıştırması gerekir.
+  İçerik şeması değişirse `loadSaved` eski kayıtları birleştirebilmeli (D1'de
+  tek JSON); sunucu her kayıtta `functions/_lib/denetim.ts` ile denetler.
+- Panel API'si (`functions/api/yonetim/*`) her istekte Access JWT'sini
+  sunucuda doğrular (`functions/_lib/erisim.ts`); yazmalarda
+  `X-Yonetim-Istegi: 1` + Origin denetimi. `_headers` fonksiyon yanıtlarına
+  uygulanmaz: CSP `functions/_lib/http.ts` `SITE_CSP` ile `public/_headers`
+  aynı olmalı (derleme denetler).
 - Yayın: Cloudflare Pages, `npm run build` → `dist` (`docs/yayina-alma.md`).
   Yeni bir dış kaynak (CDN, harita, analiz, form servisi) eklenirse
   `public/_headers` içindeki CSP de güncellenmeli; çerçeveleme izni `'self'`

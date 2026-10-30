@@ -443,7 +443,7 @@ altında `lead` cümlesi ("Tedaviye her zaman aynı soruyla başlarım: …").
   telefonda etiket çizilmediği için eskiden hiçbir ad görünmüyordu.
 - Yükleme ekranı "LOADING" → "YÜKLENİYOR". Küçük yazılar 0,62 → 0,7rem civarı.
 
-### Yönetim paneli (`/yonetim/`, Supabase)
+### Yönetim paneli (`/yonetim/`, Supabase) — TARİHÇE: Supabase kaldırıldı, bkz. "Panel Cloudflare'e taşındı"
 
 Kullanıcı isteği: doktor kendi e-posta/şifresiyle girip fotoğraf, yazı,
 biyografi, yorum, sertifika, SSS, iletişim — "tüm siteyi" yönetebilsin;
@@ -662,6 +662,54 @@ Ayrıntı ve Cloudflare ayarları: `docs/yayina-alma.md`.
 - Doğrulama bekleyen içerik listesi ve KVKK eksikleri kullanıcıya raporlandı
   (yayın öncesi onay listesi).
 
+### Panel Cloudflare'e taşındı: D1 + R2 + Access (push yok)
+
+Supabase tamamen kaldırıldı (paket, env, SQL, CSP, MFA/şifre ekranları,
+randevu talepleri ekranı). Gerçek Supabase projesi hiç açılmamıştı; veri
+kaybı yok.
+
+- **Sunucu** (`functions/`, Pages Functions; tür denetimi
+  `tsconfig.functions.json`, Cloudflare türleri elle `_lib/cf.ts`):
+  - `index.ts` (`/`): `next()` ile statik `index.html`, D1 içeriğini
+    `<script id="site-icerik" type="application/json">` olarak ve
+    `seo.title/description`'ı `<title>`/meta/og'ye yazar (`_lib/sayfa.ts`,
+    regex; JSON'da `<`→`\u003c`). Güvenlik başlıkları + `no-cache` + ETag.
+  - `api/icerik.ts` (herkese açık GET, ETag `"s<sürüm>"`, 304).
+  - `api/yonetim/_middleware.ts`: Access JWT (`_lib/erisim.ts`: RS256,
+    JWKS `ACCESS_TEAM_DOMAIN/cdn-cgi/access/certs` kid ile, 10 dk önbellek,
+    bilinmeyen kid'de en fazla dakikada bir tazeleme; iss, aud listesi,
+    exp/nbf/iat, `type=app`, e-posta `YONETICI_EPOSTALARI`'nda). Yazmalarda
+    `X-Yonetim-Istegi: 1`, Origin, Sec-Fetch-Site. Ayar eksikse 503.
+  - `api/yonetim/oturum|icerik|gecmis/[surum]|yedek|gorsel|temizlik`.
+  - `medya/[[yol]].ts`: yalnızca `gorsel/<tür>/<yyyymm>/<uuid>.(jpg|png|webp)`;
+    Cache API + immutable; nosniff + `sandbox` CSP.
+- **D1** (`_lib/icerik.ts`, `migrations/0001_icerik.sql`; tablolar ilk
+  kayıtta da kurulur): `icerik` tek satır (veri JSON, surum, guncelleyen,
+  guncellendi) + `icerik_gecmisi` (son 50). Kayıt `taban` sürüm üzerine
+  (ON CONFLICT … WHERE surum = taban) → 409 çakışma. Geri alma/yedekten
+  yükleme yeni sürüm olarak. Kayıt yokken varsayılan içerik.
+- **Denetim** (`_lib/denetim.ts`): `loadSaved` ile normalleştirme (bilinmeyen
+  alan atılır), görsel alanları yalnızca `/…` site yolu, bağlantılar
+  `safeHref`, harita https, aydınlatma `safeLinkUrl`, metin ≤ 20.000, içerik
+  ≤ 1 MB.
+- **R2** (`_lib/gorsel.ts`): imza baytlarıyla tür (SVG/HTML red), ≤ 6 MB,
+  sunucu üretimi ad. Temizlik: güncel + 50 sürümde geçmeyen ve
+  `TEMIZLIK_BEKLEME_SAAT` (vars. 24) saatten eski.
+- **Ön yüz:** `lib/backend.ts` (gömülü içerik → `/api/icerik` → varsayılan;
+  dev'de localStorage deneme), `ContentContext` gömülüyü ilk çizimde
+  kullanır. `admin/api.ts` fetch tabanlı (`PanelError` status/surum),
+  `AdminApp` yalnızca `/api/yonetim/oturum` sorar (503 kurulum, 401/403
+  "Giriş gerekli" + `/cdn-cgi/access/logout`), `admin/Account.tsx`
+  (Hesap ve yedekler: giriş, sürüm geçmişi, yedek, fotoğraf temizliği).
+  Panelde yeni **Arama motorları (SEO)** bölümü (`content.seo`); "Hakkımda"
+  etiketleri "Hizmetler ve uzmanlık etiketleri".
+- **CSP:** `*.supabase.co` çıktı. `vite/baslik-denetimi.ts` `_headers` CSP'si
+  ile `SITE_CSP`'yi derlemede karşılaştırır.
+- **Araç:** `wrangler@4.151.0` (devDependency), `npm run cf:yerel`.
+- **Testler (scratchpad):** `access-sahte.mjs` (RSA JWKS + imzalayıcı),
+  `api-test.mjs --r2` 76/76 (wrangler pages dev + yerel D1/R2), tarayıcı
+  E2E `panel-cf-e2e.mjs`. Gerçek Cloudflare Access/D1/R2 ile denenmedi.
+
 ### Randevu sistemi: WhatsApp + e-posta, veritabanı yok (push yok)
 
 Kullanıcı isteği ("Sandy Labs özel randevu sistemi"): hazır form servisi ve
@@ -695,7 +743,7 @@ Supabase olmadan; sağlık bilgisi toplanmadan; yalnızca talep.
 - **Kaldırılan:** doğrudan Supabase insert, deneme modunda tarayıcıya talep
   yazma, `VITE_APPOINTMENT_ENDPOINT/KEY` (Web3Forms), fonksiyonun
   `SUPABASE_URL`/`SUPABASE_SECRET_KEY` kullanımı.
-- **Bilerek bırakılan (panel ayrıca çözülecek):** `admin/Requests.tsx` +
+- **Bilerek bırakılan (SONRA KALDIRILDI, bkz. "Panel Cloudflare'e taşındı"):** `admin/Requests.tsx` +
   `api.ts` talep fonksiyonları (artık hep boş), `kurulum.sql` içindeki
   `randevu_talepleri` tablosu ve anon ekleme politikası (belge: kurulumdan
   hemen sonra `dogrudan-eklemeyi-kapat.sql`), `dogrudan-eklemeyi-kapat.sql`.
@@ -719,7 +767,7 @@ varsayılandaki ilgili öğenin `image`/`title`/`org`/`year` alanlarını doldur
 (ya da panelden yüklenir). Panelde kayıtlı içerik varsa varsayılan değil
 kayıtlı liste görünür.
 
-### Güvenlik: Turnstile + sunucu fonksiyonu, panel MFA (push yok)
+### Güvenlik: Turnstile + sunucu fonksiyonu, panel MFA (push yok) — TARİHÇE: MFA/Supabase kısımları kaldırıldı
 
 Supabase güvenlik incelemesinin eksikleri. Gerçek Supabase / Turnstile
 hesabı yok; hiçbir anahtar uydurulmadı.
@@ -798,12 +846,15 @@ src/components/CustomBlock.tsx       panelden eklenen bölümler, ✎ etiketleri
 src/lib/canvas.ts                    serbest düzen modeli (yüzde ölçüler, yamalar, çevirme)
 src/components/CanvasBlock.tsx       serbest düzenin sitedeki çizimi
 src/components/CanvasEditor.tsx      önizlemede sürükle/boyutlandır + kılavuz çizgileri
-src/admin/                           yönetim paneli (Editor, Blocks, Preview, Requests, sections…)
-supabase/kurulum.sql                 tablolar + satır kuralları (içerik, yöneticiler+MFA, depo, randevular)
-supabase/dogrudan-eklemeyi-kapat.sql sunucu akışı denendikten sonra ziyaretçinin doğrudan eklemesini kapatır
+src/admin/                           yönetim paneli (Editor, Blocks, Preview, Account, sections…)
+functions/index.ts                   ana sayfa: D1 içeriği + SEO HTML'e, güvenlik başlıkları
+functions/api/yonetim/               panel API'si (Access JWT doğrulaması _middleware.ts'te)
+functions/_lib/                      erisim (JWT), icerik (D1), denetim, gorsel (R2), http (CSP), sayfa
+functions/medya/[[yol]].ts           R2 fotoğraflarını sunar
+migrations/0001_icerik.sql           D1 şeması (içerik + sürüm geçmişi)
+src/admin/Account.tsx                Hesap ve yedekler: sürüm geçmişi, yedek, fotoğraf temizliği
 functions/api/randevu.ts             Pages Function: alan + Turnstile doğrula → e-posta Worker'ına ilet
 src/components/ui/Turnstile.tsx      Turnstile widget'ı (tembel yükleme)
-src/admin/Mfa.tsx                    panel iki adımlı doğrulama (TOTP)
 src/lib/randevuKurallari.ts          randevu alanları ve denetimi (form + sunucu ortak)
 workers/randevu-eposta/              randevu e-postasını gönderen Worker (send_email, oran sınırı)
 docs/randevu-gonderimi.md            randevu sistemi kurulumu, KVKK notları, ücretsiz plan sınırları

@@ -3,8 +3,8 @@ import { blankCanvas, canvasIsEmpty, normalizeCanvas, type Canvas } from './canv
 /**
  * Sitenin yönetim panelinden değiştirilebilen bütün içeriği.
  *
- * Buradaki değerler varsayılan: Supabase bağlı değilken site bunlarla
- * açılıyor, bağlıyken panelden kaydedilen içerik bunların üzerine yazılıyor.
+ * Buradaki değerler varsayılan: henüz hiç kayıt yokken site bunlarla
+ * açılıyor; panelden kaydedilen içerik (Cloudflare D1) bunların üzerine yazılıyor.
  * Kaydedilmiş içerikte olmayan bir alan (ör. sonradan eklenen yeni bir alan)
  * her zaman buradan geliyor; böylece eski kayıtlar siteyi bozmuyor.
  *
@@ -140,6 +140,11 @@ export type SiteContent = {
     /** KVKK aydınlatma metninin adresi (https:// ya da sitede / ile başlayan yol); boşsa bağlantı görünmez */
     privacyUrl: string
   }
+  /** Arama motorları ve paylaşım kartları (sunucu sayfanın <head> kısmına yazar) */
+  seo: {
+    title: string
+    description: string
+  }
   /** Panelden eklenen bölümler */
   blocks: Block[]
 }
@@ -262,6 +267,11 @@ export const defaultContent: SiteContent = {
     /* Hukuki metin uydurulmuyor: doktorun KVKK aydınlatma metni hazır olunca adresi buraya ya da panele */
     privacyUrl: '',
   },
+  seo: {
+    title: 'Ufuk Kilci | Fizyoterapist - Osteopat',
+    description:
+      'Fizyoterapist ve Osteopat Ufuk Kilci. Omurga sağlığı, manuel terapi, osteopatik tedavi ve kişiye özel egzersiz programları ile ağrısız bir yaşam.',
+  },
   blocks: [],
 }
 
@@ -293,6 +303,9 @@ export const blockIsEmpty = (b: Block) =>
   b.kind === 'serbest'
     ? canvasIsEmpty(b.canvas)
     : !b.heading.trim() && !b.text.trim() && !safeImage(b.image) && !b.images.some((im) => safeImage(im.src))
+
+/** Arama sonucunda görünen başlık ve açıklama için önerilen üst sınırlar */
+export const SEO_LIMITS = { title: 70, description: 170 } as const
 
 /** Bölümün sayfadaki adresi (menüden gidilebilsin) */
 export const blockAnchor = (b: Pick<Block, 'id'>) => `bolum-${b.id}`

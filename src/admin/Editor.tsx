@@ -1,19 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Block, SiteContent, SiteSectionId } from '../lib/siteContent'
 import { applyCanvasPatch, type CanvasPatch } from '../lib/canvas'
-import { loadContent, mode, PanelError, saveContent, signOut, updatePassword } from './api'
-import { TextInput } from './fields'
+import { loadContent, mode, PanelError, saveContent, signOut } from './api'
 import { missingRequired, sections, type Setter } from './sections'
 import BlocksEditor, { AddBlockDialog } from './Blocks'
 import Preview from './Preview'
-import Requests, { useNewRequestCount } from './Requests'
-import MfaCard, { MfaReminder } from './Mfa'
+import Account from './Account'
 
 type Status = { kind: 'idle' | 'saving' | 'ok' | 'error'; message?: string }
 
 const ACCOUNT = 'hesap'
 const BLOCKS = 'bolumler'
-const REQUESTS = 'talepler'
 
 /** Önizlemedeki "Düzenle" etiketinden paneldeki bölüme */
 const EDIT_TARGET: Record<string, string> = { acilar: 'skolyoz' }
@@ -27,19 +24,19 @@ const readPreviewPref = () => {
   }
 }
 
-export default function Editor({ email, onSignedOut }: { email: string; onSignedOut: () => void }) {
+export default function Editor({ email }: { email: string }) {
   const [saved, setSaved] = useState<SiteContent | null>(null)
   const [draft, setDraft] = useState<SiteContent | null>(null)
+  /* Kaydın hangi sürümün üzerine yapılacağı (arada başkası kaydettiyse sunucu reddeder) */
+  const [surum, setSurum] = useState(0)
   const [loadError, setLoadError] = useState('')
-  const [active, setActive] = useState(REQUESTS)
+  const [active, setActive] = useState(sections[0].id)
   const [status, setStatus] = useState<Status>({ kind: 'idle' })
   /* Masaüstünde önizleme yanda; telefonda "Düzenle / Önizle" sekmeleri */
   const [showPreview, setShowPreview] = useState(readPreviewPref)
   const [tab, setTab] = useState<'duzenle' | 'onizle'>('duzenle')
   const [focusBlock, setFocusBlock] = useState<string | null>(null)
   const [adding, setAdding] = useState<SiteSectionId | null>(null)
-  const [requestsTick, setRequestsTick] = useState(0)
-  const newRequests = useNewRequestCount(requestsTick)
   /*
    * Önizlemenin kayacağı yer. Yalnızca panelde bir bölüm seçilince değişiyor;
    * önizlemenin içinde tıklanınca (✎, sürükleme) önizleme yerinden oynamıyor.
@@ -52,9 +49,10 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
   const load = useCallback(() => {
     setLoadError('')
     loadContent()
-      .then((c) => {
-        setSaved(c)
-        setDraft(c)
+      .then((k) => {
+        setSaved(k.content)
+        setDraft(k.content)
+        setSurum(k.surum)
       })
       .catch((e) => setLoadError(e instanceof PanelError ? e.message : 'İçerik yüklenemedi.'))
   }, [])
@@ -96,7 +94,7 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
   const open = (id: string, block: string | null = null) => {
     setActive(id)
     setFocusBlock(block)
-    goPreview(id === BLOCKS ? (block ? `blok:${block}` : null) : id === ACCOUNT || id === REQUESTS ? null : id)
+    goPreview(id === BLOCKS ? (block ? `blok:${block}` : null) : id === ACCOUNT ? null : id)
   }
 
   /* Önizlemede sürüklenen / boyutlanan / yazısı değişen öğe taslağa işleniyor */
@@ -163,13 +161,25 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
       return
     }
     setStatus({ kind: 'saving' })
+    const gonderilen = draft
     try {
-      await saveContent(draft)
-      setSaved(draft)
+      const r = await saveContent(gonderilen, surum)
+      /* Sunucu içeriği denetleyip düzeltilmiş hâlini döndürüyor; kayıt sırasında yazmaya devam edildiyse taslak korunur */
+      setSaved(r.content)
+      setDraft((d) => (d === gonderilen ? r.content : d))
+      setSurum(r.surum)
       setStatus({ kind: 'ok' })
     } catch (e) {
       setStatus({ kind: 'error', message: e instanceof PanelError ? e.message : 'Kaydedilemedi. Tekrar deneyin.' })
     }
+  }
+
+  /* Geçmişten ya da yedekten geri yüklenince */
+  const restored = (content: SiteContent, yeni: number) => {
+    setSaved(content)
+    setDraft(content)
+    setSurum(yeni)
+    setStatus({ kind: 'idle' })
   }
 
   const undo = () => {
@@ -179,21 +189,19 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
     }
   }
 
-  const leave = async () => {
+  const leave = () => {
     if (dirty && !window.confirm('Kaydetmediğiniz değişiklikler var. Yine de çıkılsın mı?')) return
-    await signOut()
-    onSignedOut()
+    signOut()
   }
 
   const section = sections.find((s) => s.id === active)
-  const editing = active !== ACCOUNT && active !== REQUESTS
-  /* Önizleme yalnızca site içeriği düzenlenirken; talepler ve hesap ekranında yok */
+  const editing = active !== ACCOUNT
+  /* Önizleme yalnızca site içeriği düzenlenirken; hesap ekranında yok */
   const withPreview = editing && !!draft && showPreview
   const nav = [
-    { id: REQUESTS, title: 'Randevu talepleri', badge: newRequests },
     ...sections.map((s) => ({ id: s.id, title: s.title, badge: 0 })),
     { id: BLOCKS, title: '+ Yeni bölümler', badge: 0 },
-    { id: ACCOUNT, title: 'Hesabım', badge: 0 },
+    { id: ACCOUNT, title: 'Hesap ve yedekler', badge: 0 },
   ]
 
   return (
@@ -237,12 +245,10 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
 
       {mode === 'deneme' && (
         <div className="border-b border-[#e8cf9a] bg-[#fbf0d6] px-4 py-3 text-center text-[0.9rem] leading-snug text-[#6b4f1d] sm:px-6">
-          <strong>Deneme modu.</strong> Panel henüz bir hesaba bağlı değil: giriş bilgisi kontrol edilmiyor,
-          değişiklikler yalnızca bu tarayıcıda saklanıyor ve yalnızca bu bilgisayardaki sitede görünüyor.
+          <strong>Deneme modu.</strong> Panel bilgisayarınızda çalışıyor: giriş yok, değişiklikler yalnızca bu
+          tarayıcıda saklanıyor ve yalnızca bu bilgisayardaki sitede görünüyor.
         </div>
       )}
-
-      {active !== ACCOUNT && <MfaReminder onOpen={() => open(ACCOUNT)} />}
 
       {/* Telefon ve tablette: düzenle / önizle sekmeleri */}
       {withPreview && (
@@ -299,7 +305,7 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
                   aria-current={active === s.id ? 'page' : undefined}
                   className={`flex w-full items-center justify-between gap-2 rounded-xl px-4 py-3 text-left font-display text-[0.98rem] font-bold transition-colors ${
                     active === s.id ? 'bg-[#6b4a2c] text-white' : 'text-[#5c4831] hover:bg-[#efe5d6]'
-                  } ${s.id === ACCOUNT || s.id === BLOCKS ? 'mt-3' : ''} ${s.id === REQUESTS ? 'mb-3' : ''}`}
+                  } ${s.id === ACCOUNT || s.id === BLOCKS ? 'mt-3' : ''}`}
                 >
                   {s.title}
                   {s.badge > 0 && (
@@ -328,9 +334,7 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
           ) : !draft ? (
             <p className="py-16 text-center text-[#7a6650]">İçerik yükleniyor…</p>
           ) : active === ACCOUNT ? (
-            <Account email={email} onLeave={leave} />
-          ) : active === REQUESTS ? (
-            <Requests onChanged={() => setRequestsTick((n) => n + 1)} />
+            <Account email={email} surum={surum} dirty={dirty} onRestored={restored} />
           ) : active === BLOCKS ? (
             <>
               <h1 className="font-display text-[1.75rem] leading-tight font-extrabold text-[#2a1d12] sm:text-[2rem]">Yeni bölümler</h1>
@@ -418,65 +422,5 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
         </div>
       )}
     </div>
-  )
-}
-
-function Account({ email, onLeave }: { email: string; onLeave: () => void }) {
-  const [pw, setPw] = useState('')
-  const [pw2, setPw2] = useState('')
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
-  const [busy, setBusy] = useState(false)
-
-  const change = async () => {
-    setMsg(null)
-    if (pw !== pw2) return setMsg({ ok: false, text: 'İki şifre birbirini tutmuyor.' })
-    setBusy(true)
-    try {
-      await updatePassword(pw)
-      setPw('')
-      setPw2('')
-      setMsg({ ok: true, text: 'Şifreniz değiştirildi. Bir dahaki girişte yeni şifrenizi kullanın.' })
-    } catch (e) {
-      setMsg({ ok: false, text: e instanceof PanelError ? e.message : 'Şifre değiştirilemedi.' })
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <>
-      <h1 className="font-display text-[1.75rem] font-extrabold text-[#2a1d12] sm:text-[2rem]">Hesabım</h1>
-      <p className="mt-2 text-[0.98rem] text-[#7a6650]">
-        Giriş yapılan e-posta: <strong className="text-[#2a1d12]">{email}</strong>
-      </p>
-      <div className="mt-6 flex flex-col gap-5 rounded-2xl border border-[#e3d7c4] bg-white p-5 sm:p-7">
-        <h2 className="font-display text-[1.15rem] font-extrabold text-[#2a1d12]">Şifre değiştir</h2>
-        {mode === 'deneme' ? (
-          <p className="text-[0.95rem] text-[#7a6650]">Deneme modunda şifre yok; panel bir hesaba bağlanınca burada şifrenizi değiştirebilirsiniz.</p>
-        ) : (
-          <>
-            <TextInput label="Yeni şifre" hint="En az 8 karakter." type="password" value={pw} onChange={setPw} />
-            <TextInput label="Yeni şifre (tekrar)" type="password" value={pw2} onChange={setPw2} />
-            <button
-              type="button"
-              onClick={change}
-              disabled={busy || !pw}
-              className="self-start rounded-xl bg-[#6b4a2c] px-6 py-3 font-display font-bold text-white hover:bg-[#573b22] disabled:opacity-45"
-            >
-              {busy ? 'Değiştiriliyor…' : 'Şifreyi değiştir'}
-            </button>
-          </>
-        )}
-        {msg && <p className={`text-[0.95rem] font-semibold ${msg.ok ? 'text-[#3f6a2f]' : 'text-[#9b3b2a]'}`}>{msg.text}</p>}
-      </div>
-      <MfaCard />
-      <button
-        type="button"
-        onClick={onLeave}
-        className="mt-6 rounded-xl border border-[#dccfbb] bg-white px-6 py-3 font-display font-bold text-[#5c4831] hover:bg-[#f3ebde]"
-      >
-        Çıkış yap
-      </button>
-    </>
   )
 }

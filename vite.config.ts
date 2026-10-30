@@ -2,10 +2,11 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import siteSeo from './vite/site-seo'
+import baslikDenetimi from './vite/baslik-denetimi'
 
 export default defineConfig({
   /* siteSeo: robots.txt, ve SITE_URL verilmişse sitemap.xml + canonical (vite/site-seo.ts) */
-  plugins: [react(), tailwindcss(), siteSeo()],
+  plugins: [react(), tailwindcss(), siteSeo(), baslikDenetimi()],
   assetsInclude: ['**/*.glb'],
   build: {
     rollupOptions: {

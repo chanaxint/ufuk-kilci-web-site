@@ -1,5 +1,5 @@
 import { waHref, type SiteContent } from './siteContent'
-import { SUPABASE_ANON_KEY, SUPABASE_URL, configured, demoMode } from './backend'
+import { SUPABASE_URL, anonHeaders, configured, demoMode } from './backend'
 import { isPreview } from './preview'
 
 export type AppointmentForm = {
@@ -34,8 +34,19 @@ export const ACCESS_KEY = (import.meta.env.VITE_APPOINTMENT_KEY ?? '').trim()
 
 export const hasEndpoint = ENDPOINT.length > 0
 
-/** Talebin gidebileceği en az bir yer var mı (panel, e-posta servisi ya da deneme kaydı) */
-export const canDeliver = !isPreview && (configured || hasEndpoint || demoMode)
+/**
+ * Cloudflare Turnstile site anahtarı (herkese açık; gizli anahtar sunucuda).
+ * Tanımlıysa talep doğrudan Supabase'e DEĞİL, sitenin kendi sunucu
+ * fonksiyonuna (`/api/randevu`) gider: belirteç orada doğrulanır, kayıt
+ * sunucu anahtarıyla yapılır. Bu durumda veritabanında ziyaretçinin doğrudan
+ * ekleme yetkisi kapatılabilir (`supabase/dogrudan-eklemeyi-kapat.sql`).
+ */
+export const TURNSTILE_SITE_KEY = (import.meta.env.VITE_TURNSTILE_SITE_KEY ?? '').trim()
+export const serverFlow = TURNSTILE_SITE_KEY.length > 0
+export const RANDEVU_API = '/api/randevu'
+
+/** Talebin gidebileceği en az bir yer var mı (sunucu, panel, e-posta servisi ya da deneme kaydı) */
+export const canDeliver = !isPreview && (serverFlow || configured || hasEndpoint || demoMode)
 
 /** Deneme modunda talepler bu tarayıcıda saklanıyor; panel oradan okuyor */
 export const DEMO_REQUESTS_KEY = 'uk-deneme-randevular'
@@ -51,17 +62,31 @@ const clip = (form: AppointmentForm) => ({
 })
 
 /**
- * Yönetim paneline düşen kayıt. Ziyaretçi yalnızca ekleyebiliyor; okuyan,
- * durumunu değiştiren ve silen yalnızca yönetici (satır kuralları).
- * Yanıt olarak satır istenmiyor (`return=minimal`): ziyaretçinin okuma
- * yetkisi yok, istense kural reddederdi.
+ * Sunucu akışı: Turnstile belirteciyle sitenin kendi fonksiyonuna gönder.
+ * Hata iletisi sunucudan geliyor (ör. "Bu numaradan yakın zamanda talep alındı").
+ */
+async function saveViaServer(form: AppointmentForm, token: string) {
+  const res = await fetch(RANDEVU_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...clip(form), onay: true, token }),
+  })
+  const data = (await res.json().catch(() => null)) as { ok?: boolean; hata?: string } | null
+  if (!res.ok || !data?.ok) throw new Error(data?.hata || `Gönderim başarısız: ${res.status}`)
+}
+
+/**
+ * GEÇİŞ DÖNEMİ: Turnstile kurulmadan önce talep doğrudan Supabase'e yazılıyor.
+ * Ziyaretçi yalnızca ekleyebiliyor; okuyan, durumunu değiştiren ve silen
+ * yalnızca yönetici (satır kuralları). Yanıt olarak satır istenmiyor
+ * (`return=minimal`): ziyaretçinin okuma yetkisi yok, istense kural reddederdi.
+ * Sunucu akışı kurulup doğrudan ekleme kapatıldığında bu yol kullanılmaz.
  */
 async function saveToPanel(form: AppointmentForm) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/randevu_talepleri`, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      ...anonHeaders,
       'Content-Type': 'application/json',
       Prefer: 'return=minimal',
     },
@@ -108,10 +133,11 @@ export function whatsappHref(form: AppointmentForm, content: SiteContent) {
  * (ya da paneldeki önizlemedeyse) `false` döner; arayüz o zaman "iletildi"
  * demiyor, kullanıcıya WhatsApp bağlantısını gösteriyor.
  */
-export async function sendAppointment(form: AppointmentForm, content: SiteContent): Promise<boolean> {
+export async function sendAppointment(form: AppointmentForm, content: SiteContent, token?: string | null): Promise<boolean> {
   if (!canDeliver) return false
   const jobs: Promise<unknown>[] = []
-  if (configured) jobs.push(saveToPanel(form))
+  if (serverFlow) jobs.push(token ? saveViaServer(form, token) : Promise.reject(new Error('Güvenlik doğrulaması eksik')))
+  else if (configured) jobs.push(saveToPanel(form))
   else if (demoMode) jobs.push(Promise.resolve().then(() => saveToDemo(form)))
   if (hasEndpoint) jobs.push(sendToEndpoint(form, content))
   const results = await Promise.allSettled(jobs)

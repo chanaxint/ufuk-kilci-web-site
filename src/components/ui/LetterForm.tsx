@@ -3,6 +3,8 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useContent } from '../../lib/ContentContext'
 import {
   canDeliver,
+  serverFlow,
+  TURNSTILE_SITE_KEY,
   sendAppointment,
   whatsappHref,
   REQUEST_LIMITS,
@@ -10,6 +12,7 @@ import {
 } from '../../lib/appointment'
 import { ArrowRight, ChevronDown, Send } from './icons'
 import { AGE, GRAIN, PAPER, RULED } from '../../lib/paper'
+import Turnstile, { type TurnstileState } from './Turnstile'
 
 const fieldRow =
   'w-full border-0 border-b border-[#6b5334]/35 bg-transparent px-1 pt-1 pb-1.5 font-sans text-[0.98rem] text-[#3b2c1d] outline-none transition-colors duration-300 placeholder:text-[#9a866a] focus:border-[#6b4a2c]'
@@ -42,6 +45,11 @@ export default function LetterForm() {
   const [consent, setConsent] = useState(false)
   /* Görünmez tuzak alan: insanlar görmüyor, formu dolduran botlar dolduruyor */
   const [trap, setTrap] = useState('')
+  /* Turnstile (yalnızca sunucu akışında): tek kullanımlık belirteç */
+  const [token, setToken] = useState<string | null>(null)
+  const [tsState, setTsState] = useState<TurnstileState>('bekliyor')
+  const [tsReset, setTsReset] = useState(0)
+  const [uyari, setUyari] = useState('')
   /*
    * Seçenekler panelden değişebilir (ve kayıtlı içerik sayfa açıldıktan
    * kısa süre sonra gelir): seçili konu listede yoksa ilkine geç.
@@ -59,13 +67,25 @@ export default function LetterForm() {
 
   const send = (e: React.FormEvent) => {
     e.preventDefault()
+    /* Güvenlik doğrulaması bitmeden gönderme: belirteçsiz talebi sunucu reddeder */
+    if (serverFlow && !trap && !token) {
+      setUyari(
+        tsState === 'hata'
+          ? 'Güvenlik doğrulaması yüklenemedi. Sayfayı yenileyin ya da WhatsApp üzerinden yazın.'
+          : 'Güvenlik doğrulaması tamamlanıyor; birkaç saniye sonra tekrar deneyin.',
+      )
+      return
+    }
+    setUyari('')
     /* Kullanıcı sitede kalıyor; talep arka planda gidiyor */
     setSonuc('hazir')
     if (trap) setSonuc('iletildi')
     else if (canDeliver) {
-      sendAppointment(form, content)
+      sendAppointment(form, content, token)
         .then((ok) => setSonuc(ok ? 'iletildi' : 'hazir'))
         .catch(() => setSonuc('hata'))
+      /* Belirteç tek kullanımlık: bir sonraki talep için yenisini üret */
+      if (serverFlow) setTsReset((n) => n + 1)
     }
     if (reduce) {
       setPhase('gonderildi')
@@ -237,6 +257,18 @@ export default function LetterForm() {
                 </span>
               </label>
 
+              {serverFlow && (
+                <Turnstile
+                  siteKey={TURNSTILE_SITE_KEY}
+                  onToken={(t) => {
+                    setToken(t)
+                    if (t) setUyari('')
+                  }}
+                  onState={setTsState}
+                  resetKey={tsReset}
+                />
+              )}
+
               <div className="mt-6 flex flex-wrap items-center gap-4">
                 <button
                   type="submit"
@@ -246,6 +278,11 @@ export default function LetterForm() {
                   Zarfa koy ve gönder
                   <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
                 </button>
+                {uyari && (
+                  <p role="status" className="max-w-xs text-[0.82rem] leading-snug text-[#7d3a24]">
+                    {uyari}
+                  </p>
+                )}
               </div>
             </div>
           </form>

@@ -45,6 +45,10 @@ function turkce(err: unknown): string {
     return 'Bu hesabın siteyi değiştirme yetkisi yok. Kurulumdaki yönetici e-postasını kontrol edin.'
   if (m.includes('password should be') || m.includes('weak password')) return 'Şifre en az 8 karakter olmalı.'
   if (m.includes('same password') || m.includes('different from the old')) return 'Yeni şifre eskisiyle aynı olamaz.'
+  if (m.includes('invalid totp') || m.includes('invalid code') || m.includes('mfa_verification_failed') || m.includes('challenge') && m.includes('expired'))
+    return 'Kod hatalı ya da süresi geçti. Uygulamadaki güncel kodu girin.'
+  if (m.includes('aal2') || m.includes('insufficient_aal')) return 'Bu işlem için önce doğrulama kodunuzu girin (çıkış yapıp yeniden girin).'
+  if (m.includes('mfa') && m.includes('disabled')) return 'İki adımlı doğrulama bu projede kapalı. Supabase → Authentication → Multi-Factor ayarını açın.'
   if (m.includes('payload too large') || m.includes('exceeded the maximum')) return 'Fotoğraf çok büyük.'
   if (m.includes('mime') || m.includes('invalid file type')) return 'Bu dosya türü yüklenemiyor. JPG, PNG ya da WEBP seçin.'
   if (m.includes('failed to fetch') || m.includes('network') || m.includes('load failed'))
@@ -112,6 +116,85 @@ export async function updatePassword(password: string) {
   if (password.length < 8) throw new PanelError('Şifre en az 8 karakter olmalı.')
   if (mode !== 'supabase') return
   const { error } = await (await sb()).auth.updateUser({ password })
+  if (error) throw new PanelError(turkce(error))
+}
+
+/* ——— İki adımlı doğrulama (TOTP) ———
+ *
+ * Doğrulama uygulaması (Google Authenticator, Microsoft Authenticator,
+ * 1Password…) her 30 saniyede yeni bir 6 haneli kod üretir. Kurulduktan sonra
+ * yalnızca şifreyle açılan oturum (aal1) veritabanında hiçbir şeyi
+ * değiştiremez; kod girilince oturum aal2 olur (supabase/kurulum.sql,
+ * yonetici_mi). Deneme modunda yoktur.
+ */
+
+export type MfaFactor = { id: string; name: string; created: string }
+export type MfaState = {
+  /** Bu projede kullanılabilir mi (Supabase modu) */
+  available: boolean
+  /** Doğrulanmış uygulama kaydı var mı */
+  enabled: boolean
+  /** Şifreyle girildi, kod bekleniyor */
+  needsCode: boolean
+  factors: MfaFactor[]
+}
+
+export async function mfaState(): Promise<MfaState> {
+  if (mode !== 'supabase') return { available: false, enabled: false, needsCode: false, factors: [] }
+  const auth = (await sb()).auth
+  const [{ data: aal, error: e1 }, { data: list, error: e2 }] = await Promise.all([auth.mfa.getAuthenticatorAssuranceLevel(), auth.mfa.listFactors()])
+  if (e1 || e2) throw new PanelError(turkce(e1 ?? e2))
+  const factors = (list?.totp ?? []).map((f) => ({ id: f.id, name: f.friendly_name ?? 'Doğrulama uygulaması', created: f.created_at }))
+  return {
+    available: true,
+    enabled: factors.length > 0,
+    needsCode: aal?.nextLevel === 'aal2' && aal?.currentLevel !== 'aal2',
+    factors,
+  }
+}
+
+const cleanCode = (code: string) => {
+  const c = code.replace(/\s/g, '')
+  if (!/^\d{6}$/.test(c)) throw new PanelError('Uygulamadaki 6 haneli kodu yazın.')
+  return c
+}
+
+/** Girişten sonra: uygulamadaki kodla oturumu iki adımlı (aal2) yap */
+export async function mfaVerifyLogin(code: string) {
+  const c = cleanCode(code)
+  const auth = (await sb()).auth
+  const { data: list, error } = await auth.mfa.listFactors()
+  if (error) throw new PanelError(turkce(error))
+  const factor = list?.totp?.[0]
+  if (!factor) throw new PanelError('Doğrulama uygulaması kaydı bulunamadı.')
+  const { error: e2 } = await auth.mfa.challengeAndVerify({ factorId: factor.id, code: c })
+  if (e2) throw new PanelError(turkce(e2))
+}
+
+/** Kurulum 1: yarım kalmış kayıtları temizle, yeni kayıt aç; QR ve gizli anahtar döner */
+export async function mfaEnrollStart(): Promise<{ factorId: string; qr: string; secret: string }> {
+  const auth = (await sb()).auth
+  const { data: list } = await auth.mfa.listFactors()
+  for (const f of list?.all ?? []) if (f.factor_type === 'totp' && f.status !== 'verified') await auth.mfa.unenroll({ factorId: f.id })
+  const { data, error } = await auth.mfa.enroll({
+    factorType: 'totp',
+    friendlyName: `Panel ${new Date().toLocaleDateString('tr-TR')}`,
+    issuer: 'Ufuk Kilci Site',
+  })
+  if (error || !data) throw new PanelError(turkce(error ?? 'enroll'))
+  return { factorId: data.id, qr: data.totp.qr_code, secret: data.totp.secret }
+}
+
+/** Kurulum 2: uygulamadaki ilk kodla kaydı doğrula (oturum aal2 olur) */
+export async function mfaEnrollFinish(factorId: string, code: string) {
+  const c = cleanCode(code)
+  const { error } = await (await sb()).auth.mfa.challengeAndVerify({ factorId, code: c })
+  if (error) throw new PanelError(turkce(error))
+}
+
+/** Kaldır (Supabase bunun için oturumun aal2 olmasını ister) */
+export async function mfaRemove(factorId: string) {
+  const { error } = await (await sb()).auth.mfa.unenroll({ factorId })
   if (error) throw new PanelError(turkce(error))
 }
 

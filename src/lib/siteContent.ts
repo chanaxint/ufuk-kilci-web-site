@@ -382,9 +382,24 @@ export function waDigits(raw: string) {
 
 export const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`
 export const waHref = (c: SiteContent) => `https://wa.me/${waDigits(c.doctor.whatsappNumber || c.doctor.phone)}`
-/** Harita bağlantısı girilmemişse adresten bir Google Haritalar araması */
+/**
+ * Harita bağlantısı yalnızca güvenli bir https adresi olabilir
+ * ("javascript:", "http:", "data:" … kabul edilmez). Geçersizse boş döner.
+ */
+export function safeMapsUrl(raw: string): string {
+  const v = raw.trim()
+  if (!v) return ''
+  try {
+    const u = new URL(v)
+    return u.protocol === 'https:' && u.hostname.includes('.') ? u.href : ''
+  } catch {
+    return ''
+  }
+}
+
+/** Geçerli bir harita bağlantısı yoksa adresten bir Google Haritalar araması */
 export const mapsHref = (d: SiteContent['doctor']) =>
-  d.mapsUrl.trim() || `https://maps.google.com/?q=${encodeURIComponent(d.address)}`
+  safeMapsUrl(d.mapsUrl) || `https://maps.google.com/?q=${encodeURIComponent(d.address)}`
 
 export const instagramHref = (handle: string) =>
   `https://instagram.com/${handle.trim().replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, '')}`

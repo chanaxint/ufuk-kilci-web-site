@@ -18,7 +18,11 @@
 #                           bu adres connect-src'den çıkarılmalı.
 #   worker-src blob:        Lottie ve Supabase istemcisi arka plan işçisini blob
 #                           adresinden başlatıyor.
+#   challenges.cloudflare.com  Randevu formundaki Cloudflare Turnstile doğrulaması
+#                           (betik + çerçeve). VITE_TURNSTILE_SITE_KEY verilmezse
+#                           hiç yüklenmez.
 #   frame-src / frame-ancestors 'self'
+#                           (frame-src'de ayrıca Turnstile)
 #                           Yönetim panelinin canlı önizlemesi siteyi AYNI adresten
 #                           bir çerçevede açıyor. Bu yüzden 'none' / DENY DEĞİL:
 #                           yalnızca kendi alan adımız çerçeveleyebilir, başka siteler
@@ -29,7 +33,7 @@
 # isteği engeller ve talep yalnızca panele düşer.
 
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self'; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://lottie.host; worker-src 'self' blob:; frame-src 'self'; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self'; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://lottie.host https://challenges.cloudflare.com; worker-src 'self' blob:; frame-src 'self' https://challenges.cloudflare.com; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests
   X-Frame-Options: SAMEORIGIN
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin

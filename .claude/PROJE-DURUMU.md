@@ -662,6 +662,62 @@ Ayrıntı ve Cloudflare ayarları: `docs/yayina-alma.md`.
 - Doğrulama bekleyen içerik listesi ve KVKK eksikleri kullanıcıya raporlandı
   (yayın öncesi onay listesi).
 
+### Güvenlik: Turnstile + sunucu fonksiyonu, panel MFA (push yok)
+
+Supabase güvenlik incelemesinin eksikleri. Gerçek Supabase / Turnstile
+hesabı yok; hiçbir anahtar uydurulmadı.
+
+- **Randevu sunucu akışı.** `VITE_TURNSTILE_SITE_KEY` verilince
+  (`lib/appointment.ts` `serverFlow`) form talebi yalnızca `POST /api/randevu`'ya
+  gider (`{ad,telefon,konu,mesaj,onay:true,token}`); yoksa eski doğrudan
+  Supabase ekleme ("GEÇİŞ DÖNEMİ") ya da deneme modu.
+  `components/ui/Turnstile.tsx`: betik form 600 px yaklaşınca yüklenir,
+  `render=explicit`, `interaction-only`, `action: 'randevu'`; gönderimden
+  sonra `resetKey` ile yeni belirteç (tek kullanımlık). Belirteç yokken
+  gönderim yerine uyarı (`LetterForm` `uyari`).
+- **Fonksiyon** `functions/api/randevu.ts` (+ `functions/_lib/randevu.ts`,
+  `_` → adres değil): sırayla env (503) → Origin = istek adresi (403) → JSON
+  (415) → ≤16 KB (413) → alan denetimi (400; `onay` boolean `true`) → tuzak
+  alan `web_sitesi` doluysa 201 ama kayıt yok → Turnstile siteverify
+  (`remoteip` = CF-Connecting-IP, `action` ve isteğe bağlı
+  `TURNSTILE_HOSTNAMES`) → Supabase REST insert (`SUPABASE_SECRET_KEY`;
+  `eyJ…` ise Authorization da, `sb_secret_…` yalnızca `apikey`). Hatalar:
+  P0001 (numara freni) → 429 iletiyle, 23514 → 400, diğerleri → 502 genel ileti.
+  Tür denetimi `tsconfig.functions.json` (WebWorker lib), kök referansta.
+- **Ön yüz anahtar başlığı:** `lib/backend.ts` `anonHeaders` — Authorization
+  yalnızca JWT (`eyJ…`) anahtarda; `sb_publishable_` JWT değil.
+- **SQL** (`kurulum.sql`): `yoneticiler.mfa_zorunlu`; `yonetici_mi()` artık
+  aal2 ister — ya da `mfa_zorunlu` kapalı VE doğrulanmış TOTP yoksa aal1
+  yeter (ilk kurulum çalışsın). `yoneticiler` / `kurulum_ayarlari`
+  anon+authenticated'a tamamen kapalı, `yonetici_mi` anon çalıştıramaz.
+  Randevu tablosu: authenticated'a select/delete + yalnızca `update(durum)`.
+  Doğrudan ekleme `kurulum_ayarlari.dogrudan_randevu='kapali'` işaretine
+  bağlı; `supabase/dogrudan-eklemeyi-kapat.sql` işareti koyar + revoke +
+  policy drop; kurulum.sql yeniden çalışsa da kapalı kalır.
+- **Panel MFA** (`admin/api.ts` `mfa*`, `admin/Mfa.tsx`, `AdminApp` `'kod'`
+  ekranı): girişten sonra `nextLevel=aal2 && currentLevel≠aal2` ise kod
+  ekranı; Hesabım'da QR + elle anahtar ile kurulum, kapatma; MFA yokken
+  panelin üstünde hatırlatma. Deneme modunda MFA yok.
+- **Harita:** `safeMapsUrl` yalnızca `https:` ve noktalı alan adı; geçersizse
+  adresten arama bağlantısı; panelde kırmızı uyarı.
+- **CSP:** `challenges.cloudflare.com` script/frame/connect-src'de.
+- **Belgeler:** `docs/yonetim-paneli.md` kurulum sırası baştan yazıldı
+  (önce kayıt kapalı + Confirm email + şifre uzunluğu + TOTP açık → SQL →
+  kullanıcı → URL → anahtar → Turnstile + Pages Secrets + deneme →
+  doğrudan eklemeyi kapat → giriş + MFA + `mfa_zorunlu`, telefon kaybı).
+  `docs/yayina-alma.md` env tablosu (Secret türleri), Functions notu.
+  `.env.example` + `.dev.vars.example` (`.dev.vars` gitignore'da).
+- **Yerel testler (scratchpad, depoda değil):** SQL yerel PG 16 Supabase
+  iskeletinde (auth.jwt aal, auth.mfa_factors, storage taklidi) — hepsi
+  geçti; fonksiyon esbuild + sahte fetch 30/30; tarayıcı uçtan uca (dist +
+  `_headers` + fonksiyon, sahte Turnstile betiği ve sahte siteverify/Supabase)
+  14/14. **Gerçek servislerle denenmedi:** Turnstile widget/siteverify,
+  Pages Functions çalışma ortamı, gerçek Supabase (JWT `aal`,
+  `auth.mfa_factors`'a security definer erişimi, MFA uç noktaları,
+  `sb_secret_`/`sb_publishable_` başlık davranışı).
+- Paket taramasında `sb_secret_` eşleşmesi supabase-js'in kendi kodu
+  (`startsWith("sb_secret_")`), gizli değer değil.
+
 - Konteynerdeki yazılım GPU'sunda iletişim bölümü ~2 kare/sn çiziliyor
   (kâğıt dokusu + karışım modu); önceki commit'te de aynı, gerçek
   cihazlarla ilgisi yok. Ekran görüntüsü alırken `timeout` uzun tutulmalı.
@@ -686,7 +742,11 @@ src/lib/canvas.ts                    serbest düzen modeli (yüzde ölçüler, y
 src/components/CanvasBlock.tsx       serbest düzenin sitedeki çizimi
 src/components/CanvasEditor.tsx      önizlemede sürükle/boyutlandır + kılavuz çizgileri
 src/admin/                           yönetim paneli (Editor, Blocks, Preview, Requests, sections…)
-supabase/kurulum.sql                 tablolar + satır kuralları (içerik, yöneticiler, depo, randevular)
+supabase/kurulum.sql                 tablolar + satır kuralları (içerik, yöneticiler+MFA, depo, randevular)
+supabase/dogrudan-eklemeyi-kapat.sql sunucu akışı denendikten sonra ziyaretçinin doğrudan eklemesini kapatır
+functions/api/randevu.ts             Pages Function: Turnstile doğrula → Supabase'e gizli anahtarla yaz
+src/components/ui/Turnstile.tsx      Turnstile widget'ı (tembel yükleme)
+src/admin/Mfa.tsx                    panel iki adımlı doğrulama (TOTP)
 public/_headers                      Cloudflare yanıt başlıkları (CSP, çerçeveleme, panel noindex, önbellek)
 vite/site-seo.ts                     robots.txt; SITE_URL ile sitemap.xml, canonical, og:url
 docs/yayina-alma.md                  Cloudflare Pages ayarları ve yayın sonrası adımlar

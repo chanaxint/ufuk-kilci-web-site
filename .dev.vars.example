@@ -1,0 +1,23 @@
+# Sunucu tarafı gizli değerler — functions/api/randevu.ts bunları okur.
+#
+# YAYINDA: Cloudflare Pages → Settings → Variables and Secrets → her biri
+# "Secret" (şifreli) olarak eklenir. Tarayıcıya gitmez.
+# YERELDE (isteğe bağlı): bu dosyayı ".dev.vars" adıyla kopyalayıp doldurun ve
+# `npx wrangler pages dev` ile çalıştırın. ".dev.vars" git'e girmez.
+#
+# ASLA VITE_ ile başlayan bir değişkene ya da ön yüz koduna konmaz:
+# VITE_* değerleri derlemede sitenin JavaScript'ine gömülür, herkes görür.
+
+# Cloudflare → Turnstile → site → Secret Key
+TURNSTILE_SECRET_KEY=""
+
+# Supabase → Project Settings → Data API → Project URL
+SUPABASE_URL=""
+
+# Supabase → Project Settings → API Keys → Secret key (sb_secret_…)
+# ya da Legacy API keys → service_role. Satır kurallarını aşar: yalnızca burada.
+SUPABASE_SECRET_KEY=""
+
+# Önerilir: belirtecin üretilebileceği alan adları (virgülle)
+# ör. ufukkilci.com,www.ufukkilci.com
+TURNSTILE_HOSTNAMES=""

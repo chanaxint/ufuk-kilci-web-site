@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { currentEmail, mode, PanelError, sendReset, signIn, updatePassword, watchAuth } from './api'
+import { currentEmail, mfaState, mfaVerifyLogin, mode, PanelError, sendReset, signIn, signOut, updatePassword, watchAuth } from './api'
 import Editor from './Editor'
 
-type Screen = 'yukleniyor' | 'giris' | 'kurtarma' | 'panel' | 'kurulum'
+type Screen = 'yukleniyor' | 'giris' | 'kod' | 'kurtarma' | 'panel' | 'kurulum'
 
 /*
  * Şifre sıfırlama e-postasındaki bağlantı panele `#...type=recovery` ile
@@ -15,25 +15,52 @@ export default function AdminApp() {
   const [email, setEmail] = useState('')
   const recovering = useRef(arrivedForRecovery)
 
+  /*
+   * Oturum açıldıktan sonra: iki adımlı doğrulama kuruluysa önce kod iste.
+   * Şifre sıfırlama bağlantısıyla gelindiyse de önce kod (Supabase, doğrulama
+   * kurulu hesapta şifre değişikliği için iki adımlı oturum isteyebiliyor).
+   */
+  const afterSignIn = async () => {
+    setEmail((await currentEmail()) ?? '')
+    let needsCode = false
+    try {
+      needsCode = (await mfaState()).needsCode
+    } catch {
+      /* durum okunamadıysa panel açılır; yetki veritabanında yine denetleniyor */
+    }
+    setScreen(needsCode ? 'kod' : recovering.current ? 'kurtarma' : 'panel')
+  }
+
   useEffect(() => {
     if (mode === 'kurulmamis') return
     let stop = () => {}
     watchAuth({
       recovery: () => {
         recovering.current = true
-        setScreen('kurtarma')
+        afterSignIn()
       },
       signedOut: () => setScreen('giris'),
     }).then((s) => (stop = s))
     currentEmail().then((e) => {
-      if (e) setEmail(e)
-      setScreen(recovering.current ? 'kurtarma' : e ? 'panel' : 'giris')
+      if (e) afterSignIn()
+      else setScreen('giris')
     })
     return () => stop()
   }, [])
 
   if (screen === 'kurulum') return <Setup />
   if (screen === 'yukleniyor') return <Center><p className="text-[#7a6650]">Yükleniyor…</p></Center>
+  if (screen === 'kod')
+    return (
+      <CodeStep
+        email={email}
+        onDone={() => setScreen(recovering.current ? 'kurtarma' : 'panel')}
+        onCancel={async () => {
+          await signOut()
+          setScreen('giris')
+        }}
+      />
+    )
   if (screen === 'kurtarma')
     return (
       <Recovery
@@ -46,12 +73,7 @@ export default function AdminApp() {
     )
   if (screen === 'giris')
     return (
-      <Login
-        onSignedIn={async () => {
-          setEmail((await currentEmail()) ?? '')
-          setScreen('panel')
-        }}
-      />
+      <Login onSignedIn={afterSignIn} />
     )
   return <Editor email={email} onSignedOut={() => setScreen('giris')} />
 }
@@ -88,6 +110,64 @@ function Message({ ok, children }: { ok?: boolean; children: ReactNode }) {
     >
       {children}
     </p>
+  )
+}
+
+/* ——— İki adımlı doğrulama kodu ——— */
+
+function CodeStep({ email, onDone, onCancel }: { email: string; onDone: () => void; onCancel: () => void }) {
+  const [code, setCode] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setBusy(true)
+    try {
+      await mfaVerifyLogin(code)
+      onDone()
+    } catch (err) {
+      setError(err instanceof PanelError ? err.message : 'Kod doğrulanamadı. Tekrar deneyin.')
+      setCode('')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Card title="Doğrulama kodu">
+      <form onSubmit={submit} className="flex flex-col gap-4">
+        <p className="text-[0.95rem] leading-relaxed text-[#5c4831]">
+          {email ? <strong>{email}</strong> : 'Hesabınız'} iki adımlı doğrulamayla korunuyor. Telefonunuzdaki doğrulama
+          uygulamasında görünen <strong>6 haneli kodu</strong> yazın.
+        </p>
+        <label className="flex flex-col gap-1.5">
+          <span className="font-display text-[0.95rem] font-bold text-[#2a1d12]">Kod</span>
+          <input
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/[^\d\s]/g, '').slice(0, 7))}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            autoFocus
+            placeholder="123 456"
+            aria-label="Doğrulama kodu"
+            className={`${inputCls} text-center font-display text-[1.4rem] tracking-[0.3em]`}
+          />
+        </label>
+        {error && <Message>{error}</Message>}
+        <button type="submit" disabled={busy || code.replace(/\s/g, '').length !== 6} className={primaryCls}>
+          {busy ? 'Doğrulanıyor…' : 'Doğrula ve gir'}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="self-center font-display text-[0.92rem] font-bold text-[#7a6650] underline-offset-4 hover:underline"
+        >
+          Farklı hesapla gir
+        </button>
+      </form>
+    </Card>
   )
 }
 

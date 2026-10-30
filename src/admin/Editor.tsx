@@ -7,6 +7,7 @@ import { missingRequired, sections, type Setter } from './sections'
 import BlocksEditor, { AddBlockDialog } from './Blocks'
 import Preview from './Preview'
 import Requests, { useNewRequestCount } from './Requests'
+import MfaCard, { MfaReminder } from './Mfa'
 
 type Status = { kind: 'idle' | 'saving' | 'ok' | 'error'; message?: string }
 
@@ -241,6 +242,8 @@ export default function Editor({ email, onSignedOut }: { email: string; onSigned
         </div>
       )}
 
+      {active !== ACCOUNT && <MfaReminder onOpen={() => open(ACCOUNT)} />}
+
       {/* Telefon ve tablette: düzenle / önizle sekmeleri */}
       {withPreview && (
         <div className="sticky top-[4.4rem] z-20 border-b border-[#e3d7c4] bg-[#f5efe6]/95 px-4 py-2 backdrop-blur sm:px-6 xl:hidden">
@@ -466,6 +469,7 @@ function Account({ email, onLeave }: { email: string; onLeave: () => void }) {
         )}
         {msg && <p className={`text-[0.95rem] font-semibold ${msg.ok ? 'text-[#3f6a2f]' : 'text-[#9b3b2a]'}`}>{msg.text}</p>}
       </div>
+      <MfaCard />
       <button
         type="button"
         onClick={onLeave}

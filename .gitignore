@@ -7,3 +7,7 @@ dist
 
 # Ortam değişkenleri (Supabase adresi vb.) depoya girmesin; örnek: .env.example
 .env
+
+# Cloudflare Pages yerel sunucu gizli değerleri (örnek: .dev.vars.example)
+.dev.vars
+.wrangler

@@ -48,3 +48,7 @@ Bu adım hatırlatılmayı beklemez; her iş tesliminin parçasıdır.
   `public/_headers` içindeki CSP de güncellenmeli; çerçeveleme izni `'self'`
   kalmalı (panel önizlemesi). Alan adı uydurulmaz: `SITE_URL` derleme
   ortamında verilir.
+- Randevu formu Turnstile kuruluysa `functions/api/randevu.ts` üzerinden
+  kaydeder. Supabase secret/service_role ve Turnstile gizli anahtarı yalnızca
+  Cloudflare Pages "Secret" değişkenlerinde (yerelde `.dev.vars`); asla
+  `VITE_*` ya da ön yüz kodu. `functions/` tür denetimi `tsconfig.functions.json`.

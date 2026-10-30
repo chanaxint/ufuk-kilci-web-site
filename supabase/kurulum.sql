@@ -1,17 +1,25 @@
 -- ════════════════════════════════════════════════════════════════════
 --  Ufuk Kilci web sitesi — yönetim paneli kurulumu (Supabase)
 --
+--  ÖNCE: Authentication → Sign In / Providers → "Allow new users to sign
+--  up" KAPALI olsun (docs/yonetim-paneli.md, 2. adım).
+--
 --  Supabase panelinde: SQL Editor → New query → bu dosyanın tamamını
 --  yapıştırın → EN ALTTAKİ e-posta adresini kendi adresinizle değiştirin
---  → Run. Birden fazla kez çalıştırmak zararsızdır.
+--  → Run. Birden fazla kez çalıştırmak zararsızdır. Gerçek e-posta adresini
+--  yalnızca SQL Editor'de yazın; bu dosyaya (açık depoya) yazmayın.
 --
 --  Ne kuruluyor:
 --    1. site_content  — sitenin bütün yazıları (tek satır)
 --    2. yoneticiler   — siteyi değiştirebilecek e-posta adresleri
+--       + iki adımlı doğrulama (MFA) kuralı
 --    3. Satır kuralları: herkes OKUR, yalnızca yönetici YAZAR
 --    4. site-gorselleri — fotoğraf deposu (herkese açık okuma)
 --    5. randevu_talepleri — sitedeki formdan gelen talepler
---       (ziyaretçi yalnızca EKLER; okuyan/silen yalnızca yönetici)
+--       (okuyan/silen yalnızca yönetici). Ziyaretçinin DOĞRUDAN ekleme
+--       yetkisi yalnızca geçiş dönemi için; sunucu akışı (Turnstile +
+--       /api/randevu) kurulup denendikten sonra
+--       supabase/dogrudan-eklemeyi-kapat.sql ile kapatılır.
 -- ════════════════════════════════════════════════════════════════════
 
 -- 1) Sitenin içeriği: tek satır (id = 1), bütün içerik JSON olarak
@@ -22,13 +30,21 @@ create table if not exists public.site_content (
 );
 insert into public.site_content (id) values (1) on conflict (id) do nothing;
 
--- 2) Yöneticiler. Bu tablo dışarıdan hiç okunamaz/yazılamaz (kural yok);
---    yalnızca aşağıdaki fonksiyon içeriden bakar.
+-- 2) Yöneticiler. Bu tablo dışarıdan hiç okunamaz/yazılamaz (kural ve
+--    yetki yok); yalnızca aşağıdaki fonksiyon içeriden bakar.
 create table if not exists public.yoneticiler (
   email text primary key
 );
+--    mfa_zorunlu: true yapılırsa bu yönetici iki adımlı doğrulama olmadan
+--    hiçbir şeyi değiştiremez (kurulduktan sonra açılması önerilir).
+alter table public.yoneticiler add column if not exists mfa_zorunlu boolean not null default false;
 alter table public.yoneticiler enable row level security;
+revoke all on public.yoneticiler from anon, authenticated;
 
+--    Yönetici mi? E-posta listede olmalı VE iki adımlı doğrulama kuralı
+--    sağlanmalı: kullanıcı doğrulama uygulamasını (TOTP) kurduysa ya da
+--    mfa_zorunlu açıksa yalnızca iki adımlı oturum (aal2) yetkilidir;
+--    yalnızca şifreyle açılmış oturum (aal1) okuyamaz, yazamaz.
 create or replace function public.yonetici_mi()
 returns boolean
 language sql
@@ -38,10 +54,26 @@ set search_path = ''
 as $$
   select exists (
     select 1
-    from public.yoneticiler
-    where lower(email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+    from public.yoneticiler y
+    where lower(y.email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+      and (
+        coalesce(auth.jwt() ->> 'aal', '') = 'aal2'
+        or (
+          not y.mfa_zorunlu
+          and not exists (
+            select 1
+            from auth.mfa_factors f
+            where f.user_id = auth.uid()
+              and f.status = 'verified'
+          )
+        )
+      )
   );
 $$;
+--    Ziyaretçinin bu fonksiyona işi yok (yalnızca giriş yapmış kullanıcıların
+--    kurallarında kullanılıyor)
+revoke execute on function public.yonetici_mi() from public, anon;
+grant execute on function public.yonetici_mi() to authenticated;
 
 -- 3) Satır kuralları
 alter table public.site_content enable row level security;
@@ -97,18 +129,38 @@ create table if not exists public.randevu_talepleri (
 create index if not exists randevu_talepleri_tarih on public.randevu_talepleri (created_at desc);
 alter table public.randevu_talepleri enable row level security;
 
--- Sütun yetkileri: ziyaretçi yalnızca formdaki alanları yazabilir (tarih,
--- numara ve durum veritabanında belirlenir); yönetici yalnızca durumu
--- değiştirebilir.
+-- Kurulum işaretleri (dışarıdan erişilemez). dogrudan-eklemeyi-kapat.sql
+-- buraya not düşer; bu dosya yeniden çalıştırılınca kapı tekrar açılmaz.
+create table if not exists public.kurulum_ayarlari (
+  anahtar text primary key,
+  deger text not null
+);
+alter table public.kurulum_ayarlari enable row level security;
+revoke all on public.kurulum_ayarlari from anon, authenticated;
+
+-- Sütun yetkileri: yönetici yalnızca durumu değiştirebilir. Sunucu
+-- fonksiyonu (sunucu anahtarı) satır kurallarını aşar; frenleyici
+-- tetikleyici onda da çalışır.
 revoke all on public.randevu_talepleri from anon, authenticated;
-grant insert (ad, telefon, konu, mesaj, onay) on public.randevu_talepleri to anon, authenticated;
 grant select, delete on public.randevu_talepleri to authenticated;
 grant update (durum) on public.randevu_talepleri to authenticated;
 
-drop policy if exists "ziyaretci talep birakir" on public.randevu_talepleri;
-create policy "ziyaretci talep birakir" on public.randevu_talepleri
-  for insert to anon, authenticated
-  with check (durum = 'yeni');
+-- GEÇİŞ DÖNEMİ: ziyaretçinin doğrudan ekleme yetkisi (yalnızca formdaki
+-- alanlar; tarih, numara ve durum veritabanında belirlenir). Kapatıldıysa
+-- (kurulum_ayarlari.dogrudan_randevu = 'kapali') yeniden açılmaz.
+do $$
+begin
+  if exists (select 1 from public.kurulum_ayarlari where anahtar = 'dogrudan_randevu' and deger = 'kapali') then
+    drop policy if exists "ziyaretci talep birakir" on public.randevu_talepleri;
+  else
+    grant insert (ad, telefon, konu, mesaj, onay) on public.randevu_talepleri to anon, authenticated;
+    drop policy if exists "ziyaretci talep birakir" on public.randevu_talepleri;
+    create policy "ziyaretci talep birakir" on public.randevu_talepleri
+      for insert to anon, authenticated
+      with check (durum = 'yeni');
+  end if;
+end;
+$$;
 
 drop policy if exists "yonetici talepleri okur" on public.randevu_talepleri;
 create policy "yonetici talepleri okur" on public.randevu_talepleri

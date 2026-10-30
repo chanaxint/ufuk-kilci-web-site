@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { LIMITS, type SiteContent } from '../lib/siteContent'
+import { LIMITS, safeMapsUrl, type SiteContent } from '../lib/siteContent'
 import { CardList, HeadingInput, ImageInput, NumberInput, StringList, TextArea, TextInput } from './fields'
 
 /** Bir bölümün alanlarını değiştirmek için: `set('doctor', { phone: '…' })` */
@@ -70,7 +70,16 @@ export const sections: Section[] = [
         <TextInput
           label="Harita bağlantısı"
           inputMode="url"
-          hint="Google Haritalar'da kliniğinizi açıp 'Paylaş' bağlantısını buraya yapıştırın. Boş bırakırsanız adres aranır."
+          hint={
+            c.doctor.mapsUrl.trim() && !safeMapsUrl(c.doctor.mapsUrl) ? (
+              <span className="font-semibold text-[#9b3b2a]">
+                Bu bağlantı kullanılmayacak: yalnızca https:// ile başlayan adresler kabul ediliyor. Şu an sitede adresten
+                arama yapılıyor.
+              </span>
+            ) : (
+              "Google Haritalar'da kliniğinizi açıp 'Paylaş' bağlantısını buraya yapıştırın (https:// ile başlar). Boş bırakırsanız adres aranır."
+            )
+          }
           value={c.doctor.mapsUrl}
           onChange={(v) => set('doctor', { mapsUrl: v })}
         />

@@ -21,6 +21,16 @@ export const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL ?? '').trim().rep
 export const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY ?? '').trim()
 
 export const configured = SUPABASE_URL.length > 0 && SUPABASE_ANON_KEY.length > 0
+
+/**
+ * Doğrudan REST isteklerinin anahtar başlıkları. Eski `anon` anahtarı bir JWT
+ * olduğu için Authorization'a da yazılır; yeni `sb_publishable_…` anahtarı
+ * JWT değil, yalnızca `apikey` başlığında gider.
+ */
+export const anonHeaders: Record<string, string> = {
+  apikey: SUPABASE_ANON_KEY,
+  ...(SUPABASE_ANON_KEY.startsWith('eyJ') ? { Authorization: `Bearer ${SUPABASE_ANON_KEY}` } : {}),
+}
 export const demoMode = import.meta.env.DEV && !configured
 
 /** Görsellerin yüklendiği depo */
@@ -37,7 +47,7 @@ export async function fetchSavedContent(signal?: AbortSignal): Promise<unknown |
   if (configured) {
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/site_content?id=eq.1&select=data`, {
-        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+        headers: anonHeaders,
         signal,
       })
       if (!res.ok) return null

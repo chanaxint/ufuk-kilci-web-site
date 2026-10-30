@@ -189,6 +189,8 @@ export default function Testimonials() {
             {testimonials.map((item, i) => {
               const spot = spots[i % spots.length]
               const aged = AGED[i % AGED.length]
+              /* İsimsiz kâğıt yer tutucu: yıldız ve imza yok, yalnızca not */
+              const imzali = !!(item.name.trim() || item.role.trim())
               return (
                 <figure
                   key={i}
@@ -228,22 +230,30 @@ export default function Testimonials() {
                     }}
                   />
 
-                  <div className="relative flex items-center gap-0.5 text-[#96691f]">
-                    {Array.from({ length: 5 }).map((_, s) => (
-                      <Star key={s} className="size-3.5" />
-                    ))}
-                  </div>
+                  {imzali ? (
+                    <>
+                      <div className="relative flex items-center gap-0.5 text-[#96691f]">
+                        {Array.from({ length: 5 }).map((_, s) => (
+                          <Star key={s} className="size-3.5" />
+                        ))}
+                      </div>
 
-                  <blockquote className="relative mt-2.5 text-[0.88rem] leading-relaxed text-[#453524]">
-                    {item.quote}
-                  </blockquote>
+                      <blockquote className="relative mt-2.5 text-[0.88rem] leading-relaxed text-[#453524]">
+                        {item.quote}
+                      </blockquote>
 
-                  <figcaption className="relative mt-3.5 flex items-baseline gap-2 border-t border-[#6b5334]/25 pt-2.5">
-                    <span className="font-wordmark text-[1.15rem] leading-none text-[#31241a]">
-                      {item.name}
-                    </span>
-                    <span className="text-[0.74rem] text-[#6f5a3f]">{item.role}</span>
-                  </figcaption>
+                      <figcaption className="relative mt-3.5 flex items-baseline gap-2 border-t border-[#6b5334]/25 pt-2.5">
+                        <span className="font-wordmark text-[1.15rem] leading-none text-[#31241a]">
+                          {item.name}
+                        </span>
+                        <span className="text-[0.74rem] text-[#6f5a3f]">{item.role}</span>
+                      </figcaption>
+                    </>
+                  ) : (
+                    <p className="relative py-6 text-center font-wordmark text-[1.3rem] leading-snug text-[#5a4630]">
+                      {item.quote}
+                    </p>
+                  )}
                 </figure>
               )
             })}

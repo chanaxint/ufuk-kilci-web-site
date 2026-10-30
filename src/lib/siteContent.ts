@@ -213,9 +213,18 @@ export const defaultContent: SiteContent = {
   },
   testimonials: {
     intro: '',
+    /* Puan uydurulmuyor: boşken sitede görünmez */
     rating: '',
     ratingCount: '',
-    items: [],
+    /*
+     * Gerçek yorumlar gelene kadar kâğıtlarda yalnızca bu not; isim ve unvan
+     * boş olduğu için yıldız ve imza satırı da çizilmiyor (Testimonials.tsx).
+     */
+    items: Array.from({ length: LIMITS.testimonials }, () => ({
+      name: '',
+      role: '',
+      quote: 'Gerçek yorumlar eklenecektir.',
+    })),
   },
   certificates: {
     intro: 'Tamamladığım eğitimlerin belgeleri. Büyütmek için belgenin üzerine tıklayabilirsiniz.',

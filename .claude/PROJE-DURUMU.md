@@ -662,6 +662,15 @@ Ayrıntı ve Cloudflare ayarları: `docs/yayina-alma.md`.
 - Doğrulama bekleyen içerik listesi ve KVKK eksikleri kullanıcıya raporlandı
   (yayın öncesi onay listesi).
 
+### Hasta yorumları yer tutucu kâğıtlarla geri geldi
+
+Kullanıcı isteği: bölüm görünsün, kâğıtlarda "Gerçek yorumlar eklenecektir."
+yazsın. Varsayılanda `LIMITS.testimonials` (8) kâğıt, isim/unvan boş. İsim ve
+unvan boşken `Testimonials.tsx` yıldızları ve imza satırını çizmiyor; not
+ortada `font-wordmark` ile. Puan (`rating`) boş kaldı; uydurma yorum, puan ya
+da "izinle paylaşıldı" metni geri konmadı. Panelde kayıtlı içerik varsa
+(ör. yorum listesi boş kaydedildiyse) varsayılan değil kayıtlı liste görünür.
+
 ### Panel Cloudflare'e taşındı: D1 + R2 + Access (push yok)
 
 Supabase tamamen kaldırıldı (paket, env, SQL, CSP, MFA/şifre ekranları,

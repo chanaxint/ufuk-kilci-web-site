@@ -76,16 +76,36 @@ yayınlanacak.
 > düzenini kontrol etmek gerekir. **Bu karar alan adı belli olunca birlikte
 > verilmeli.**
 
-### 1. Email Routing ve alıcı adres
+### 1. Alıcı adres ve gönderen alan adı
 
-1. Cloudflare → **Compute** → **Email Service** → **Email Routing** → alan
-   adını seçip Email Routing'i etkinleştirin (gerekli DNS kayıtlarını
-   Cloudflare ekler).
-2. **Destination Addresses** → talepleri alacak adresi (doktorun kendi
-   e-postası) ekleyin. O adrese gelen e-postadaki **Verify email address**
-   bağlantısına tıklayın. Doğrulanmadan hiçbir şey gönderilmez.
-3. Gönderen adres için bir ad seçin, ör. `randevu@alanadi` (Email Routing açık
-   alan adından olmalı; gerçek bir posta kutusu olması gerekmez).
+Email Service'te iki ayrı şey var ve ikisi de gerekiyor:
+
+- **Email Routing → Destination addresses:** e-postayı *alacak* adres.
+  Doğrulanınca Worker bu adrese gönderebilir — ama **bu tek başına gönderimi
+  açmaz.**
+- **Email Sending:** e-postayı *gönderecek* alan adı. Gönderen adres
+  (`GONDEREN_EPOSTA`, ör. `randevu@alanadi`) Email Sending'e eklenmiş
+  (onboard edilmiş) bir alan adından olmalı; değilse gönderim
+  `E_SENDER_NOT_VERIFIED` benzeri bir hatayla reddedilir.
+
+1. Cloudflare → **Compute** → **Email Service** → **Email Routing** →
+   **Destination addresses** → talepleri alacak adresi ekleyin ve gelen
+   e-postadaki **Verify email address** bağlantısına tıklayın.
+2. Cloudflare → **Compute** → **Email Service** → **Email Sending** →
+   **Onboard domain** → sitenin alan adını (DNS'i Cloudflare'de olan) seçin.
+   Cloudflare gönderim için DNS kayıtlarını (SPF, DKIM, DMARC; `cf-bounce`
+   alt alan adında) ekler. Durum **Active / Verified** olana kadar bekleyin
+   (genelde dakikalar, en fazla 24 saat). Mevcut gelen posta (MX) kayıtlarına
+   dokunmaz; yine de eklenen kayıtları onaylamadan önce gözden geçirin.
+3. Gönderen adres için bir ad seçin, ör. `randevu@alanadi` (gerçek bir posta
+   kutusu olması gerekmez; doktor "yanıtla" deyince ziyaretçinin adresine
+   yanıt gider, çünkü `replyTo` ziyaretçinin e-postası).
+
+> Plan notu: Cloudflare belgelerine göre doğrulanmış hedef adreslere gönderim
+> günlük kotaya sayılmıyor; **herhangi bir** adrese gönderim Workers Paid
+> ister. Bu sistem yalnızca doktorun doğrulanmış adresine gönderiyor. Yine de
+> Email Sending'i eklerken ekranda bir plan uyarısı çıkarsa kurulumdan önce
+> değerlendirin.
 
 ### 2. E-posta Worker'ını yayınlayın
 

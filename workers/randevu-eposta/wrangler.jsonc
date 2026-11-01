@@ -15,7 +15,14 @@
 	"preview_urls": false,
 	// Kısıtsız bağlama: yalnızca hesapta DOĞRULANMIŞ hedef adreslere gönderebilir.
 	// İsterseniz "allowed_destination_addresses": ["doktorun-adresi"] ile daha da daraltın.
+	// Gönderen (GONDEREN_EPOSTA) Email Service → Email Sending'e eklenmiş (onboard)
+	// alan adından olmalı. Hedef adresi doğrulamak (Email Routing →
+	// Destination addresses) tek başına gönderimi açmaz.
+	// Yerelde `wrangler dev` gönderimi taklit eder (e-posta gitmez, dosyaya yazılır).
 	"send_email": [{ "name": "EPOSTA" }],
+	// Worker → Logs ekranında hata kodları görünsün (kişisel veri yazılmıyor,
+	// yalnızca ör. E_SENDER_NOT_VERIFIED gibi kodlar).
+	"observability": { "enabled": true },
 	// Yaklaşık, konum başına sınırlar (süre yalnızca 10 ya da 60 saniye olabilir).
 	// namespace_id hesap içinde benzersiz, kendi seçtiğimiz bir sayı.
 	"ratelimits": [

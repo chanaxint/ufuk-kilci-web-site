@@ -187,6 +187,17 @@ BLOOM = 0.93     // sıcak ışık dolup sahne sayfanın zeminine çözülüyor
 
 Bölüm boyu `h-[366vh] sm:h-[480vh] lg:h-[580vh]`.
 
+### Randevu e-postası durumu (2026-11-02)
+
+Kullanıcı Ufuk Bey'in adresini Email Routing → Destination addresses'e
+ekleyip doğruladı. Bu **gönderimi açmaz**: gönderen alan adı ayrıca
+Email Service → Email Sending'e eklenmeli (sıradaki adım). `send()`
+arayüzü (from/to/subject/text/html/replyTo nesnesi) wrangler 4.151
+türleriyle uyumlu; Worker yerel workerd'de denendi (202, 400, 405, 404,
+telefon sınırı 429; e-posta `.wrangler/tmp/email` altına taklit yazıldı),
+sunucu testleri 18/18. Worker'a `observability` eklendi. **Gerçek teslim
+henüz yapılmadı** — çalışır diye raporlanmayacak.
+
 ### 4.5c Mobil düzeltmeler (2026-11-01, kullanıcı isteği)
 
 - **Bölge adı omurganın yanında:** telefonda dokunulan bölgenin adı + kodu +

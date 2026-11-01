@@ -10,14 +10,16 @@
  * denetleniyor, oran sınırı uygulanıyor ve e-posta gönderiliyor.
  *
  * Ücretsiz kullanım: Cloudflare Email Service, hesaptaki DOĞRULANMIŞ hedef
- * adreslere gönderimi her planda ücretsiz ve kotasız sayıyor. Alıcı bu
- * yüzden doktorun Email Routing'de doğruladığı adres; gönderen de Email
- * Routing açık alan adındaki bir adres olmalı (docs/randevu-gonderimi.md).
+ * adreslere gönderimi kotaya saymıyor. Alıcı bu yüzden doktorun Email
+ * Routing → Destination addresses'te doğruladığı adres. Gönderen ise
+ * Email Service → Email Sending'e eklenmiş (onboard) alan adından olmalı;
+ * hedef adresin doğrulanması tek başına gönderimi açmıyor
+ * (docs/randevu-gonderimi.md).
  *
  * Ayarlar (wrangler.jsonc + `wrangler secret put` ya da panel):
  *   EPOSTA            send_email bağlaması
  *   ALICI_EPOSTA      doktorun doğrulanmış hedef adresi
- *   GONDEREN_EPOSTA   Email Routing alan adındaki gönderen adresi
+ *   GONDEREN_EPOSTA   Email Sending'e eklenmiş alan adındaki gönderen adresi
  *   KISI_SINIRI, TELEFON_SINIRI, GENEL_SINIRI   oran sınırı bağlamaları
  *
  * Kişisel veri günlüğe yazılmaz; hata olursa yalnızca hata kodu yazılır.

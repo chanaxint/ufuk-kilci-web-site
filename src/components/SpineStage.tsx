@@ -569,7 +569,13 @@ export default function SpineStage() {
         className="pointer-events-none absolute left-0 h-px w-px"
         style={{ top: `calc((100% - 100vh) * ${phone ? (HERO - PHONE_START) / (1 - PHONE_START) : HERO})` }}
       />
-      <div ref={stickyRef} className="sticky top-0 h-[100svh] overflow-hidden">
+      {/*
+        Sahne büyük görüntü alanı yüksekliğinde (lvh): iPhone'da kaydırırken
+        alt çubuk küçülünce ekran uzuyor; svh ile sahnenin altında sayfanın
+        ahşap zemini görünüyordu. Yazılar ve düğmeler ise küçük yükseklikte
+        (svh) duruyor ki çubuk açıkken altında kalmasınlar.
+      */}
+      <div ref={stickyRef} className="sticky top-0 h-[100svh] overflow-hidden supports-[height:100lvh]:h-[100lvh]">
         <EditChip target="giris" label="Giriş" at="top-[6.5rem] left-3" />
         {/*
           Yığın sırası: en altta video, üstünde giriş fotoğrafı (sönerek
@@ -647,7 +653,7 @@ export default function SpineStage() {
           {/* Giriş metni */}
           <div
             ref={heroRef}
-            className="pointer-events-none absolute inset-0 flex items-end pb-[7.75rem] sm:pb-28 lg:items-center lg:pb-0"
+            className="pointer-events-none absolute inset-x-0 top-0 flex h-[100svh] items-end pb-[7.75rem] sm:pb-28 lg:items-center lg:pb-0"
           >
             <div className="section-shell">
               <div className="max-w-2xl">

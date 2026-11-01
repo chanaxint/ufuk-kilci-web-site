@@ -217,7 +217,8 @@ export default function Testimonials() {
         indiriyor. Kâğıtlar kabuğun dışında, tam genişlikte duruyor.
       */}
       <div ref={pinRef} data-kaydir className="relative mt-8 h-[300vh] sm:mt-12 sm:h-[340vh]">
-        <div className="sticky top-0 h-[100svh] overflow-hidden">
+        {/* lvh: iPhone'da alt çubuk küçülünce altta zemin şeridi açılmasın (SpineStage ile aynı) */}
+        <div className="sticky top-0 h-[100svh] overflow-hidden supports-[height:100lvh]:h-[100lvh]">
           <div className="relative mx-auto h-full w-full max-w-[86rem] px-4 sm:px-8">
             {testimonials.map((item, i) => {
               const spot = spots[i % spots.length]

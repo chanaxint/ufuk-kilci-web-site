@@ -198,6 +198,17 @@ telefon sınırı 429; e-posta `.wrangler/tmp/email` altına taklit yazıldı),
 sunucu testleri 18/18. Worker'a `observability` eklendi. **Gerçek teslim
 henüz yapılmadı** — çalışır diye raporlanmayacak.
 
+### 4.5d iPhone'da sahnenin altında zemin şeridi (2026-11-02)
+
+Yapışkan sahne `100svh` idi; iOS Safari'de kaydırırken alt çubuk küçülünce
+görünür alan uzuyor ve sahnenin altında sayfanın ahşap zemini görünüyordu.
+Artık sahne (ve yorum kâğıtlarının yapışkan katmanı) `100lvh`
+(`supports-[height:100lvh]:h-[100lvh]`, eski tarayıcıda svh). Giriş metni
+ve düğmeler `h-[100svh]` katmanda kalıyor ki çubuk açıkken altında
+kalmasınlar. Fotoğraf, video ve WebGL aynı kapta → omurga çıpası kaymıyor.
+Headless Chromium'da svh = lvh olduğu için asıl durum yalnızca gerçek
+iPhone'da görülebilir.
+
 ### 4.5c Mobil düzeltmeler (2026-11-01, kullanıcı isteği)
 
 - **Bölge adı omurganın yanında:** telefonda dokunulan bölgenin adı + kodu +

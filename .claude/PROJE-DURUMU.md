@@ -185,7 +185,21 @@ FLOOR = 0.88     // kamera zemine vardı
 BLOOM = 0.93     // sıcak ışık dolup sahne sayfanın zeminine çözülüyor
 ```
 
-Bölüm boyu `h-[480vh] lg:h-[580vh]`.
+Bölüm boyu `h-[366vh] sm:h-[480vh] lg:h-[580vh]`.
+
+### 4.5a Telefonda yürüyüş yok (2026-11-01, kullanıcı isteği)
+
+`(max-width: 640px)` (videoların mobil kopyalarıyla aynı eşik) altında kliniğe
+giriş videosu **hiç çizilmiyor ve indirilmiyor**; sahne doğrudan masanın
+üstünde, omurga + yazılar görünür, başlık mürekkep açılıyor. Zaman çizelgesi
+değişmedi: `timeline(p) = REVEAL_B + p·(1 − REVEAL_B)` ile bölüm ilerlemesi
+REVEAL_B'den başlatılıyor, bölüm boyu da aynı oranda kısaldı (`h-[366vh]`) →
+iniş hızı aynı. `#giris` çapası telefonda `(HERO − REVEAL_B)/(1 − REVEAL_B)`
+noktasında. WebGL telefonda beklemeden kuruluyor (yürüyüşle yarışmadığı için).
+İlk kare `update(st.progress)` ile kaydırma beklenmeden yazılıyor.
+`klinige-giris-mobil.mp4` artık yalnızca pencere 640'ın üstüne büyütülürse
+devreye girebilir (pratikte kullanılmıyor). Ölçüm: 390/375'te video isteği
+yalnızca `masa-alti-inis-mobil.mp4`; 1440'ta değişiklik yok (çapa 1468 px).
 
 ### 4.5b Giriş noktası: yenileme ve logo
 

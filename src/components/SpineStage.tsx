@@ -42,6 +42,19 @@ const HOLD = 0.38 // buraya kadar sahne olduğu gibi duruyor
  */
 const HERO = (REVEAL_B + HOLD) / 2
 /*
+ * Telefonda kliniğe giriş yürüyüşü yok (kullanıcı isteği): sahne doğrudan
+ * masanın üstünde, omurga ve yazılar görünür hâlde açılıyor. Zaman
+ * çizelgesi aynı kalıyor; yalnızca kaydırma ilerlemesi REVEAL_B'den
+ * başlayacak şekilde eşleniyor ve bölüm boyu da o kadar kısalıyor
+ * (380vh kaydırmanın %70'i ≈ 266vh → `h-[366vh]`), yani inişin hızı aynı.
+ * Eşik, videoların mobil kopyalarıyla aynı.
+ */
+const PHONE_QUERY = '(max-width: 640px)'
+const PHONE_START = REVEAL_B
+const isPhone = () => typeof window !== 'undefined' && window.matchMedia(PHONE_QUERY).matches
+/** Bölüm ilerlemesini (0→1) zaman çizelgesine çeviriyor */
+const timeline = (p: number, phone: boolean) => (phone ? PHONE_START + p * (1 - PHONE_START) : p)
+/*
  * Omurganın ve giriş yazılarının çıkışı.
  *
  * Sayılar uydurma değil: videodaki stand bölgesi kare kare izlendi ve
@@ -180,11 +193,24 @@ export default function SpineStage() {
   const heroSeen = useRef(false)
   const [onScreen, setOnScreen] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
+  /* Telefonda yürüyüş videosu hiç yüklenmiyor; sahne masanın üstünden açılıyor */
+  const [phone, setPhone] = useState(isPhone)
+  const phoneRef = useRef(phone)
   /* Adrese ?ayar=1 eklenince omurgayı yerine oturtan panel açılır */
   const [tuning, setTuning] = useState(false)
 
   useEffect(() => {
     setTuning(new URLSearchParams(window.location.search).has('ayar'))
+  }, [])
+
+  useEffect(() => {
+    const mq = window.matchMedia(PHONE_QUERY)
+    const onChange = () => {
+      phoneRef.current = mq.matches
+      setPhone(mq.matches)
+    }
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
   }, [])
 
   useEffect(() => {
@@ -213,7 +239,8 @@ export default function SpineStage() {
       if (window.scrollY > 40) start()
     }
     window.addEventListener('scroll', onScroll, { passive: true })
-    const id = window.setTimeout(start, 4200)
+    /* Telefonda omurga ilk karede görünüyor: beklemeden kuruluyor */
+    const id = window.setTimeout(start, phoneRef.current ? 0 : 4200)
     return () => {
       window.clearTimeout(id)
       window.removeEventListener('scroll', onScroll)
@@ -382,139 +409,149 @@ export default function SpineStage() {
     const el = stageRef.current
     if (!el) return
     const ctx = gsap.context(() => {
-      ScrollTrigger.create({
+      const update = (progress: number) => {
+        if (focusedRef.current) return
+        const p = timeline(progress, phoneRef.current)
+        /* Yürüyüş izlendi: bundan sonra yenileme kapıya değil buraya döner */
+        if (p >= REVEAL_B && !heroSeen.current) {
+          heroSeen.current = true
+          markIntroSeen()
+        }
+
+        /*
+         * Kliniğe giriş: video kaydırmaya kilitli, sonunda fotoğrafa
+         * çözülüyor. Kare yerine kare geçtiği için hiçbir şey sıçramıyor.
+         */
+        const walk = clamp01(p / WALK)
+        const walkOut = ease(clamp01((p - WALK) / (CROSS - WALK)))
+        const reveal = ease(clamp01((p - REVEAL_A) / (REVEAL_B - REVEAL_A)))
+
+        const wv = walkRef.current
+        if (wv && !walkDuration.current && wv.duration) walkDuration.current = wv.duration
+        if (wv && walkDuration.current > 0) {
+          const wt = walk * walkDuration.current
+          if (Math.abs(wt - walkSeek.current) > 1 / 48) {
+            walkSeek.current = wt
+            try {
+              wv.currentTime = wt
+            } catch {
+              /* tarayıcı henüz hazır değilse sessizce geç */
+            }
+          }
+        }
+        if (walkWrapRef.current) walkWrapRef.current.style.opacity = (1 - walkOut).toFixed(3)
+
+        /* Fotoğraftan iniş videosuna devir */
+        const hand = clamp01((p - HOLD) / HANDOFF)
+        /*
+         * Videonun kendi ilerlemesi. Devir bitmeden başlamıyor: geçiş
+         * boyunca video ilk karesinde duruyor, o kare de giriş
+         * fotoğrafının aynısı olduğu için devir görünmüyor.
+         * Doğrusal: kamera parmağınıza kilitli, kaydırdığınız kadar
+         * iniyor — ortada hızlanıp yavaşlamıyor.
+         */
+        const roll = clamp01((p - HOLD - HANDOFF) / (FLOOR - HOLD - HANDOFF))
+        /*
+         * Videonun son karesi de, sayfanın arkaplanı da aynı ahşap zemin.
+         * Bu yüzden sonda beyaza patlamak yerine yalnızca sıcak bir ışık
+         * geçiyor ve sahne sayfanın kendi zeminine çözülüyor: iki zemin
+         * birbirine karışıyor, dikiş görünmüyor.
+         */
+        const bloom = ease(clamp01((p - FLOOR) / (BLOOM - FLOOR)))
+        const dissolve = ease(clamp01((p - BLOOM) / (1 - BLOOM)))
+
+        /*
+         * Devir sırasında fotoğraf kıpırdamıyor: video ilk karesinde
+         * duruyor ve o kare fotoğrafın aynısı, en ufak kayma bile iki
+         * görüntüyü üst üste düşürüp hayalet yapıyor. Yalnızca fotoğraf
+         * sönüyor — omurga ve yazılar sahnede kalıyor.
+         */
+        if (photoRef.current) photoRef.current.style.opacity = String(1 - hand)
+        rodScroll.current = reveal * (1 - hand)
+        applyRod()
+
+        /*
+         * Omurga ve giriş yazıları kaybolmuyor: kamera indikçe, masa
+         * üstüyle aynı ritimde yukarı çıkıp kadrajdan çıkıyorlar.
+         * Ölçülen eğri video saniyesiyle okunuyor, böylece hareket
+         * videodaki kamerayla aynı anda başlıyor ve hızlanıyor.
+         */
+        const vt = roll * (duration.current || 0)
+        const rise = cameraRise(vt)
+        if (followRef.current) {
+          followRef.current.style.transform = `translate3d(0, ${(rise * 100).toFixed(2)}vh, 0)`
+          /* Önce belirme, sonra inişte silinme: ikisi çarpılıyor */
+          followRef.current.style.opacity = (
+            reveal * (1 - ease(clamp01((vt - FADE_FROM) / (FADE_TO - FADE_FROM))))
+          ).toFixed(3)
+        }
+        /* "Omurgaya tıklayın" ipucu iniş başlar başlamaz çekiliyor */
+        if (hintRef.current) hintRef.current.style.opacity = (reveal * (1 - hand)).toFixed(3)
+        if (videoWrapRef.current)
+          videoWrapRef.current.style.opacity = (hand * (1 - dissolve)).toFixed(3)
+        if (washRef.current) washRef.current.style.opacity = (bloom * (1 - dissolve)).toFixed(3)
+
+        const v = videoRef.current
+        if (v && duration.current > 0) {
+          const t = roll * duration.current
+          /* Yarım kareden küçük farklar için seek istemiyoruz */
+          if (Math.abs(t - lastSeek.current) > 1 / 48) {
+            lastSeek.current = t
+            try {
+              v.currentTime = t
+            } catch {
+              /* tarayıcı henüz hazır değilse sessizce geç */
+            }
+          }
+        }
+
+        /*
+         * Sabit başlık ve mobil arama çubuğu koyu inişte siliniyor;
+         * zeminde perde açılırken geri geliyor.
+         */
+        scrollDark.current = clamp01(hand * 1.2) * (1 - Math.max(bloom, dissolve))
+        applyDark()
+
+        /*
+         * Başlık rengi: açık giriş fotoğrafının üzerinde mürekkep; yürüyüş
+         * videosunda ve ahşap zeminde fildişi. Eskiden videonun 3,5–5,5.
+         * saniyesinde mürekkebe dönüyordu; ölçünce başlık şeridinin arkası
+         * videonun sonunda koyulaşıyor çıktı (mürekkep kontrastı 1,5–2).
+         * Artık geçiş videonun fotoğrafa çözüldüğü anda, onunla birlikte.
+         * Başlığın arkasındaki perde de aynı değişkenle renk değiştiriyor.
+         */
+        document.documentElement.style.setProperty(
+          '--stage-photo',
+          (walkOut * (1 - hand)).toFixed(3),
+        )
+
+        /* Yürüyüş bitmeden ve omurga silindikten sonra boşuna dönmesin */
+        const live = reveal > 0.01 && vt < FADE_TO + 0.2
+        if (live !== sceneLive.current) {
+          sceneLive.current = live
+          setSceneLive(live)
+        }
+      }
+      const st = ScrollTrigger.create({
         trigger: el,
         start: 'top top',
         end: 'bottom bottom',
-        onUpdate: (self) => {
-          if (focusedRef.current) return
-          const p = self.progress
-          /* Yürüyüş izlendi: bundan sonra yenileme kapıya değil buraya döner */
-          if (p >= REVEAL_B && !heroSeen.current) {
-            heroSeen.current = true
-            markIntroSeen()
-          }
-
-          /*
-           * Kliniğe giriş: video kaydırmaya kilitli, sonunda fotoğrafa
-           * çözülüyor. Kare yerine kare geçtiği için hiçbir şey sıçramıyor.
-           */
-          const walk = clamp01(p / WALK)
-          const walkOut = ease(clamp01((p - WALK) / (CROSS - WALK)))
-          const reveal = ease(clamp01((p - REVEAL_A) / (REVEAL_B - REVEAL_A)))
-
-          const wv = walkRef.current
-          if (wv && walkDuration.current > 0) {
-            const wt = walk * walkDuration.current
-            if (Math.abs(wt - walkSeek.current) > 1 / 48) {
-              walkSeek.current = wt
-              try {
-                wv.currentTime = wt
-              } catch {
-                /* tarayıcı henüz hazır değilse sessizce geç */
-              }
-            }
-          }
-          if (walkWrapRef.current) walkWrapRef.current.style.opacity = (1 - walkOut).toFixed(3)
-
-          /* Fotoğraftan iniş videosuna devir */
-          const hand = clamp01((p - HOLD) / HANDOFF)
-          /*
-           * Videonun kendi ilerlemesi. Devir bitmeden başlamıyor: geçiş
-           * boyunca video ilk karesinde duruyor, o kare de giriş
-           * fotoğrafının aynısı olduğu için devir görünmüyor.
-           * Doğrusal: kamera parmağınıza kilitli, kaydırdığınız kadar
-           * iniyor — ortada hızlanıp yavaşlamıyor.
-           */
-          const roll = clamp01((p - HOLD - HANDOFF) / (FLOOR - HOLD - HANDOFF))
-          /*
-           * Videonun son karesi de, sayfanın arkaplanı da aynı ahşap zemin.
-           * Bu yüzden sonda beyaza patlamak yerine yalnızca sıcak bir ışık
-           * geçiyor ve sahne sayfanın kendi zeminine çözülüyor: iki zemin
-           * birbirine karışıyor, dikiş görünmüyor.
-           */
-          const bloom = ease(clamp01((p - FLOOR) / (BLOOM - FLOOR)))
-          const dissolve = ease(clamp01((p - BLOOM) / (1 - BLOOM)))
-
-          /*
-           * Devir sırasında fotoğraf kıpırdamıyor: video ilk karesinde
-           * duruyor ve o kare fotoğrafın aynısı, en ufak kayma bile iki
-           * görüntüyü üst üste düşürüp hayalet yapıyor. Yalnızca fotoğraf
-           * sönüyor — omurga ve yazılar sahnede kalıyor.
-           */
-          if (photoRef.current) photoRef.current.style.opacity = String(1 - hand)
-          rodScroll.current = reveal * (1 - hand)
-          applyRod()
-
-          /*
-           * Omurga ve giriş yazıları kaybolmuyor: kamera indikçe, masa
-           * üstüyle aynı ritimde yukarı çıkıp kadrajdan çıkıyorlar.
-           * Ölçülen eğri video saniyesiyle okunuyor, böylece hareket
-           * videodaki kamerayla aynı anda başlıyor ve hızlanıyor.
-           */
-          const vt = roll * (duration.current || 0)
-          const rise = cameraRise(vt)
-          if (followRef.current) {
-            followRef.current.style.transform = `translate3d(0, ${(rise * 100).toFixed(2)}vh, 0)`
-            /* Önce belirme, sonra inişte silinme: ikisi çarpılıyor */
-            followRef.current.style.opacity = (
-              reveal * (1 - ease(clamp01((vt - FADE_FROM) / (FADE_TO - FADE_FROM))))
-            ).toFixed(3)
-          }
-          /* "Omurgaya tıklayın" ipucu iniş başlar başlamaz çekiliyor */
-          if (hintRef.current) hintRef.current.style.opacity = (reveal * (1 - hand)).toFixed(3)
-          if (videoWrapRef.current)
-            videoWrapRef.current.style.opacity = (hand * (1 - dissolve)).toFixed(3)
-          if (washRef.current) washRef.current.style.opacity = (bloom * (1 - dissolve)).toFixed(3)
-
-          const v = videoRef.current
-          if (v && duration.current > 0) {
-            const t = roll * duration.current
-            /* Yarım kareden küçük farklar için seek istemiyoruz */
-            if (Math.abs(t - lastSeek.current) > 1 / 48) {
-              lastSeek.current = t
-              try {
-                v.currentTime = t
-              } catch {
-                /* tarayıcı henüz hazır değilse sessizce geç */
-              }
-            }
-          }
-
-          /*
-           * Sabit başlık ve mobil arama çubuğu koyu inişte siliniyor;
-           * zeminde perde açılırken geri geliyor.
-           */
-          scrollDark.current = clamp01(hand * 1.2) * (1 - Math.max(bloom, dissolve))
-          applyDark()
-
-          /*
-           * Başlık rengi: açık giriş fotoğrafının üzerinde mürekkep; yürüyüş
-           * videosunda ve ahşap zeminde fildişi. Eskiden videonun 3,5–5,5.
-           * saniyesinde mürekkebe dönüyordu; ölçünce başlık şeridinin arkası
-           * videonun sonunda koyulaşıyor çıktı (mürekkep kontrastı 1,5–2).
-           * Artık geçiş videonun fotoğrafa çözüldüğü anda, onunla birlikte.
-           * Başlığın arkasındaki perde de aynı değişkenle renk değiştiriyor.
-           */
-          document.documentElement.style.setProperty(
-            '--stage-photo',
-            (walkOut * (1 - hand)).toFixed(3),
-          )
-
-          /* Yürüyüş bitmeden ve omurga silindikten sonra boşuna dönmesin */
-          const live = reveal > 0.01 && vt < FADE_TO + 0.2
-          if (live !== sceneLive.current) {
-            sceneLive.current = live
-            setSceneLive(live)
-          }
-        },
+        onUpdate: (self) => update(self.progress),
+        /* Telefonda bölüm boyu değişince (döndürme) eşleme yeniden uygulansın */
+        onRefresh: (self) => update(self.progress),
       })
+      /*
+       * İlk kare: telefonda kaydırma başlamadan sahne masanın üstünde
+       * olmalı (omurga, yazılar, mürekkep başlık). Masaüstünde 0 noktası
+       * zaten başlangıç hâlinin aynısı.
+       */
+      update(st.progress)
     }, el)
     return () => ctx.revert()
   }, [])
 
   return (
-    <section id="top" ref={stageRef} data-kaydir className="relative h-[480vh] lg:h-[580vh]">
+    <section id="top" ref={stageRef} data-kaydir className="relative h-[366vh] sm:h-[480vh] lg:h-[580vh]">
       {/*
         Giriş çapası. Bölümün kaydırma aralığı (yükseklik − ekran) içinde
         HERO oranına denk gelen noktada duruyor; tarayıcının kendi çapa
@@ -524,7 +561,7 @@ export default function SpineStage() {
         id={HERO_ANCHOR}
         aria-hidden
         className="pointer-events-none absolute left-0 h-px w-px"
-        style={{ top: `calc((100% - 100vh) * ${HERO})` }}
+        style={{ top: `calc((100% - 100vh) * ${phone ? (HERO - PHONE_START) / (1 - PHONE_START) : HERO})` }}
       />
       <div ref={stickyRef} className="sticky top-0 h-[100svh] overflow-hidden">
         <EditChip target="giris" label="Giriş" at="top-[6.5rem] left-3" />
@@ -753,6 +790,7 @@ export default function SpineStage() {
           fotoğrafının aynısı (aynı kırpma, ölçülen 8 piksellik kayma
           düzeltilmiş), bu yüzden video sönerken ekranda fotoğraf kalıyor.
         */}
+        {!phone && (
         <div
           ref={walkWrapRef}
           aria-hidden="true"
@@ -779,6 +817,7 @@ export default function SpineStage() {
             <source src="/video/klinige-giris.webm" type="video/webm" />
           </video>
         </div>
+        )}
 
         {/* Zeminde dolan ışık — sonra sahneyle birlikte çözülüyor */}
         <div

@@ -57,7 +57,7 @@ export default function Navbar() {
         className={`pointer-events-none fixed inset-x-0 top-0 z-50 ${open ? 'nav-open' : ''}`}
       >
         <div
-          className="relative flex items-center justify-center px-5 py-5 sm:px-8 sm:py-6"
+          className={`relative flex items-center justify-center px-5 py-5 sm:px-8 sm:py-6 ${open ? '' : 'sahne-silinen'}`}
           /* Giriş sahnesinin koyu geçişinde başlık siliniyor */
           style={{ opacity: 'calc(1 - var(--stage-dark, 0))' }}
         >
@@ -150,7 +150,7 @@ export default function Navbar() {
         accentColor="#7a5637"
         items={links.map((l) => ({ label: l.label, ariaLabel: l.label, link: l.href }))}
         panelContent={
-          <ul className="flex list-none flex-col gap-1 p-0" role="list">
+          <ul className="flex list-none flex-col gap-2.5 p-0" role="list">
             {links.map((l) => (
               <li key={l.href}>
                 <DrawUnderlineLink
@@ -158,7 +158,7 @@ export default function Navbar() {
                   href={l.href}
                   stroke="#6b4a2c"
                   labelClassName="sm-panel-itemLabel"
-                  className="font-display text-[clamp(1.45rem,6.5vw,2.05rem)] font-semibold tracking-[-0.02em] text-ink-900 transition-colors duration-300 hover:text-brand-700 focus-visible:text-brand-700"
+                  className="font-display text-[clamp(1.9rem,9vw,2.5rem)] font-semibold tracking-[-0.02em] text-ink-900 transition-colors duration-300 hover:text-brand-700 focus-visible:text-brand-700"
                   /* Çizgi tamamlansın diye kapanış hafif gecikmeli */
                   onNavigate={() => window.setTimeout(() => setOpen(false), 420)}
                 />

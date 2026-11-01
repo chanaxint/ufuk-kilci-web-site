@@ -6,7 +6,7 @@ import { useContent } from '../lib/ContentContext'
 import { setScrollLocked } from '../lib/useSmoothScroll'
 import { HERO_ANCHOR, markIntroSeen } from '../lib/entry'
 import ShinyText from './reactbits/ShinyText'
-import { spineRegions, type SpineRegionId } from '../lib/spine'
+import type { SpineRegionId } from '../lib/spine'
 import { ArrowDown, ArrowRight } from './ui/icons'
 import SceneBoundary from './ui/SceneBoundary'
 import PoseTuner from './ui/PoseTuner'
@@ -174,6 +174,12 @@ export default function SpineStage() {
   const applyDark = () => {
     const v = Math.max(scrollDark.current, focusDark.current)
     document.documentElement.style.setProperty('--stage-dark', v.toFixed(3))
+    /*
+     * Silinen başlık ve mobil arama çubuğu görünmez olsa da dokunuşu
+     * yakalıyordu: yakın planda pelvisin alt ucuna dokunmak alttaki
+     * görünmez düğmeye gidiyordu. Yarıdan fazla silindiyse tıklanmıyorlar.
+     */
+    document.documentElement.toggleAttribute('data-sahne-karanlik', v > 0.5)
   }
 
   /* İniş başlayınca WebGL döngüsü duruyor; sahne zaten görünmüyor */
@@ -673,7 +679,16 @@ export default function SpineStage() {
                   {hero.tagline}
                 </p>
 
-                <div className="pointer-events-auto mt-6 flex flex-wrap items-center gap-3 sm:mt-9">
+                {/*
+                  Yakın planda düğmeler görünmez ama pelvisin üstünde
+                  duruyor: dokunuşu yutup sayfayı kaydırıyorlardı (en alt
+                  bölge seçilemiyordu). Odaktayken tıklanmıyorlar.
+                */}
+                <div
+                  className={`mt-6 flex flex-wrap items-center gap-3 sm:mt-9 ${
+                    focused ? 'pointer-events-none' : 'pointer-events-auto'
+                  }`}
+                >
                   <a
                     href="#iletisim"
                     className="group inline-flex items-center gap-2 rounded-full bg-ink-900 px-7 py-3.5 font-display text-[0.95rem] font-bold text-sand-50 shadow-[0_18px_40px_-18px_rgb(58_42_28/0.85)] transition-colors hover:bg-brand-700"
@@ -703,15 +718,15 @@ export default function SpineStage() {
             ref={hintRef}
             className="pointer-events-none absolute inset-x-0 top-[5.75rem] flex justify-center px-6 sm:top-auto sm:bottom-[4.1rem]"
           >
-            <span className="rounded-full bg-ink-950/55 px-4 py-2 text-center font-display text-[0.66rem] font-bold tracking-[0.1em] whitespace-nowrap text-sand-50/90 uppercase backdrop-blur-sm sm:text-[0.7rem] sm:tracking-[0.18em]">
+            {/* Telefonda seçilen bölgenin adı artık omurganın yanında yazıyor */}
+            <span
+              className={`rounded-full bg-ink-950/55 px-4 py-2 text-center font-display text-[0.66rem] font-bold tracking-[0.1em] whitespace-nowrap text-sand-50/90 uppercase backdrop-blur-sm transition-opacity duration-300 sm:text-[0.7rem] sm:tracking-[0.18em] ${
+                isMobile && focused && picked ? 'opacity-0' : ''
+              }`}
+            >
               {isMobile
                 ? focused
-                  ? picked
-                    ? (() => {
-                        const r = spineRegions.find((x) => x.id === picked)
-                        return r ? `${r.name} · ${r.code}` : ''
-                      })()
-                    : 'Bölgelere dokunun · kaydırınca kapanır'
+                  ? 'Bölgelere dokunun · kaydırınca kapanır'
                   : 'Omurgaya dokunun · bölgeleri tanıyın'
                 : focused
                   ? 'Bölgelerin üzerine gelin · boşluğa tıklayın ya da kaydırın'

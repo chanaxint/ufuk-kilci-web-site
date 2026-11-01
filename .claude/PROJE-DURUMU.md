@@ -187,6 +187,24 @@ BLOOM = 0.93     // sıcak ışık dolup sahne sayfanın zeminine çözülüyor
 
 Bölüm boyu `h-[366vh] sm:h-[480vh] lg:h-[580vh]`.
 
+### 4.5c Mobil düzeltmeler (2026-11-01, kullanıcı isteği)
+
+- **Bölge adı omurganın yanında:** telefonda dokunulan bölgenin adı + kodu +
+  alt başlığı, bölgenin sınır kutusunun hemen solunda, kutusuz (fildişi +
+  `LABEL_SHADOW`) — `SpineStageScene` içindeki `isMobile` etiketleri. Üstteki
+  hap yalnızca "dokunun" ipucu için; bölge seçilince siliniyor. Yer açmak
+  için `mobileFocus` = `{ x: 0.5, scale: 0.66 }` (omurga sağa kaydı).
+- **En alt bölge seçilemiyordu:** yakın planda görünmez "Randevu Oluştur /
+  Skolyoz Tedavisi" düğmeleri pelvisin üstünde kalıp dokunuşu yutuyordu
+  (sayfa kayıyordu). Odaktayken düğmeler `pointer-events-none`. Ayrıca
+  `--stage-dark` > 0,5 iken `html[data-sahne-karanlik]` → başlık ve mobil
+  arama çubuğu (`.sahne-silinen`) dokunuş almıyor.
+- **Menü yazıları büyüdü:** `clamp(1.9rem,9vw,2.5rem)`, aralık `gap-2.5`.
+- **Yorum kâğıtları (< 1024 px):** sol–sağ–sol zikzak (`NARROW`, sağdakiler
+  `right` ile), her kâğıt kendi tarafının üst köşesinden çapraz giriyor;
+  sonraki dalga gelince saydamlaşmadan aşağı kayıp kadrajdan çıkıyor.
+  Masaüstü (`WIDE`) mantığı değişmedi.
+
 ### 4.5a Telefonda yürüyüş yok (2026-11-01, kullanıcı isteği)
 
 `(max-width: 640px)` (videoların mobil kopyalarıyla aynı eşik) altında kliniğe

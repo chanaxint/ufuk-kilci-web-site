@@ -372,3 +372,14 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+/*
+ * Giriş sahnesi koyulaşınca (iniş ya da omurgaya yakın plan) silinen başlık
+ * ve mobil arama çubuğu dokunuş yakalamasın. Bayrağı `SpineStage` yazıyor.
+ */
+[data-sahne-karanlik] .sahne-silinen {
+  pointer-events: none !important;
+}
+[data-sahne-karanlik] .sahne-silinen * {
+  pointer-events: none !important;
+}

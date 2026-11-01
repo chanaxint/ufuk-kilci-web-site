@@ -11,7 +11,7 @@ export default function MobileCallBar() {
       initial={{ y: 90 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.8, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}
-      className="fixed inset-x-3 bottom-3 z-30 flex items-center gap-2.5 sm:hidden"
+      className="sahne-silinen fixed inset-x-3 bottom-3 z-30 flex items-center gap-2.5 sm:hidden"
       style={{ opacity: 'calc(1 - var(--stage-dark, 0))' }}
     >
       <a

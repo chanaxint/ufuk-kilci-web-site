@@ -257,6 +257,59 @@ export default function SpineStageScene({
                 </Html>
               )
             })}
+
+          {/*
+            Telefon: yalnızca dokunulan bölgenin adı, o bölgenin hemen
+            solunda, kutusuz. Masaüstündeki iki yana dağılmış etiketler dar
+            ekrana sığmıyor; eskiden ad, ekranın üstündeki koyu bir hapta
+            yazıyordu. Konum bölgenin kendi sınır kutusundan: sol kenarının
+            biraz dışı, dikeyde ortası.
+          */}
+          {isMobile &&
+            parts.map((part) => {
+              const shown = labelsVisible && hovered === part.region.id
+              const box = part.geometry.boundingBox
+              const left = box ? box.min.x : -0.6
+              return (
+                <Html
+                  key={part.region.id}
+                  position={[left - 0.12, part.center.y, 0]}
+                  zIndexRange={[30, 0]}
+                  style={{ pointerEvents: 'none' }}
+                >
+                  <div
+                    className={`flex w-max max-w-[8rem] -translate-x-full -translate-y-1/2 items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                      shown ? 'opacity-100' : 'translate-x-[calc(-100%+0.5rem)] opacity-0'
+                    }`}
+                  >
+                    <div className="text-right">
+                      <div
+                        className="font-display text-[0.7rem] leading-tight font-bold tracking-[0.12em] uppercase"
+                        style={{ color: '#f6efe2', textShadow: LABEL_SHADOW }}
+                      >
+                        {part.region.name}
+                      </div>
+                      <div
+                        className="mt-1 font-display text-[0.68rem] leading-tight font-bold"
+                        style={{ color: '#d8c3a0', textShadow: LABEL_SHADOW }}
+                      >
+                        {part.region.code}
+                      </div>
+                      <div
+                        className="mt-1 text-[0.7rem] leading-snug"
+                        style={{ color: '#e8ddca', textShadow: LABEL_SHADOW }}
+                      >
+                        {part.region.subtitle}
+                      </div>
+                    </div>
+                    <span
+                      className="h-px w-5 shrink-0"
+                      style={{ background: `linear-gradient(to right, transparent, ${part.region.color})` }}
+                    />
+                  </div>
+                </Html>
+              )
+            })}
         </ScrollRig>
 
         <ContactShadows

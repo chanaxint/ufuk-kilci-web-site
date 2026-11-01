@@ -25,7 +25,8 @@ export const spine = { span: 0.498, rotY: -0.52 }
 
 /** Üzerine tıklanınca kameranın yaklaştığı hâl — pencereden bağımsız */
 export const desktopFocus: Pose = { x: 0.06, y: -0.02, z: 0.9, scale: 0.8, rotY: 0.3 }
-export const mobileFocus: Pose = { x: 0, y: -0.02, z: 0.9, scale: 0.72, rotY: 0.3 }
+/* Telefonda omurga biraz sağda: seçilen bölgenin adı solunda yazıyor */
+export const mobileFocus: Pose = { x: 0.5, y: -0.02, z: 0.9, scale: 0.66, rotY: 0.3 }
 
 /** Fotoğrafın `object-cover` ile ekrana oturma katsayıları */
 export function coverFit(vw: number, vh: number) {

@@ -12,7 +12,7 @@ import { EditChip } from './CustomBlock'
  * Elle dağıtıldı: üst üste binen ama yazısı okunan, rastgele atılmış bir
  * deste hissi verecek şekilde.
  */
-type Spot = { x: number; y: number; r: number }
+type Spot = { x: number; y: number; r: number; /** sağ kenardan ölçülür */ right?: boolean }
 
 /*
  * Kâğıtlar birbirinin kopyası olmasın: her biri biraz farklı sararmış,
@@ -43,15 +43,17 @@ const WIDE: Spot[] = [
 ]
 
 /*
- * Dar ekranda aynı anda üç kâğıt sığıyor. Sekizi birden inince yazılar
- * birbirinin altında kalıyordu; bu yüzden mobilde kâğıtlar üçlü dalgalar
- * hâlinde geliyor: ilk üçü yere iner, dördüncü düşerken ilki yerini ona
- * bırakır.
+ * Dar ekranda aynı anda üç kâğıt sığıyor; mobilde kâğıtlar üçlü dalgalar
+ * hâlinde geliyor. Kullanıcı isteğiyle (2026-11-01) üst üste değil çapraz:
+ * sol–sağ–sol zikzak, karşılıklı eğik. Her kâğıt kendi tarafından çapraz
+ * bir çizgiyle kadraja giriyor; bir sonraki dalga gelince silinmiyor,
+ * aşağı kayıp kadrajdan çıkıyor. Sağdakiler sağ kenardan ölçülüyor ki
+ * tablette de karşı kenara otursun.
  */
 const NARROW: Spot[] = [
-  { x: 2, y: 9, r: -5 },
-  { x: 12, y: 39, r: 4 },
-  { x: 4, y: 68, r: 6 },
+  { x: 0, y: 10, r: -6 },
+  { x: 0, y: 37, r: 5, right: true },
+  { x: 2, y: 64, r: -4 },
 ]
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
@@ -100,6 +102,36 @@ export default function Testimonials() {
       paperRefs.current.forEach((node, i) => {
         if (!node) return
         const t = settle(clamp01((p - i * step) / DROP))
+        if (narrow) {
+          const spot = NARROW[i % group]
+          const side = spot.right ? 1 : -1
+          const next = i + group
+          /* Ardılı düşmeye başlayınca bu kâğıt aşağı kayıp kadrajdan çıkıyor */
+          const leave =
+            next < testimonials.length ? clamp01((p - next * step) / (DROP * 0.8)) : 0
+          const out = leave * leave
+          /*
+           * Geliş çapraz: kendi tarafının üst köşesinden, kadrajın dışından.
+           * Dikey yol kâğıdın durduğu yükseklik + payı kadar, böylece
+           * havadayken hiç görünmüyor ve saydamlığa gerek kalmıyor.
+           */
+          const fromY = -(spot.y + 38) * (1 - t)
+          const fromX = side * 70 * (1 - t)
+          /* Gidiş: aşağıya, kadrajın altına; hafif dönerek */
+          const toY = (100 - spot.y + 12) * out
+          const x = fromX + side * 8 * out
+          const y = fromY + toY
+          const spin = (1 - t) * side * 18 + out * side * -8
+          node.style.transform = `translate3d(${x.toFixed(2)}vw, ${y.toFixed(2)}vh, 0) rotate(${spot.r + spin}deg) scale(${(1 + (1 - t) * 0.06).toFixed(3)})`
+          node.style.opacity = t > 0 && leave < 1 ? '1' : '0'
+          node.style.zIndex = String(10 + i)
+          const spread = 10 + (1 - t) * 44
+          const drop = 8 + (1 - t) * 40
+          node.style.boxShadow =
+            `0 ${drop.toFixed(0)}px ${spread.toFixed(0)}px -${(spread * 0.55).toFixed(0)}px rgb(12 7 3 / ${(0.85 - (1 - t) * 0.3).toFixed(2)}),` +
+            ' inset 0 0 26px rgb(126 96 52 / 0.22)'
+          return
+        }
         /*
          * Yerinde bir sonraki dalga varsa (mobil), ardılı düşerken bu kâğıt
          * yerini ona bırakıyor: hafifçe aşağı kayıp siliniyor.
@@ -201,7 +233,7 @@ export default function Testimonials() {
                   }}
                   data-rot={spot.r}
                   style={{
-                    left: `${spot.x}%`,
+                    ...(spot.right ? { right: `${spot.x}%` } : { left: `${spot.x}%` }),
                     top: `${spot.y}%`,
                     transformOrigin: '50% 40%',
                     opacity: 0,
